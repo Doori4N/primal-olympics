@@ -1,6 +1,7 @@
 import * as B from "@babylonjs/core";
 import HavokPhysics, {HavokPhysicsWithBindings} from "@babylonjs/havok"
 import {SceneManager} from "./SceneManager";
+import {InputManager} from "./InputManager";
 
 export class Game {
     private static instance: Game;
@@ -8,6 +9,7 @@ export class Game {
     public canvas!: HTMLCanvasElement;
     public engine!: B.Engine;
     public physicsPlugin!: B.HavokPlugin;
+    public inputs: InputManager = new InputManager();
 
     private constructor() {}
 

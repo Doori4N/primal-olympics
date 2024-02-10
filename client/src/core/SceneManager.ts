@@ -1,5 +1,6 @@
 import {Scene} from "./Scene";
 import {ExampleScene} from "../scenes/ExampleScene";
+import {LocalMenuScene} from "../scenes/LocalMenuScene";
 
 export class SceneManager {
     private static instance: SceneManager;
@@ -20,6 +21,7 @@ export class SceneManager {
      * Import all scenes and initialize the current scene
      */
     public initializeScenes(): void {
+        this.scenes.push(new LocalMenuScene());
         this.scenes.push(new ExampleScene());
 
         // set the current scene and start it
