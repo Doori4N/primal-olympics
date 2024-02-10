@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "es6", // choose our ECMA/JavaScript version (all modern browsers support ES6 so it's your best bet)
+    "lib": [ // choose our default ECMA/libraries to import
+      "dom", // mandatory for all browser-based apps
+      "es6" // mandatory for targeting ES6
+    ],
+    "module": "ESNext", // use the latest ECMA/JavaScript syntax for our import statements and such
+    "skipLibCheck": true, // skip type-checking of .d.ts files (it speeds up transpiling)
+    "useDefineForClassFields": true, // enable latest ECMA runtime behavior with older ECMA/JavaScript versions (delete this line if target: "ESNext" or "ES2022"+)
+
+    "moduleResolution": "node", // ensures we are using CommonJS for our npm packages
+    "isolatedModules": true, // allows our code to be processed by other transpilers, such as preventing non-module TS files (you could delete this since we're only using base TypeScript)
+    "resolveJsonModule": true,
+    "noResolve": false, // disable TypeScript from automatically detecting/adding files based on import statements and etc (it's less helpful than you think)
+
+    "strict": true, // enables all strict type-checking options
+    "removeComments": true, // remove comments from our outputted code to save on space (look into terser if you want to protect the outputted JS even more)
+    "esModuleInterop": true, // treats non-ES6 modules separately from ES6 modules (helpful if module: "ESNext")
+    "noFallthroughCasesInSwitch": true, // raises an error for switch statements that don't have a break statement
+    "noUnusedParameters": true, // raises an error for unused parameters
+    "noUnusedLocals": true, // raises an error for unused variables
+    "noImplicitReturns": true, // raises an error for functions that return nothing
+  },
+  "include": [
+    "src"
+  ] // specify location(s) of .ts files
+}
