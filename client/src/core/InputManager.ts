@@ -7,9 +7,9 @@ export class InputManager {
     private gamepadManager: B.GamepadManager;
 
     // events
-    public onKeyboardConnected!: Function[];
-    public onGamepadConnected!: Function[];
-    public onGamepadDisconnected!: Function[];
+    public onKeyboardConnected: Function[] = [];
+    public onGamepadConnected: Function[] = [];
+    public onGamepadDisconnected: Function[] = [];
 
     public inputMap: InputStates[] = [];
 
