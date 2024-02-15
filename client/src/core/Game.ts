@@ -2,6 +2,7 @@ import * as B from "@babylonjs/core";
 import HavokPhysics, {HavokPhysicsWithBindings} from "@babylonjs/havok"
 import {SceneManager} from "./SceneManager";
 import {InputManager} from "./InputManager";
+import {playerData} from "./types";
 
 export class Game {
     private static instance: Game;
@@ -10,6 +11,8 @@ export class Game {
     public engine!: B.Engine;
     public physicsPlugin!: B.HavokPlugin;
     public inputs: InputManager = new InputManager();
+    public playerData: playerData[] = [];
+    public events: string[] = ["catchTheChicken"];
 
     private constructor() {}
 

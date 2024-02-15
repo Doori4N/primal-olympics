@@ -19,11 +19,19 @@ export class InputManager {
         this.listenToGamepad();
     }
 
+    /**
+     * Listen to keyboard events and update the inputMap accordingly
+     */
     private listenToKeyboard(): void {
         window.addEventListener("keydown", (event: KeyboardEvent): void => {
             const index: number = this.inputMap.findIndex((inputState: InputStates): boolean => inputState.type === InputType.KEYBOARD);
+
+            // if no keyboard inputStates are found, add a new one (this should only happen once)
             if (index === -1) {
+                // signal that a keyboard has been connected
                 this.onKeyboardConnected.forEach((callback: Function): void => callback());
+
+                // add a new inputStates to the inputMap
                 this.inputMap.push({
                     type: InputType.KEYBOARD,
                     direction: {
@@ -35,6 +43,7 @@ export class InputManager {
                 return;
             }
 
+            // update the inputStates
             switch (event.code) {
                 case "ArrowUp":
                     this.inputMap[index].direction.y = 1;
@@ -58,6 +67,7 @@ export class InputManager {
             const index: number = this.inputMap.findIndex((inputState: InputStates): boolean => inputState.type === InputType.KEYBOARD);
             if (index === -1) return;
 
+            // update the inputStates
             switch (event.code) {
                 case "ArrowUp":
                     this.inputMap[index].direction.y = 0;
@@ -78,6 +88,9 @@ export class InputManager {
         });
     }
 
+    /**
+     * Listen to gamepad events and update the inputMap accordingly
+     */
     private listenToGamepad(): void {
         this.gamepadManager.onGamepadConnectedObservable.add((gamepad: B.Gamepad): void => {
             // signal that a gamepad has been connected
@@ -101,6 +114,7 @@ export class InputManager {
                 gamepad.onButtonDownObservable.add((button: number): void => {
                     switch (button) {
                         case B.DualShockButton.Cross:
+                            console.log("jump");
                             this.inputMap[index].buttons["jump"] = true;
                             break;
                     }
@@ -117,7 +131,21 @@ export class InputManager {
 
             // GENERIC
             if (gamepad instanceof B.GenericPad) {
-                // TODO: implement
+                gamepad.onButtonDownObservable.add((button: number): void => {
+                    switch (button) {
+                        case 0:
+                            this.inputMap[index].buttons["jump"] = true;
+                            break;
+                    }
+                });
+
+                gamepad.onButtonUpObservable.add((button: number): void => {
+                    switch (button) {
+                        case 0:
+                            this.inputMap[index].buttons["jump"] = false;
+                            break;
+                    }
+                });
             }
 
             // XBOX

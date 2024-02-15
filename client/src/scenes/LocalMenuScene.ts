@@ -6,6 +6,8 @@ export class LocalMenuScene extends Scene {
     }
 
     public start(): void {
+        super.start();
+
         // PROTOTYPE MENU
         const text: HTMLDivElement = document.createElement("div");
         text.className = "ui";
@@ -19,9 +21,11 @@ export class LocalMenuScene extends Scene {
 
         this.game.inputs.onKeyboardConnected.push((): void => {
             text.innerHTML += "Keyboard connected<br>";
+            this.addPlayer();
         });
         this.game.inputs.onGamepadConnected.push((): void => {
             text.innerHTML += "Gamepad connected<br>";
+            this.addPlayer();
         });
 
         const button: HTMLButtonElement = document.createElement("button");
@@ -33,7 +37,9 @@ export class LocalMenuScene extends Scene {
         button.style.left = "50%";
         button.style.transform = "translate(-50%, 0)";
         button.onclick = (): void => {
-            this.sceneManager.changeScene("Example");
+            if (this.game.playerData.length > 0) {
+                this.sceneManager.changeScene("gameSelection");
+            }
         }
         document.body.appendChild(button);
     }
@@ -48,5 +54,14 @@ export class LocalMenuScene extends Scene {
 
         this.game.inputs.onKeyboardConnected = [];
         this.game.inputs.onGamepadConnected = [];
+    }
+
+    private addPlayer(): void {
+        this.game.playerData.push({
+            name: "Player " + (this.game.playerData.length + 1),
+            goldMedals: 0,
+            silverMedals: 0,
+            bronzeMedals: 0
+        })
     }
 }

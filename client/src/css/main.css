@@ -4,3 +4,24 @@
     box-sizing: border-box;
     overflow: hidden;
 }
+
+#ui {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transform: translate(-50%, -50%);
+    background-color: #f0f0f0;
+}
+
+#track {
+    /* bottom right corner */
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 10px;
+    background-color: #f0f0f0;
+}

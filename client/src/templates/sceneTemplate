@@ -1,0 +1,19 @@
+export class NAME extends Scene {
+    constructor() {
+        super("NAME");
+    }
+
+    public start(): void {
+        // camera
+        this.mainCamera.setTarget(B.Vector3.Zero());
+        this.mainCamera.attachControl(this.game.canvas, true);
+
+        // light
+        const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.scene);
+        light.intensity = 0.7;
+
+        // ground
+        const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: 6, height: 6}, this.scene);
+        ground.position.y = 0;
+    }
+}

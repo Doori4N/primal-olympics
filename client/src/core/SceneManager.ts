@@ -1,6 +1,9 @@
 import {Scene} from "./Scene";
 import {ExampleScene} from "../scenes/ExampleScene";
 import {LocalMenuScene} from "../scenes/LocalMenuScene";
+import {CatchTheChickenScene} from "../scenes/catchTheChicken/CatchTheChickenScene";
+import {GameSelectionScene} from "../scenes/gameSelection/GameSelectionScene";
+import {GameOverScene} from "../scenes/gameOver/GameOverScene";
 
 export class SceneManager {
     private static instance: SceneManager;
@@ -22,7 +25,10 @@ export class SceneManager {
      */
     public initializeScenes(): void {
         this.scenes.push(new LocalMenuScene());
+        this.scenes.push(new CatchTheChickenScene());
         this.scenes.push(new ExampleScene());
+        this.scenes.push(new GameSelectionScene());
+        this.scenes.push(new GameOverScene());
 
         // set the current scene and start it
         this.currentScene = this.scenes[0];

@@ -29,9 +29,8 @@ export class Entity {
      * @throws Error if component does not exist
      */
     public removeComponent(componentName: string): void {
-        if (!this.components.has(componentName)) {
-            throw new Error(`Component ${componentName} does not exist on entity ${this.id}`);
-        }
+        const component: IComponent = this.getComponent(componentName);
+        component.onDestroy();
         this.components.delete(componentName);
     }
 

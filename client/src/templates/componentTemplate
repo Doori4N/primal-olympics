@@ -1,0 +1,18 @@
+export class NAME implements IComponent {
+    public name: string = "NAME";
+    public entity: Entity;
+    public scene: Scene;
+
+    // component properties
+
+    constructor(entity: Entity, scene: Scene, props: {}) {
+        this.entity = entity;
+        this.scene = scene;
+    }
+
+    public onStart(): void {}
+
+    public onUpdate(): void {}
+
+    public onDestroy(): void {}
+}

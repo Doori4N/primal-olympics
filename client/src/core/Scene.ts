@@ -1,5 +1,6 @@
 import * as B from '@babylonjs/core';
-import {Inspector} from "@babylonjs/inspector";
+import "@babylonjs/core/Debug/debugLayer";
+import "@babylonjs/inspector";
 import {Game} from "./Game";
 import {EventManager} from "./EventManager";
 import {EntityManager} from "./EntityManager";
@@ -36,10 +37,10 @@ export class Scene {
         window.addEventListener("keydown", (e: KeyboardEvent): void => {
             // Shift+Ctrl+I
             if (e.shiftKey && e.ctrlKey && e.code === "KeyI") {
-                if (Inspector.IsVisible) {
-                    Inspector.Hide();
+                if (this.scene.debugLayer.isVisible()) {
+                    this.scene.debugLayer.hide();
                 } else {
-                    Inspector.Show(this.scene, {handleResize: true, overlay: true});
+                    this.scene.debugLayer.show({overlay: true, handleResize: true});
                 }
             }
         });

@@ -39,6 +39,19 @@ export class EntityManager {
     }
 
     /**
+     * Returns the first entity with a given tag
+     * @throws Error if entity is not found
+     */
+    public getFirstEntityWithTag(tag: string): Entity {
+        for (const entity of this.entities.values()) {
+            if (entity.tag === tag) {
+                return entity;
+            }
+        }
+        throw new Error(`Entity with tag ${tag} not found!`);
+    }
+
+    /**
      * Adds an entity to scene and starts its components
      * @param entity
      */
