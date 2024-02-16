@@ -12,7 +12,10 @@ export class PlayerBehaviour implements IComponent {
     public scene: Scene;
 
     // component properties
-    private mesh!: B.Mesh;
+    private mesh!: B.AbstractMesh;
+
+    // animations
+    private animations: {[key: string]: B.AnimationGroup} = {};
 
     // inputs
     public readonly inputIndex!: number;
@@ -35,21 +38,26 @@ export class PlayerBehaviour implements IComponent {
     private orangeThreshold: number = 0.5;
     private redThreshold: number = 0.7;
 
-    constructor(entity: Entity, scene: Scene, props: {inputIndex: number}) {
+    constructor(entity: Entity, scene: Scene, props: {inputIndex: number, animationGroups: B.AnimationGroup[]}) {
         this.entity = entity;
         this.scene = scene;
         this.inputIndex = props.inputIndex;
+        this.animations["Idle"] = props.animationGroups[0];
+        this.animations["Walking"] = props.animationGroups[2];
     }
 
     public onStart(): void {
         this.inputStates = this.scene.game.inputs.inputMap[this.inputIndex];
         const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
         this.mesh = meshComponent.mesh;
+        this.animations["Idle"].start(true, 1.0, this.animations["Idle"].from, this.animations["Idle"].to, false);
         this.scene.eventManager.subscribe("onGameStarted", this.onGameStarted.bind(this));
         this.scene.eventManager.subscribe("onGameFinished", this.onGameFinished.bind(this));
     }
 
     public onUpdate(): void {
+        this.animate();
+
         if (!this.isGameStarted || this.isGameFinished || this.isStopped) return;
 
         // change velocity
@@ -79,7 +87,7 @@ export class PlayerBehaviour implements IComponent {
         this.slider.displayThumb = false;
         this.gui.addControl(this.slider);
         this.slider.linkWithMesh(this.mesh);
-        this.slider.linkOffsetY = -50;
+        this.slider.linkOffsetY = -70;
     }
 
     private updateVelocityGUI(velocityX: number): void {
@@ -134,5 +142,16 @@ export class PlayerBehaviour implements IComponent {
     public stopPlayer(): void {
         this.isStopped = true;
         this.removeVelocityGUI();
+    }
+
+    private animate(): void {
+        if (this.velocityX > 0 && !this.animations["Walking"].isPlaying) {
+            this.animations["Idle"].stop();
+            this.animations["Walking"].start(true, 1.0, this.animations["Walking"].from, this.animations["Walking"].to, false);
+        }
+        else if (this.velocityX === 0 && !this.animations["Idle"].isPlaying) {
+            this.animations["Walking"].stop();
+            this.animations["Idle"].start(true, 1.0, this.animations["Idle"].from, this.animations["Idle"].to, false);
+        }
     }
 }

@@ -12,7 +12,6 @@ import {GameMessages} from "./gameController/GameMessages";
 import {Leaderboard} from "./gameController/Leaderboard";
 import {EventScores} from "./gameController/EventScores";
 import {PlayersController} from "./gameController/PlayersController";
-import {TrackController} from "./gameController/TrackController";
 
 export class CatchTheChickenScene extends Scene {
     constructor() {
@@ -50,16 +49,27 @@ export class CatchTheChickenScene extends Scene {
         cameraEntity.addComponent(new CameraAnimation(cameraEntity, this));
         this.entityManager.addEntity(cameraEntity);
 
-        // players
-        for (let i: number = 0; i < this.game.playerData.length; i++) {
-            const player: B.Mesh = B.MeshBuilder.CreateCapsule(`player${i}`, {radius: 0.3, height: 1.5}, this.scene);
-            player.position.y = 0.75;
-            player.position.z = i * 2;
-            const playerEntity = new Entity("player");
-            playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: player}));
-            playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {inputIndex: i}));
-            this.entityManager.addEntity(playerEntity);
-        }
+        B.SceneLoader.LoadAssetContainer(
+            "https://assets.babylonjs.com/meshes/",
+            "HVGirl.glb",
+            this.scene,
+            (container: B.AssetContainer): void => {
+                // players
+                for (let i: number = 0; i < this.game.playerData.length; i++) {
+                    const entries: B.InstantiatedEntries = container.instantiateModelsToScene((sourceName: string): string => sourceName + i, false, {doNotInstantiate: true});
+                    const player: B.AbstractMesh = this.scene.getMeshByName("__root__" + i) as B.AbstractMesh;
+                    if (!player) throw new Error("Player mesh not found");
+
+                    player.scaling.scaleInPlace(0.1);
+                    player.position.z = i * 2;
+                    player.rotate(B.Axis.Y, Math.PI / 2, B.Space.WORLD);
+                    const playerEntity = new Entity("player");
+                    playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: player}));
+                    playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {inputIndex: i, animationGroups: entries.animationGroups}));
+                    this.entityManager.addEntity(playerEntity);
+                }
+            }
+        );
 
         // chicken
         const chicken: B.Mesh = B.MeshBuilder.CreateSphere("chicken", {diameter: 1}, this.scene);
@@ -77,7 +87,6 @@ export class CatchTheChickenScene extends Scene {
         gameController.addComponent(new Leaderboard(gameController, this));
         gameController.addComponent(new EventScores(gameController, this));
         gameController.addComponent(new PlayersController(gameController, this));
-        gameController.addComponent(new TrackController(gameController, this));
         this.entityManager.addEntity(gameController);
     }
 }

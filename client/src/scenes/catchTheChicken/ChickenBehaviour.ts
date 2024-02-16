@@ -10,7 +10,7 @@ export class ChickenBehaviour implements IComponent {
     public scene: Scene;
 
     // component properties
-    private mesh!: B.Mesh;
+    private mesh!: B.AbstractMesh;
     private velocityX: number = 0.01;
     private slowDown: number = 0.000005;
     private isGameStarted: boolean = false;
@@ -48,7 +48,7 @@ export class ChickenBehaviour implements IComponent {
     private checkCollisionWithPlayers(players: Entity[]): boolean {
         for (let i: number = 0; i < players.length; i++) {
             const playerMeshComponent = players[i].getComponent("Mesh") as MeshComponent;
-            const playerMesh: B.Mesh = playerMeshComponent.mesh;
+            const playerMesh: B.AbstractMesh = playerMeshComponent.mesh;
 
             if (this.mesh.position.x - 1 < playerMesh.position.x) {
                 return true;
