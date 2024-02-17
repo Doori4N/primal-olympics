@@ -11,8 +11,8 @@ export class ChickenBehaviour implements IComponent {
 
     // component properties
     private mesh!: B.AbstractMesh;
-    private velocityX: number = 0.01;
-    private slowDown: number = 0.000005;
+    private velocityX: number = 0.2;
+    private slowDown: number = 0.000007;
     private isGameStarted: boolean = false;
     private isGameFinished: boolean = false;
 
@@ -40,7 +40,7 @@ export class ChickenBehaviour implements IComponent {
 
         this.slowDownVelocity();
 
-        this.mesh.position.x += this.velocityX * this.scene.scene.deltaTime;
+        this.mesh.position.x += this.velocityX;
     }
 
     public onDestroy(): void {}
@@ -59,7 +59,7 @@ export class ChickenBehaviour implements IComponent {
 
     private slowDownVelocity(): void {
         if (this.velocityX >= this.slowDown + 0.001) {
-            this.velocityX -= this.slowDown;
+            this.velocityX -= this.slowDown * this.scene.scene.deltaTime;
         }
         else {
             console.log("stopped");

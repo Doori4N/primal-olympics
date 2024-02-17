@@ -30,11 +30,12 @@ export class PlayerBehaviour implements IComponent {
     // velocity
     private velocityX: number = 0;
     private slowDown: number = 0.00005;
-    private speed: number = 0.0008;
+    private speed: number = 0.0007;
 
     // gui
     private gui!: GUI.AdvancedDynamicTexture;
     private slider!: GUI.Slider;
+    private maxVelocityX: number = 0.5;
     private orangeThreshold: number = 0.5;
     private redThreshold: number = 0.7;
 
@@ -68,7 +69,7 @@ export class PlayerBehaviour implements IComponent {
         this.updateVelocityGUI(this.velocityX);
 
         // apply velocity
-        this.mesh.position.x += this.velocityX * this.scene.scene.deltaTime;
+        this.mesh.position.x += this.velocityX;
     }
 
     public onDestroy(): void {}
@@ -77,7 +78,7 @@ export class PlayerBehaviour implements IComponent {
         this.gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI(`velocityUI${this.inputIndex}`, true, this.scene.scene);
         this.slider = new GUI.Slider();
         this.slider.minimum = 0;
-        this.slider.maximum = 0.03;
+        this.slider.maximum = this.maxVelocityX;
         this.slider.value = 0;
         this.slider.height = "15px";
         this.slider.width = "40px";
@@ -109,7 +110,7 @@ export class PlayerBehaviour implements IComponent {
 
     private applySlowDown(): void {
         if (this.velocityX >= this.slowDown) {
-            this.velocityX -= this.slowDown;
+            this.velocityX -= this.slowDown * this.scene.scene.deltaTime;
         }
         else {
             this.velocityX = 0;
@@ -124,7 +125,7 @@ export class PlayerBehaviour implements IComponent {
 
         // the player needs to release the button and press it again to accelerate
         if (this.inputStates.buttons["jump"] && !this.isButtonDown) {
-            this.velocityX += this.speed;
+            this.velocityX += this.speed * this.scene.scene.deltaTime;
             this.isButtonDown = true;
         }
     }
