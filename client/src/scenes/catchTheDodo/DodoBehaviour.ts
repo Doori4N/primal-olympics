@@ -4,8 +4,8 @@ import {Scene} from "../../core/Scene";
 import * as B from '@babylonjs/core';
 import {MeshComponent} from "../../components/MeshComponent";
 
-export class ChickenBehaviour implements IComponent {
-    public name: string = "ChickenBehaviour";
+export class DodoBehaviour implements IComponent {
+    public name: string = "DodoBehaviour";
     public entity: Entity;
     public scene: Scene;
 

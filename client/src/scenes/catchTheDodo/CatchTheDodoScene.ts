@@ -5,17 +5,17 @@ import {MeshComponent} from "../../components/MeshComponent";
 import {PlayerBehaviour} from "./PlayerBehaviour";
 import {CameraComponent} from "../../components/CameraComponent";
 import {CameraMovement} from "./camera/CameraMovement";
-import {ChickenBehaviour} from "./ChickenBehaviour";
-import {GamePresentation} from "./gameController/GamePresentation";
+import {DodoBehaviour} from "./DodoBehaviour";
+import {GamePresentation} from "../../components/GamePresentation";
 import {CameraAnimation} from "./camera/CameraAnimation";
-import {GameMessages} from "./gameController/GameMessages";
-import {Leaderboard} from "./gameController/Leaderboard";
+import {GameMessages} from "../../components/GameMessages";
+import {Leaderboard} from "../../components/Leaderboard";
 import {EventScores} from "./gameController/EventScores";
 import {PlayersController} from "./gameController/PlayersController";
 
-export class CatchTheChickenScene extends Scene {
+export class CatchTheDodoScene extends Scene {
     constructor() {
-        super("catchTheChicken");
+        super("catchTheDodo");
     }
 
     public start(): void {
@@ -71,14 +71,14 @@ export class CatchTheChickenScene extends Scene {
             }
         );
 
-        // chicken
-        const chicken: B.Mesh = B.MeshBuilder.CreateSphere("chicken", {diameter: 1}, this.scene);
-        chicken.position.x = 2;
-        chicken.position.y = 0.5;
-        const chickenEntity = new Entity("chicken");
-        chickenEntity.addComponent(new MeshComponent(chickenEntity, this, {mesh: chicken}));
-        chickenEntity.addComponent(new ChickenBehaviour(chickenEntity, this));
-        this.entityManager.addEntity(chickenEntity);
+        // dodo
+        const dodo: B.Mesh = B.MeshBuilder.CreateSphere("dodo", {diameter: 1}, this.scene);
+        dodo.position.x = 2;
+        dodo.position.y = 0.5;
+        const dodoEntity = new Entity("dodo");
+        dodoEntity.addComponent(new MeshComponent(dodoEntity, this, {mesh: dodo}));
+        dodoEntity.addComponent(new DodoBehaviour(dodoEntity, this));
+        this.entityManager.addEntity(dodoEntity);
 
         // gameController
         const gameController = new Entity();

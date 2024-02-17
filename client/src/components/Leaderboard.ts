@@ -1,7 +1,7 @@
-import {IComponent} from "../../../core/IComponent";
-import {Entity} from "../../../core/Entity";
-import {Scene} from "../../../core/Scene";
-import {playerData} from "../../../core/types";
+import {IComponent} from "../core/IComponent";
+import {Entity} from "../core/Entity";
+import {Scene} from "../core/Scene";
+import {playerData} from "../core/types";
 
 export class Leaderboard implements IComponent {
     public name: string = "Leaderboard";

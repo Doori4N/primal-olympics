@@ -12,7 +12,7 @@ export class Game {
     public physicsPlugin!: B.HavokPlugin;
     public inputs: InputManager = new InputManager();
     public playerData: playerData[] = [];
-    public events: string[] = ["catchTheChicken"];
+    public events: string[] = ["catchTheDodo"];
 
     private constructor() {}
 

@@ -1,6 +1,6 @@
-import {IComponent} from "../../../core/IComponent";
-import {Entity} from "../../../core/Entity";
-import {Scene} from "../../../core/Scene";
+import {IComponent} from "../core/IComponent";
+import {Entity} from "../core/Entity";
+import {Scene} from "../core/Scene";
 
 
 export class GameMessages implements IComponent {
