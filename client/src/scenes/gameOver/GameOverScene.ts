@@ -6,8 +6,6 @@ export class GameOverScene extends Scene {
     }
 
     public start(): void {
-        super.start();
-
         const uiContainer: Element | null = document.querySelector("#ui");
         if (!uiContainer) throw new Error("UI element not found");
 

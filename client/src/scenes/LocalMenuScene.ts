@@ -6,8 +6,6 @@ export class LocalMenuScene extends Scene {
     }
 
     public start(): void {
-        super.start();
-
         // PROTOTYPE MENU
         const text: HTMLDivElement = document.createElement("div");
         text.className = "ui";

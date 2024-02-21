@@ -31,7 +31,7 @@ export class GameMessages implements IComponent {
     public onDestroy(): void {}
 
     private startCountDown(duration: number): void {
-        this.uiContainer.innerHTML = `<p id="timer">${duration}</p>`;
+        this.uiContainer.innerHTML = `<h1 id="msg">${duration}</h1>`;
 
         let timer: number = duration;
         const interval: number = setInterval((): void => {
@@ -43,7 +43,7 @@ export class GameMessages implements IComponent {
                 this.scene.eventManager.notify("onGameStarted");
 
                 setTimeout((): void => {
-                    this.uiContainer.innerHTML = "";
+                    this.uiContainer.removeChild(document.querySelector("#msg")!);
                 }, 1000);
             }
             else {
@@ -53,14 +53,14 @@ export class GameMessages implements IComponent {
     }
 
     private updateTimerUI(msg: string): void {
-        const timerUI: Element | null = document.querySelector("#timer");
+        const timerUI: Element | null = document.querySelector("#msg");
         if (!timerUI) throw new Error("Timer element not found");
 
         timerUI.textContent = msg;
     }
 
     private displayGameOver(): void {
-        this.uiContainer.innerHTML = "<p>Finished!</p>";
+        this.uiContainer.innerHTML = "<h1 id='msg'>Finished!</h1>";
         setTimeout((): void => {
             this.uiContainer.innerHTML = "";
             this.scene.eventManager.notify("onMessageFinished");

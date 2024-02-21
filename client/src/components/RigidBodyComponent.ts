@@ -10,27 +10,39 @@ export class RigidBodyComponent implements IComponent {
     public scene: Scene;
 
     // component properties
-    public body!: B.PhysicsBody;
-    public shape!: B.PhysicsShape;
+    private readonly mesh!: B.Mesh;
+    public physicsAggregate!: B.PhysicsAggregate;
+    public collisionObservable!: B.Observable<B.IPhysicsCollisionEvent>;
 
     /**
      * @throws Error if entity does not have a MeshComponent
      */
     constructor(entity: Entity, scene: Scene, props:
         {
-            shape: B.PhysicsShape,
-            motionType?: B.PhysicsMotionType,
-            massProps?: B.PhysicsMassProperties,
-            activateCallbacks?: boolean
+            physicsShape: B.PhysicsShapeType | B.PhysicsShape,
+            physicsProps: B.PhysicsAggregateParameters,
+            isTrigger?: boolean,
+            isCallbackEnabled?: boolean,
+            massProps?: B.PhysicsMassProperties
         })
     {
         this.entity = entity;
         this.scene = scene;
 
         const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
+        this.mesh = meshComponent.mesh;
 
-        this.body = this.createPhysicsBody(meshComponent.mesh, props.motionType, props.massProps);
-        this.body.shape = props.shape;
+        this.createPhysicsAggregate(props.physicsShape, props.physicsProps, props.massProps);
+
+        if (props.isTrigger) {
+            this.physicsAggregate.shape.isTrigger = true;
+        }
+
+        if (props.isCallbackEnabled) {
+            const body: B.PhysicsBody = this.physicsAggregate.body;
+            body.setCollisionCallbackEnabled(true);
+            this.collisionObservable = body.getCollisionObservable();
+        }
     }
 
     public onStart(): void {}
@@ -38,25 +50,21 @@ export class RigidBodyComponent implements IComponent {
     public onUpdate(): void {}
 
     public onDestroy(): void {
-        this.body.dispose();
-        this.shape.dispose();
+        this.physicsAggregate.dispose();
     }
 
-    /**
-     * Creates a physics body
-     * @param mesh
-     * @param _motionType
-     * @param massProps
-     */
-    public createPhysicsBody(mesh: B.Mesh, _motionType?: B.PhysicsMotionType, massProps?: B.PhysicsMassProperties): B.PhysicsBody {
-        const motionType: B.PhysicsMotionType = _motionType ?? B.PhysicsMotionType.DYNAMIC;
+    private createPhysicsAggregate(
+        physicsShape: B.PhysicsShapeType | B.PhysicsShape,
+        physicsProps: B.PhysicsAggregateParameters,
+        massProps: B.PhysicsMassProperties | undefined
+    ): void {
+        // disable collisions on the mesh and use physics engine for collisions
+        this.mesh.checkCollisions = false;
 
-        const body = new B.PhysicsBody(mesh, motionType, false, this.scene.scene);
+        this.physicsAggregate = new B.PhysicsAggregate(this.mesh, physicsShape, physicsProps, this.scene.scene);
 
         if (massProps) {
-            body.setMassProperties(massProps);
+            this.physicsAggregate.body.setMassProperties(massProps);
         }
-
-        return body;
     }
 }

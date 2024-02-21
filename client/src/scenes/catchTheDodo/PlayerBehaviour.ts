@@ -12,7 +12,7 @@ export class PlayerBehaviour implements IComponent {
     public scene: Scene;
 
     // component properties
-    private mesh!: B.AbstractMesh;
+    private mesh!: B.Mesh;
 
     // animations
     private animations: {[key: string]: B.AnimationGroup} = {};

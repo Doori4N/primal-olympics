@@ -3,6 +3,7 @@ import {LocalMenuScene} from "../scenes/LocalMenuScene";
 import {CatchTheDodoScene} from "../scenes/catchTheDodo/CatchTheDodoScene";
 import {GameSelectionScene} from "../scenes/gameSelection/GameSelectionScene";
 import {GameOverScene} from "../scenes/gameOver/GameOverScene";
+import {MeteoritesScene} from "../scenes/meteorites/MeteoritesScene";
 
 export class SceneManager {
     private static instance: SceneManager;
@@ -23,8 +24,10 @@ export class SceneManager {
      * Import all scenes and initialize the current scene
      */
     public initializeScenes(): void {
+        // add all scenes
         this.scenes.push(new LocalMenuScene());
         this.scenes.push(new CatchTheDodoScene());
+        this.scenes.push(new MeteoritesScene());
         this.scenes.push(new GameSelectionScene());
         this.scenes.push(new GameOverScene());
 

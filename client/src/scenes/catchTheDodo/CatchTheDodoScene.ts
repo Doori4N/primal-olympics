@@ -19,8 +19,6 @@ export class CatchTheDodoScene extends Scene {
     }
 
     public start(): void {
-        super.start();
-
         this.mainCamera.setTarget(B.Vector3.Zero());
         this.mainCamera.attachControl(this.game.canvas, true);
         this.mainCamera.position.y = 15;
@@ -57,7 +55,7 @@ export class CatchTheDodoScene extends Scene {
                 // players
                 for (let i: number = 0; i < this.game.playerData.length; i++) {
                     const entries: B.InstantiatedEntries = container.instantiateModelsToScene((sourceName: string): string => sourceName + i, false, {doNotInstantiate: true});
-                    const player: B.AbstractMesh = this.scene.getMeshByName("__root__" + i) as B.AbstractMesh;
+                    const player = this.scene.getMeshByName("__root__" + i) as B.Mesh;
                     if (!player) throw new Error("Player mesh not found");
 
                     player.scaling.scaleInPlace(0.1);
@@ -65,11 +63,13 @@ export class CatchTheDodoScene extends Scene {
                     player.rotate(B.Axis.Y, Math.PI / 2, B.Space.WORLD);
                     const playerEntity = new Entity("player");
                     playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: player}));
-                    playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {inputIndex: i, animationGroups: entries.animationGroups}));
+                    playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {
+                        inputIndex: i,
+                        animationGroups: entries.animationGroups
+                    }));
                     this.entityManager.addEntity(playerEntity);
                 }
-            }
-        );
+            });
 
         // dodo
         const dodo: B.Mesh = B.MeshBuilder.CreateSphere("dodo", {diameter: 1}, this.scene);
@@ -82,7 +82,12 @@ export class CatchTheDodoScene extends Scene {
 
         // gameController
         const gameController = new Entity();
-        gameController.addComponent(new GamePresentation(gameController, this));
+        const htmlTemplate: string = `
+            <h1>Catch the dodo</h1>
+            <p>Space/X/A : accelerate</p>
+            <p>Tap the button quickly to accelerate and catch the dodo</p>
+        `;
+        gameController.addComponent(new GamePresentation(gameController, this, {htmlTemplate}));
         gameController.addComponent(new GameMessages(gameController, this));
         gameController.addComponent(new Leaderboard(gameController, this));
         gameController.addComponent(new EventScores(gameController, this));

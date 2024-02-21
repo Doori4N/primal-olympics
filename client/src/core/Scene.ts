@@ -10,17 +10,14 @@ export class Scene {
     public name: string;
     public scene: B.Scene;
     public mainCamera: B.FreeCamera;
-    public game: Game;
-    public eventManager: EventManager;
-    public entityManager: EntityManager;
-    public sceneManager: SceneManager;
+    public game: Game = Game.getInstance();
+    public eventManager = new EventManager();
+    public entityManager = new EntityManager();
+    public sceneManager = SceneManager.getInstance();
+    public loadedAssets: { [name: string]: B.AssetContainer } = {};
 
     constructor(name: string) {
         this.name = name;
-        this.game = Game.getInstance();
-        this.sceneManager = SceneManager.getInstance();
-        this.eventManager = new EventManager();
-        this.entityManager = new EntityManager();
 
         // initialize the scene with a main camera
         this.scene = new B.Scene(this.game.engine);
@@ -31,20 +28,7 @@ export class Scene {
      * Function to override
      * Initialize all entities
      */
-    public start(): void {
-        // TODO: remove this when finished
-        // hide/show the Inspector
-        window.addEventListener("keydown", (e: KeyboardEvent): void => {
-            // Shift+Ctrl+I
-            if (e.shiftKey && e.ctrlKey && e.code === "KeyI") {
-                if (this.scene.debugLayer.isVisible()) {
-                    this.scene.debugLayer.hide();
-                } else {
-                    this.scene.debugLayer.show({overlay: true, handleResize: true});
-                }
-            }
-        });
-    }
+    public start(): void {}
 
     /**
      * Render the scene and update entities

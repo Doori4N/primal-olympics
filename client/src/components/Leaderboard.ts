@@ -43,13 +43,13 @@ export class Leaderboard implements IComponent {
         if (!uiContainer) throw new Error("UI element not found");
 
         uiContainer.innerHTML = `
-            <div id="leaderboard">
+            <div id="presentation-ui">
                 <h1>Leaderboard</h1>
                 <ol>
                     ${playerScores}
                 </ol>
+                <p id="timer">Next game in ${this.timer} seconds</p>
             </div>
-            <p id="timer">Next game in ${this.timer} seconds</p>
         `;
 
         // countdown interval

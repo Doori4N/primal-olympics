@@ -12,7 +12,8 @@ export class Game {
     public physicsPlugin!: B.HavokPlugin;
     public inputs: InputManager = new InputManager();
     public playerData: playerData[] = [];
-    public events: string[] = ["catchTheDodo"];
+    // public events: string[] = ["catchTheDodo", "meteorites"];
+    public events: string[] = ["meteorites"];
 
     private constructor() {}
 
@@ -85,7 +86,6 @@ export class Game {
      */
     private resize(engine: B.Engine): void {
         window.addEventListener("resize", (): void => {
-            console.log("resize event detected!")
             engine.resize();
         });
     }

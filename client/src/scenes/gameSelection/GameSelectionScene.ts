@@ -6,8 +6,6 @@ export class GameSelectionScene extends Scene {
     }
 
     public start(): void {
-        super.start();
-
         if (this.game.events.length <= 0) {
             this.sceneManager.changeScene("gameOver");
             return;

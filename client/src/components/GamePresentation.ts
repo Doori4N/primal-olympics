@@ -12,10 +12,12 @@ export class GamePresentation implements IComponent {
     private timer: number = 15;
     private isPlayerSkipping!: boolean[];
     private uiContainer!: Element;
+    private htmlTemplate: string;
 
-    constructor(entity: Entity, scene: Scene) {
+    constructor(entity: Entity, scene: Scene, props: {htmlTemplate: string}) {
         this.entity = entity;
         this.scene = scene;
+        this.htmlTemplate = props.htmlTemplate;
     }
 
     public onStart(): void {
@@ -32,8 +34,8 @@ export class GamePresentation implements IComponent {
             this.timer--;
             if (this.timer < 0 || this.isPlayerSkipping.every((isSkipping: boolean): boolean => isSkipping)) {
                 clearInterval(interval);
-                this.scene.eventManager.notify("onPresentationFinished");
                 this.entity.removeComponent("GamePresentation");
+                this.scene.eventManager.notify("onPresentationFinished");
             }
             else {
                 this.updateTimerUI();
@@ -56,12 +58,12 @@ export class GamePresentation implements IComponent {
         }
 
         this.uiContainer.innerHTML = `
-            <h1>Catch the chicken</h1>
-            <p>Space/X/A : accelerate</p>
-            <p>Tap the button quickly to accelerate and catch the chicken</p>
-            <p>Press Space/X/A to skip</p>
-            ${playerSkipUI}
-            <p id="timer">Game starts in ${this.timer} seconds</p>
+            <div id="presentation-ui">
+                ${this.htmlTemplate}
+                <p>Press Space/X/A to skip</p>
+                ${playerSkipUI}
+                <p id="timer">Game starts in ${this.timer} seconds</p>
+            </div>
         `;
     }
 

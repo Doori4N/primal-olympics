@@ -10,9 +10,10 @@ export class DodoBehaviour implements IComponent {
     public scene: Scene;
 
     // component properties
-    private mesh!: B.AbstractMesh;
+    private mesh!: B.Mesh;
     private velocityX: number = 0.2;
     private slowDown: number = 0.000007;
+    private collisionRange: number = 1;
     private isGameStarted: boolean = false;
     private isGameFinished: boolean = false;
 
@@ -48,9 +49,9 @@ export class DodoBehaviour implements IComponent {
     private checkCollisionWithPlayers(players: Entity[]): boolean {
         for (let i: number = 0; i < players.length; i++) {
             const playerMeshComponent = players[i].getComponent("Mesh") as MeshComponent;
-            const playerMesh: B.AbstractMesh = playerMeshComponent.mesh;
+            const playerMesh: B.Mesh = playerMeshComponent.mesh;
 
-            if (this.mesh.position.x - 1 < playerMesh.position.x) {
+            if (this.mesh.position.x - this.collisionRange < playerMesh.position.x) {
                 return true;
             }
         }

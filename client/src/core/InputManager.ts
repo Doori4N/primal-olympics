@@ -44,23 +44,25 @@ export class InputManager {
             }
 
             // update the inputStates
-            switch (event.code) {
-                case "ArrowUp":
-                    this.inputMap[index].direction.y = 1;
+            switch (event.key) {
+                case "z":
+                    this.inputMap[index].buttons["up"] = true;
                     break;
-                case "ArrowDown":
-                    this.inputMap[index].direction.y = -1;
+                case "s":
+                    this.inputMap[index].buttons["down"] = true;
                     break;
-                case "ArrowLeft":
-                    this.inputMap[index].direction.x = -1;
+                case "q":
+                    this.inputMap[index].buttons["left"] = true;
                     break;
-                case "ArrowRight":
-                    this.inputMap[index].direction.x = 1;
+                case "d":
+                    this.inputMap[index].buttons["right"] = true;
                     break;
-                case "Space":
+                case " ":
                     this.inputMap[index].buttons["jump"] = true;
                     break;
             }
+
+            this.updateKeyboardDirections(index);
         });
 
         window.addEventListener("keyup", (event: KeyboardEvent): void => {
@@ -68,24 +70,46 @@ export class InputManager {
             if (index === -1) return;
 
             // update the inputStates
-            switch (event.code) {
-                case "ArrowUp":
-                    this.inputMap[index].direction.y = 0;
+            switch (event.key) {
+                case "z":
+                    this.inputMap[index].buttons["up"] = false;
                     break;
-                case "ArrowDown":
-                    this.inputMap[index].direction.y = 0;
+                case "s":
+                    this.inputMap[index].buttons["down"] = false;
                     break;
-                case "ArrowLeft":
-                    this.inputMap[index].direction.x = 0;
+                case "q":
+                    this.inputMap[index].buttons["left"] = false;
                     break;
-                case "ArrowRight":
-                    this.inputMap[index].direction.x = 0;
+                case "d":
+                    this.inputMap[index].buttons["right"] = false;
                     break;
-                case "Space":
+                case " ":
                     this.inputMap[index].buttons["jump"] = false;
                     break;
             }
+
+            this.updateKeyboardDirections(index);
         });
+    }
+
+    private updateKeyboardDirections(index: number): void {
+        // reset directions
+        this.inputMap[index].direction.x = 0;
+        this.inputMap[index].direction.y = 0;
+
+        // update directions
+        if (this.inputMap[index].buttons["up"] && !this.inputMap[index].buttons["down"]) {
+            this.inputMap[index].direction.y = -1;
+        }
+        if (this.inputMap[index].buttons["down"] && !this.inputMap[index].buttons["up"]) {
+            this.inputMap[index].direction.y = 1;
+        }
+        if (this.inputMap[index].buttons["left"] && !this.inputMap[index].buttons["right"]) {
+            this.inputMap[index].direction.x = -1;
+        }
+        if (this.inputMap[index].buttons["right"] && !this.inputMap[index].buttons["left"]) {
+            this.inputMap[index].direction.x = 1;
+        }
     }
 
     /**
@@ -114,7 +138,6 @@ export class InputManager {
                 gamepad.onButtonDownObservable.add((button: number): void => {
                     switch (button) {
                         case B.DualShockButton.Cross:
-                            console.log("jump");
                             this.inputMap[index].buttons["jump"] = true;
                             break;
                     }
@@ -169,10 +192,16 @@ export class InputManager {
 
             // handle left stick
             gamepad.onleftstickchanged((values: B.StickValues): void => {
-                if (Math.abs(this.inputMap[index].direction.x) > DEADZONE) {
+                if (Math.abs(values.x) < DEADZONE) {
+                    this.inputMap[index].direction.x = 0;
+                }
+                else {
                     this.inputMap[index].direction.x = values.x;
                 }
-                if (Math.abs(this.inputMap[index].direction.y) > DEADZONE) {
+                if (Math.abs(values.y) < DEADZONE) {
+                    this.inputMap[index].direction.y = 0;
+                }
+                else {
                     this.inputMap[index].direction.y = values.y;
                 }
             });

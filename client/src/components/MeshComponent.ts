@@ -9,9 +9,9 @@ export class MeshComponent implements IComponent {
     public scene: Scene;
 
     // component properties
-    public mesh!: B.AbstractMesh;
+    public mesh!: B.Mesh;
 
-    constructor(entity: Entity, scene: Scene, props: {mesh: B.AbstractMesh}) {
+    constructor(entity: Entity, scene: Scene, props: {mesh: B.Mesh}) {
         this.entity = entity;
         this.scene = scene;
         this.mesh = props.mesh;
