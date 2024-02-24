@@ -12,7 +12,7 @@ export enum InputType {
     GAMEPAD
 }
 
-export type playerData = {
+export type PlayerData = {
     name: string;
     goldMedals: number;
     silverMedals: number;

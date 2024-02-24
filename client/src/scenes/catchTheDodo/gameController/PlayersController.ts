@@ -20,6 +20,12 @@ export class PlayersController implements IComponent {
     public onStart(): void {}
 
     public onUpdate(): void {
+        this.checkSlowPlayers();
+    }
+
+    public onDestroy(): void {}
+
+    private checkSlowPlayers(): void {
         const players: Entity[] = this.scene.entityManager.getEntitiesWithTag("player");
         if (players.length <= 1) return;
 
@@ -46,6 +52,4 @@ export class PlayersController implements IComponent {
             }
         }
     }
-
-    public onDestroy(): void {}
 }

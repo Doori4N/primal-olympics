@@ -19,6 +19,7 @@ export class PlayerBehaviour implements IComponent {
     private speed: number = 0.2;
     private lastDirection: number = 0;
     private isGameStarted: boolean = false;
+    private isGameFinished: boolean = false;
 
     // inputs
     public readonly inputIndex!: number;
@@ -41,11 +42,12 @@ export class PlayerBehaviour implements IComponent {
 
         this.inputStates = this.scene.game.inputs.inputMap[this.inputIndex];
 
-        this.scene.eventManager.subscribe("onPresentationFinished", this.onGameStarted.bind(this));
+        this.scene.eventManager.subscribe("onGameStarted", this.onGameStarted.bind(this));
+        this.scene.eventManager.subscribe("onGameFinished", this.onGameFinished.bind(this));
     }
 
     public onUpdate(): void {
-        if (!this.isGameStarted) return;
+        if (!this.isGameStarted || this.isGameFinished) return;
 
         // apply velocity
         const deltaTime: number = this.scene.scene.deltaTime ?? 0;
@@ -83,7 +85,15 @@ export class PlayerBehaviour implements IComponent {
         }
     }
 
+    public kill(): void {
+        this.scene.entityManager.destroyEntity(this.entity);
+    }
+
     private onGameStarted(): void {
         this.isGameStarted = true;
+    }
+
+    private onGameFinished(): void {
+        this.isGameFinished = true;
     }
 }

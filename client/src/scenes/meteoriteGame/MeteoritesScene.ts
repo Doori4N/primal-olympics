@@ -9,6 +9,9 @@ import {RigidBodyComponent} from "../../components/RigidBodyComponent";
 import {PlayerBehaviour} from "./PlayerBehaviour";
 import {MeteoriteController} from "./MeteoriteController";
 import {GameTimer} from "./GameTimer";
+import {CameraComponent} from "../../components/CameraComponent";
+import {CameraAnimation} from "./CameraAnimation";
+import {GameScores} from "./GameScores";
 
 export class MeteoritesScene extends Scene {
     constructor() {
@@ -40,6 +43,14 @@ export class MeteoritesScene extends Scene {
         this.mainCamera.setTarget(B.Vector3.Zero());
         this.mainCamera.attachControl(this.game.canvas, true);
         this.mainCamera.speed = 0.3;
+
+        // start animation
+        const cameraEntity = new Entity();
+        const camera = new B.FreeCamera("camera", new B.Vector3(0, 3, 15), this.scene);
+        camera.rotation.y = Math.PI;
+        cameraEntity.addComponent(new CameraComponent(cameraEntity, this, {camera: camera}));
+        cameraEntity.addComponent(new CameraAnimation(cameraEntity, this));
+        this.entityManager.addEntity(cameraEntity);
 
         // light
         const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.scene);
@@ -103,7 +114,7 @@ export class MeteoritesScene extends Scene {
         this.entityManager.addEntity(meteoriteController);
 
         // gameController
-        const gameController = new Entity();
+        const gameController = new Entity("gameController");
         const htmlTemplate: string = `
             <h1>Stellar Storm</h1>
             <p>PC : Z/Q/S/D to move</p>
@@ -113,7 +124,8 @@ export class MeteoritesScene extends Scene {
         gameController.addComponent(new GamePresentation(gameController, this, {htmlTemplate}));
         gameController.addComponent(new GameMessages(gameController, this));
         gameController.addComponent(new Leaderboard(gameController, this));
-        gameController.addComponent(new GameTimer(gameController, this, {duration: 60}));
+        gameController.addComponent(new GameTimer(gameController, this, {duration: 10}));
+        gameController.addComponent(new GameScores(gameController, this));
         this.entityManager.addEntity(gameController);
     }
 }

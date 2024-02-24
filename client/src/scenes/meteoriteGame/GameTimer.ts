@@ -8,8 +8,10 @@ export class GameTimer implements IComponent {
     public scene: Scene;
 
     // component properties
-    private uiContainer!: Element;
-    private readonly duration: number;
+    private _uiContainer!: Element;
+    public timer: number = 0;
+    public readonly duration: number;
+    private _interval!: number;
 
     constructor(entity: Entity, scene: Scene, props: {duration: number}) {
         this.entity = entity;
@@ -18,40 +20,47 @@ export class GameTimer implements IComponent {
     }
 
     public onStart(): void {
-        this.scene.eventManager.subscribe("onPresentationFinished", this.startTimer.bind(this));
+        this.scene.eventManager.subscribe("onGameStarted", this._startTimer.bind(this));
     }
 
     public onUpdate(): void {}
 
     public onDestroy(): void {}
 
-    private startTimer(): void {
+    private _startTimer(): void {
         let uiContainer: Element | null = document.querySelector("#ui");
         if (!uiContainer) throw new Error("UI element not found");
-        this.uiContainer = uiContainer;
+        this._uiContainer = uiContainer;
 
-        this.uiContainer.innerHTML = `<p id="gameTimer">${this.duration} seconds left</p>`;
+        const timerElement: Element = document.createElement("p");
+        timerElement.id = "gameTimer";
+        timerElement.textContent = `${this.duration} seconds left`;
+        this._uiContainer.appendChild(timerElement);
 
-        let timer: number = this.duration;
+        this.timer = this.duration;
 
         // countdown interval
-        const interval: number = setInterval((): void => {
-            timer--;
-            if (timer < 0) {
-                clearInterval(interval);
-                this.uiContainer.innerHTML = "";
-                this.scene.eventManager.notify("onGameFinished");
+        this._interval = setInterval((): void => {
+            this.timer--;
+            if (this.timer < 0) {
+                this.stopTimer();
             }
             else {
-                this.updateTimerUI(timer);
+                this._updateTimerUI(this.timer);
             }
         }, 1000);
     }
 
-    private updateTimerUI(time: number): void {
+    private _updateTimerUI(time: number): void {
         const timerUI: Element | null = document.querySelector("#gameTimer");
         if (!timerUI) throw new Error("Timer element not found");
 
         timerUI.textContent = `${time} seconds left`;
+    }
+
+    public stopTimer(): void {
+        clearInterval(this._interval);
+        this._uiContainer.removeChild(document.querySelector("#gameTimer")!);
+        this.scene.eventManager.notify("onGameFinished");
     }
 }

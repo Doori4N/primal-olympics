@@ -1,7 +1,7 @@
 import {IComponent} from "../core/IComponent";
 import {Entity} from "../core/Entity";
 import {Scene} from "../core/Scene";
-import {playerData} from "../core/types";
+import {PlayerData} from "../core/types";
 
 export class Leaderboard implements IComponent {
     public name: string = "Leaderboard";
@@ -26,7 +26,7 @@ export class Leaderboard implements IComponent {
 
     public displayLeaderboard(): void {
         // sort players by score
-        const sortedPlayers: playerData[] = this.scene.game.playerData.slice();
+        const sortedPlayers: PlayerData[] = this.scene.game.playerData.slice();
         sortedPlayers.sort(this.compareMedals.bind(this));
 
         let playerScores: string = "";
@@ -72,11 +72,11 @@ export class Leaderboard implements IComponent {
         timerUI.textContent = `Next game in ${this.timer} seconds`;
     }
 
-    private compareMedals(a: playerData, b: playerData): number {
+    private compareMedals(a: PlayerData, b: PlayerData): number {
         return this.getScore(b) - this.getScore(a);
     }
 
-    private getScore(player: playerData): number {
+    private getScore(player: PlayerData): number {
         return player.goldMedals * 3 + player.silverMedals * 2 + player.bronzeMedals;
     }
 }

@@ -3,7 +3,7 @@ import {LocalMenuScene} from "../scenes/LocalMenuScene";
 import {CatchTheDodoScene} from "../scenes/catchTheDodo/CatchTheDodoScene";
 import {GameSelectionScene} from "../scenes/gameSelection/GameSelectionScene";
 import {GameOverScene} from "../scenes/gameOver/GameOverScene";
-import {MeteoritesScene} from "../scenes/meteorites/MeteoritesScene";
+import {MeteoritesScene} from "../scenes/meteoriteGame/MeteoritesScene";
 
 export class SceneManager {
     private static instance: SceneManager;

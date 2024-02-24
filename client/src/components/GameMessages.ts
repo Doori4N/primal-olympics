@@ -60,9 +60,12 @@ export class GameMessages implements IComponent {
     }
 
     private displayGameOver(): void {
-        this.uiContainer.innerHTML = "<h1 id='msg'>Finished!</h1>";
+        const msgElement: Element = document.createElement("h1");
+        msgElement.id = "msg";
+        msgElement.textContent = "Finished!";
+        this.uiContainer.appendChild(msgElement);
         setTimeout((): void => {
-            this.uiContainer.innerHTML = "";
+            this.uiContainer.removeChild(msgElement);
             this.scene.eventManager.notify("onMessageFinished");
         }, 2000);
     }

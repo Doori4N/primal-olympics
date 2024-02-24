@@ -5,6 +5,8 @@ import * as B from '@babylonjs/core';
 import {MeshComponent} from "../../components/MeshComponent";
 import {RigidBodyComponent} from "../../components/RigidBodyComponent";
 import {MeteoriteBehaviour} from "./MeteoriteBehaviour";
+import {PlayerBehaviour} from "./PlayerBehaviour";
+import {GameScores} from "./GameScores";
 
 export class MeteoriteController implements IComponent {
     public name: string = "MeteoriteController";
@@ -13,6 +15,7 @@ export class MeteoriteController implements IComponent {
 
     // component properties
     private observer!: B.Observer<B.IBasePhysicsCollisionEvent>;
+    private intervalId!: number;
 
     constructor(entity: Entity, scene: Scene) {
         this.entity = entity;
@@ -23,19 +26,18 @@ export class MeteoriteController implements IComponent {
         const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.game.physicsPlugin.onTriggerCollisionObservable;
         this.observer = observable.add(this.onTriggerCollision.bind(this));
 
-        this.scene.eventManager.subscribe("onPresentationFinished", this.startSpawning.bind(this));
+        this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
+        this.scene.eventManager.subscribe("onGameFinished", this.stopSpawning.bind(this));
     }
 
-    public onUpdate(): void {
-
-    }
+    public onUpdate(): void {}
 
     public onDestroy(): void {
         this.observer.remove();
     }
 
     private startSpawning(): void {
-        setInterval((): void => {
+        this.intervalId = setInterval((): void => {
             const randomPosition: B.Vector3 = new B.Vector3(
                 Math.random() * 15 - 7.5,
                 50,
@@ -43,6 +45,16 @@ export class MeteoriteController implements IComponent {
             );
             this.spawnMeteorite(randomPosition);
         }, 1000);
+    }
+
+    private stopSpawning(): void {
+        clearInterval(this.intervalId);
+
+        // destroy all meteorites
+        const meteorites: Entity[] = this.scene.entityManager.getEntitiesWithTag("meteorite");
+        meteorites.forEach((meteorite: Entity): void => {
+            this.scene.entityManager.destroyEntity(meteorite);
+        });
     }
 
     private spawnMeteorite(position: B.Vector3): void {
@@ -73,8 +85,15 @@ export class MeteoriteController implements IComponent {
             }
             // player collision
             else if (collisionEvent.collider.transformNode.metadata?.tag === "player") {
+                // kill player
                 const playerEntity: Entity = this.scene.entityManager.getEntityById(collisionEvent.collider.transformNode.metadata?.id);
-                this.scene.entityManager.destroyEntity(playerEntity);
+                const playerBehaviourComponent = playerEntity.getComponent("PlayerBehaviour") as PlayerBehaviour;
+                playerBehaviourComponent.kill();
+
+                // update player score
+                const gameController: Entity = this.scene.entityManager.getFirstEntityWithTag("gameController");
+                const gameScoresComponent = gameController.getComponent("GameScores") as GameScores;
+                gameScoresComponent.setPlayerScore(playerEntity);
             }
         }
     }
