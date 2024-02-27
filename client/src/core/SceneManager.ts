@@ -34,8 +34,10 @@ export class SceneManager {
         this._scenes.push(new GameOverScene());
 
         // set the current scene and start it
-        this._currentScene = this._scenes[0];
-        this._currentScene.start();
+        this._scenes[0].loadAssets().then((): void => {
+            this._scenes[0].start();
+            this._currentScene = this._scenes[0];
+        });
     }
 
     /**
