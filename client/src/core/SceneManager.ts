@@ -33,11 +33,8 @@ export class SceneManager {
         this._scenes.push(new GameSelectionScene());
         this._scenes.push(new GameOverScene());
 
-        // set the current scene and start it
-        this._scenes[0].loadAssets().then((): void => {
-            this._scenes[0].start();
-            this._currentScene = this._scenes[0];
-        });
+        // start the first scene
+        this._loadAndStartScene(this._scenes[0]);
     }
 
     /**
@@ -63,9 +60,13 @@ export class SceneManager {
             throw new Error(`Scene ${sceneName} not found`);
         }
 
+        this._loadAndStartScene(scene);
+    }
+
+    private _loadAndStartScene(scene: Scene): void {
         scene.loadAssets().then((): void => {
-            scene.start();
             this._currentScene = scene;
+            this._currentScene.start();
         });
     }
 
