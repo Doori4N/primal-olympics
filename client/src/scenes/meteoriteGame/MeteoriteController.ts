@@ -2,8 +2,8 @@ import {IComponent} from "../../core/IComponent";
 import {Entity} from "../../core/Entity";
 import {Scene} from "../../core/Scene";
 import * as B from '@babylonjs/core';
-import {MeshComponent} from "../../components/MeshComponent";
-import {RigidBodyComponent} from "../../components/RigidBodyComponent";
+import {MeshComponent} from "../../core/components/MeshComponent";
+import {RigidBodyComponent} from "../../core/components/RigidBodyComponent";
 import {MeteoriteBehaviour} from "./MeteoriteBehaviour";
 import {PlayerBehaviour} from "./PlayerBehaviour";
 import {GameScores} from "./GameScores";
@@ -44,7 +44,7 @@ export class MeteoriteController implements IComponent {
                 Math.random() * 15 - 7.5
             );
             this.spawnMeteorite(randomPosition);
-        }, 1000);
+        }, 500);
     }
 
     private stopSpawning(): void {

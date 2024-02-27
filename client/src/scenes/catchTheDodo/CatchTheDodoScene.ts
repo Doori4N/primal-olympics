@@ -1,21 +1,34 @@
 import {Scene} from "../../core/Scene";
 import * as B from "@babylonjs/core";
 import {Entity} from "../../core/Entity";
-import {MeshComponent} from "../../components/MeshComponent";
+import {MeshComponent} from "../../core/components/MeshComponent";
 import {PlayerBehaviour} from "./PlayerBehaviour";
-import {CameraComponent} from "../../components/CameraComponent";
+import {CameraComponent} from "../../core/components/CameraComponent";
 import {CameraMovement} from "./camera/CameraMovement";
 import {DodoBehaviour} from "./DodoBehaviour";
-import {GamePresentation} from "../../components/GamePresentation";
+import {GamePresentation} from "../../core/components/GamePresentation";
 import {CameraAnimation} from "./camera/CameraAnimation";
-import {GameMessages} from "../../components/GameMessages";
-import {Leaderboard} from "../../components/Leaderboard";
+import {GameMessages} from "../../core/components/GameMessages";
+import {Leaderboard} from "../../core/components/Leaderboard";
 import {EventScores} from "./gameController/EventScores";
 import {PlayersController} from "./gameController/PlayersController";
 
 export class CatchTheDodoScene extends Scene {
     constructor() {
         super("catchTheDodo");
+    }
+
+    public async loadAssets(): Promise<void> {
+        this.game.engine.displayLoadingUI();
+
+        // load assets
+        this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync(
+            "https://assets.babylonjs.com/meshes/",
+            "HVGirl.glb",
+            this.scene
+        );
+
+        this.game.engine.hideLoadingUI();
     }
 
     public start(): void {
@@ -47,29 +60,24 @@ export class CatchTheDodoScene extends Scene {
         cameraEntity.addComponent(new CameraAnimation(cameraEntity, this));
         this.entityManager.addEntity(cameraEntity);
 
-        B.SceneLoader.LoadAssetContainer(
-            "https://assets.babylonjs.com/meshes/",
-            "HVGirl.glb",
-            this.scene,
-            (container: B.AssetContainer): void => {
-                // players
-                for (let i: number = 0; i < this.game.playerData.length; i++) {
-                    const entries: B.InstantiatedEntries = container.instantiateModelsToScene((sourceName: string): string => sourceName + i, false, {doNotInstantiate: true});
-                    const player = this.scene.getMeshByName("__root__" + i) as B.Mesh;
-                    if (!player) throw new Error("Player mesh not found");
+        // players
+        const playerContainer: B.AssetContainer = this.loadedAssets["player"];
+        for (let i: number = 0; i < this.game.playerData.length; i++) {
+            const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + i, false, {doNotInstantiate: true});
+            const player = this.scene.getMeshByName("__root__" + i) as B.Mesh;
+            if (!player) throw new Error("Player mesh not found");
 
-                    player.scaling.scaleInPlace(0.1);
-                    player.position.z = i * 2;
-                    player.rotate(B.Axis.Y, Math.PI / 2, B.Space.WORLD);
-                    const playerEntity = new Entity("player");
-                    playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: player}));
-                    playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {
-                        inputIndex: i,
-                        animationGroups: entries.animationGroups
-                    }));
-                    this.entityManager.addEntity(playerEntity);
-                }
-            });
+            player.scaling.scaleInPlace(0.1);
+            player.position.z = i * 2;
+            player.rotate(B.Axis.Y, Math.PI / 2, B.Space.WORLD);
+            const playerEntity = new Entity("player");
+            playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: player}));
+            playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {
+                inputIndex: i,
+                animationGroups: entries.animationGroups
+            }));
+            this.entityManager.addEntity(playerEntity);
+        }
 
         // dodo
         const dodo: B.Mesh = B.MeshBuilder.CreateSphere("dodo", {diameter: 1}, this.scene);

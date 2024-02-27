@@ -1,7 +1,7 @@
-import {IComponent} from "../core/IComponent";
-import {Entity} from "../core/Entity";
-import {Scene} from "../core/Scene";
-import {InputStates} from "../core/types";
+import {IComponent} from "../IComponent";
+import {Entity} from "../Entity";
+import {Scene} from "../Scene";
+import {InputStates} from "../types";
 
 export class GamePresentation implements IComponent {
     public name: string = "GamePresentation";

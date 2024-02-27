@@ -2,7 +2,7 @@ import {IComponent} from "../../../core/IComponent";
 import {Entity} from "../../../core/Entity";
 import {Scene} from "../../../core/Scene";
 import * as B from '@babylonjs/core';
-import {CameraComponent} from "../../../components/CameraComponent";
+import {CameraComponent} from "../../../core/components/CameraComponent";
 
 export class CameraAnimation implements IComponent {
     public name: string = "CameraAnimation";
@@ -23,7 +23,7 @@ export class CameraAnimation implements IComponent {
         const cameraComponent = this.entity.getComponent("Camera") as CameraComponent;
         this.camera = cameraComponent.camera;
 
-        cameraComponent.setAsActiveCamera();
+        this.scene.scene.switchActiveCamera(this.camera);
 
         this.initCameraAnimation();
 

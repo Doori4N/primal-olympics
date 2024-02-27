@@ -1,7 +1,7 @@
 import {IComponent} from "../../core/IComponent";
 import {Entity} from "../../core/Entity";
 import {Scene} from "../../core/Scene";
-import {MeshComponent} from "../../components/MeshComponent";
+import {MeshComponent} from "../../core/components/MeshComponent";
 import * as B from '@babylonjs/core';
 
 export class MeteoriteBehaviour implements IComponent {

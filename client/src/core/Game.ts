@@ -12,8 +12,9 @@ export class Game {
     public physicsPlugin!: B.HavokPlugin;
     public inputs: InputManager = new InputManager();
     public playerData: PlayerData[] = [];
-    public events: string[] = ["catchTheDodo", "meteorites"];
-    // public events: string[] = ["meteorites"];
+    // public events: string[] = ["catchTheDodo", "meteorites", "escapeDino"];
+    // public events: string[] = ["catchTheDodo"];
+    public events: string[] = ["meteorites"];
 
     private constructor() {}
 
@@ -40,6 +41,8 @@ export class Game {
         // scenes
         const sceneManager: SceneManager = SceneManager.getInstance();
         sceneManager.initializeScenes();
+
+        this._listenToDebugInputs(sceneManager);
 
         // game loop
         this.engine.runRenderLoop((): void => {
@@ -87,6 +90,15 @@ export class Game {
     private resize(engine: B.Engine): void {
         window.addEventListener("resize", (): void => {
             engine.resize();
+        });
+    }
+
+    private _listenToDebugInputs(sceneManager: SceneManager): void {
+        window.addEventListener("keydown", (e: KeyboardEvent): void => {
+            // Shift+Ctrl+I
+            if (e.shiftKey && e.ctrlKey && e.code === "KeyI") {
+                sceneManager.displayDebugLayer();
+            }
         });
     }
 }

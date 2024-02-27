@@ -1,6 +1,6 @@
-import {IComponent} from "../core/IComponent";
-import {Entity} from "../core/Entity";
-import {Scene} from "../core/Scene";
+import {IComponent} from "../IComponent";
+import {Entity} from "../Entity";
+import {Scene} from "../Scene";
 import * as B from '@babylonjs/core';
 
 export class CameraComponent implements IComponent {
@@ -23,9 +23,5 @@ export class CameraComponent implements IComponent {
 
     public onDestroy(): void {
         this.camera.dispose();
-    }
-
-    public setAsActiveCamera(): void {
-        this.scene.scene.activeCamera = this.camera;
     }
 }

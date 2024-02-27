@@ -2,8 +2,8 @@ import {IComponent} from "../../../core/IComponent";
 import {Entity} from "../../../core/Entity";
 import {Scene} from "../../../core/Scene";
 import * as B from '@babylonjs/core';
-import {MeshComponent} from "../../../components/MeshComponent";
-import {CameraComponent} from "../../../components/CameraComponent";
+import {MeshComponent} from "../../../core/components/MeshComponent";
+import {CameraComponent} from "../../../core/components/CameraComponent";
 import {PlayerBehaviour} from "../PlayerBehaviour";
 
 export class CameraMovement implements IComponent {

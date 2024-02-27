@@ -1,6 +1,6 @@
-import {IComponent} from "../core/IComponent";
-import {Entity} from "../core/Entity";
-import {Scene} from "../core/Scene";
+import {IComponent} from "../IComponent";
+import {Entity} from "../Entity";
+import {Scene} from "../Scene";
 import * as B from '@babylonjs/core';
 
 export class MeshComponent implements IComponent {

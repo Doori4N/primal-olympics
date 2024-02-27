@@ -3,7 +3,7 @@ import {Entity} from "../../core/Entity";
 import {Scene} from "../../core/Scene";
 import {PlayerData} from "../../core/types";
 import {PlayerBehaviour} from "./PlayerBehaviour";
-import {GameTimer} from "./GameTimer";
+import {GameTimer} from "../../core/components/GameTimer";
 
 export class GameScores implements IComponent {
     public name: string = "GameScores";

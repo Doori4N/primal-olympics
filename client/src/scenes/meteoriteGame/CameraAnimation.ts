@@ -2,7 +2,7 @@ import {IComponent} from "../../core/IComponent";
 import {Entity} from "../../core/Entity";
 import {Scene} from "../../core/Scene";
 import * as B from '@babylonjs/core';
-import {CameraComponent} from "../../components/CameraComponent";
+import {CameraComponent} from "../../core/components/CameraComponent";
 
 export class CameraAnimation implements IComponent {
     public name: string = "CameraAnimation";
@@ -22,7 +22,7 @@ export class CameraAnimation implements IComponent {
         const cameraComponent = this.entity.getComponent("Camera") as CameraComponent;
         this.camera = cameraComponent.camera;
 
-        cameraComponent.setAsActiveCamera();
+        this.scene.scene.switchActiveCamera(this.camera);
 
         this.initCameraAnimation();
 
@@ -47,11 +47,11 @@ export class CameraAnimation implements IComponent {
             value: this.camera.position.y
         });
         positionAnimKeys.push({
-            frame: 8 * this.frameRate,
+            frame: 5 * this.frameRate,
             value: this.camera.position.y + 20
         });
         positionAnimKeys.push({
-            frame: 10 * this.frameRate,
+            frame: 7 * this.frameRate,
             value: this.camera.position.y + 20
         });
         positionAnim.setKeys(positionAnimKeys);
@@ -70,11 +70,11 @@ export class CameraAnimation implements IComponent {
             value: 0
         });
         rotationAnimKeys.push({
-            frame: 8 * this.frameRate,
+            frame: 5 * this.frameRate,
             value: Math.PI / 4
         });
         rotationAnimKeys.push({
-            frame: 10 * this.frameRate,
+            frame: 7 * this.frameRate,
             value: Math.PI / 4
         });
         rotationAnim.setKeys(rotationAnimKeys);
@@ -85,7 +85,7 @@ export class CameraAnimation implements IComponent {
         this.scene.scene.beginAnimation(
             this.camera,
             0,
-            2 * this.frameRate,
+            7 * this.frameRate,
             false,
             1,
             this.onEndAnimation.bind(this)

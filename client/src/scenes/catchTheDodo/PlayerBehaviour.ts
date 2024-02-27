@@ -4,7 +4,7 @@ import {Scene} from "../../core/Scene";
 import {InputStates} from "../../core/types";
 import * as B from "@babylonjs/core";
 import * as GUI from "@babylonjs/gui";
-import {MeshComponent} from "../../components/MeshComponent";
+import {MeshComponent} from "../../core/components/MeshComponent";
 
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";

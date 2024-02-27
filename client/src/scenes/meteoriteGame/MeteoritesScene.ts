@@ -1,15 +1,15 @@
 import {Scene} from "../../core/Scene";
 import * as B from '@babylonjs/core';
 import {Entity} from "../../core/Entity";
-import {GamePresentation} from "../../components/GamePresentation";
-import {GameMessages} from "../../components/GameMessages";
-import {Leaderboard} from "../../components/Leaderboard";
-import {MeshComponent} from "../../components/MeshComponent";
-import {RigidBodyComponent} from "../../components/RigidBodyComponent";
+import {GamePresentation} from "../../core/components/GamePresentation";
+import {GameMessages} from "../../core/components/GameMessages";
+import {Leaderboard} from "../../core/components/Leaderboard";
+import {MeshComponent} from "../../core/components/MeshComponent";
+import {RigidBodyComponent} from "../../core/components/RigidBodyComponent";
 import {PlayerBehaviour} from "./PlayerBehaviour";
 import {MeteoriteController} from "./MeteoriteController";
-import {GameTimer} from "./GameTimer";
-import {CameraComponent} from "../../components/CameraComponent";
+import {GameTimer} from "../../core/components/GameTimer";
+import {CameraComponent} from "../../core/components/CameraComponent";
 import {CameraAnimation} from "./CameraAnimation";
 import {GameScores} from "./GameScores";
 
@@ -18,25 +18,23 @@ export class MeteoritesScene extends Scene {
         super("meteorites");
     }
 
-    public start(): void {
-        // hide/show the Inspector
-        window.addEventListener("keydown", (e: KeyboardEvent): void => {
-            // Shift+Ctrl+I
-            if (e.shiftKey && e.ctrlKey && e.code === "KeyI") {
-                if (this.scene.debugLayer.isVisible()) {
-                    this.scene.debugLayer.hide();
-                } else {
-                    this.scene.debugLayer.show({overlay: true, handleResize: true});
-                }
-            }
-        });
+    public async loadAssets(): Promise<void> {
+        this.game.engine.displayLoadingUI();
 
+        // load assets
+        this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync(
+            "https://assets.babylonjs.com/meshes/",
+            "HVGirl.glb",
+            this.scene
+        );
+
+        this.game.engine.hideLoadingUI();
+    }
+
+    public start(): void {
         // Enable physics engine
         const gravityVector = new B.Vector3(0, -9.81, 0);
         this.scene.enablePhysics(gravityVector, this.game.physicsPlugin);
-
-        // Use right-handed system to match the gltf model (otherwise the model will be flipped)
-        this.scene.useRightHandedSystem = true;
 
         // camera
         this.mainCamera.position = new B.Vector3(0, 30, -20);
@@ -71,42 +69,37 @@ export class MeteoritesScene extends Scene {
         this.entityManager.addEntity(groundEntity);
 
         // players
-        B.SceneLoader.LoadAssetContainer(
-            "https://assets.babylonjs.com/meshes/",
-            "HVGirl.glb",
-            this.scene,
-            (container: B.AssetContainer): void => {
-                for (let i: number = 0; i < this.game.playerData.length; i++) {
-                    const entries: B.InstantiatedEntries = container.instantiateModelsToScene((sourceName: string): string => sourceName + i, false, {doNotInstantiate: true});
-                    const player: B.Mesh = this.scene.getMeshByName("__root__" + i) as B.Mesh;
-                    if (!player) throw new Error("Player mesh not found");
+        const playerContainer: B.AssetContainer = this.loadedAssets["player"];
+        for (let i: number = 0; i < this.game.playerData.length; i++) {
+            const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + i, false, {doNotInstantiate: true});
+            const player: B.Mesh = this.scene.getMeshByName("__root__" + i) as B.Mesh;
+            if (!player) throw new Error("Player mesh not found");
 
-                    player.scaling.scaleInPlace(0.1);
-                    const playerEntity = new Entity("player");
+            player.scaling.scaleInPlace(0.1);
+            const playerEntity = new Entity("player");
 
-                    const hitbox = new B.Mesh(`hitbox${i}`, this.scene);
-                    hitbox.metadata = {tag: playerEntity.tag, id: playerEntity.id};
+            const hitbox = new B.Mesh(`hitbox${i}`, this.scene);
+            hitbox.metadata = {tag: playerEntity.tag, id: playerEntity.id};
 
-                    player.setParent(hitbox);
-                    player.position = new B.Vector3(0.5, 0, 0.5);
+            player.setParent(hitbox);
+            player.position = new B.Vector3(0.5, 0, 0.5);
 
-                    playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
-                    const playerPhysicsShape = new B.PhysicsShapeBox(
-                        new B.Vector3(0.5, 1, 0.5),
-                        new B.Quaternion(0, 0, 0, 1),
-                        new B.Vector3(1, 2, 1),
-                        this.scene
-                    );
-                    playerEntity.addComponent(new RigidBodyComponent(playerEntity, this, {
-                        physicsShape: playerPhysicsShape,
-                        physicsProps: {mass: 1},
-                        massProps: {inertia: new B.Vector3(0, 0, 0)},
-                        isTrigger: false
-                    }));
-                    playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {inputIndex: i, animationGroups: entries.animationGroups}));
-                    this.entityManager.addEntity(playerEntity);
-                }
-            });
+            playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
+            const playerPhysicsShape = new B.PhysicsShapeBox(
+                new B.Vector3(0.5, 1, 0.5),
+                new B.Quaternion(0, 0, 0, 1),
+                new B.Vector3(1, 2, 1),
+                this.scene
+            );
+            playerEntity.addComponent(new RigidBodyComponent(playerEntity, this, {
+                physicsShape: playerPhysicsShape,
+                physicsProps: {mass: 1},
+                massProps: {inertia: new B.Vector3(0, 0, 0)},
+                isTrigger: false
+            }));
+            playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {inputIndex: i, animationGroups: entries.animationGroups}));
+            this.entityManager.addEntity(playerEntity);
+        }
 
         // meteorites
         const meteoriteController = new Entity();
@@ -124,7 +117,7 @@ export class MeteoritesScene extends Scene {
         gameController.addComponent(new GamePresentation(gameController, this, {htmlTemplate}));
         gameController.addComponent(new GameMessages(gameController, this));
         gameController.addComponent(new Leaderboard(gameController, this));
-        gameController.addComponent(new GameTimer(gameController, this, {duration: 10}));
+        gameController.addComponent(new GameTimer(gameController, this, {duration: 60}));
         gameController.addComponent(new GameScores(gameController, this));
         this.entityManager.addEntity(gameController);
     }

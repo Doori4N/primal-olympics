@@ -2,8 +2,8 @@ import {IComponent} from "../../core/IComponent";
 import {Entity} from "../../core/Entity";
 import {Scene} from "../../core/Scene";
 import * as B from "@babylonjs/core";
-import {MeshComponent} from "../../components/MeshComponent";
-import {RigidBodyComponent} from "../../components/RigidBodyComponent";
+import {MeshComponent} from "../../core/components/MeshComponent";
+import {RigidBodyComponent} from "../../core/components/RigidBodyComponent";
 import {InputStates} from "../../core/types";
 import {lerp} from "../../utils/utils";
 
@@ -57,6 +57,7 @@ export class PlayerBehaviour implements IComponent {
 
         // rotate the model
         const modelMesh: B.Mesh = this.mesh.getChildMeshes()[0] as B.Mesh;
+        console.log(modelMesh.rotation.y, this.getDirection(velocity));
         modelMesh.rotation.y = lerp(modelMesh.rotation.y, this.getDirection(velocity), 1);
 
         // animate

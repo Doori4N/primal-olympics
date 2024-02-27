@@ -4,20 +4,21 @@ import {CatchTheDodoScene} from "../scenes/catchTheDodo/CatchTheDodoScene";
 import {GameSelectionScene} from "../scenes/gameSelection/GameSelectionScene";
 import {GameOverScene} from "../scenes/gameOver/GameOverScene";
 import {MeteoritesScene} from "../scenes/meteoriteGame/MeteoritesScene";
+import {EscapeDinoScene} from "../scenes/escapeDino/EscapeDinoScene";
 
 export class SceneManager {
-    private static instance: SceneManager;
-    private scenes: Scene[] = [];
-    private currentScene!: Scene;
+    private static _instance: SceneManager;
+    private _scenes: Scene[] = [];
+    private _currentScene!: Scene | null;
 
     private constructor() {}
 
     public static getInstance(): SceneManager {
-        if (!SceneManager.instance) {
-            SceneManager.instance = new SceneManager();
+        if (!SceneManager._instance) {
+            SceneManager._instance = new SceneManager();
         }
 
-        return SceneManager.instance;
+        return SceneManager._instance;
     }
 
     /**
@@ -25,22 +26,24 @@ export class SceneManager {
      */
     public initializeScenes(): void {
         // add all scenes
-        this.scenes.push(new LocalMenuScene());
-        this.scenes.push(new CatchTheDodoScene());
-        this.scenes.push(new MeteoritesScene());
-        this.scenes.push(new GameSelectionScene());
-        this.scenes.push(new GameOverScene());
+        this._scenes.push(new LocalMenuScene());
+        this._scenes.push(new CatchTheDodoScene());
+        this._scenes.push(new MeteoritesScene());
+        this._scenes.push(new EscapeDinoScene());
+        this._scenes.push(new GameSelectionScene());
+        this._scenes.push(new GameOverScene());
 
         // set the current scene and start it
-        this.currentScene = this.scenes[0];
-        this.currentScene.start();
+        this._currentScene = this._scenes[0];
+        this._currentScene.start();
     }
 
     /**
      * Update the current scene
      */
     public updateCurrentScene(): void {
-        this.currentScene.update();
+        if (!this._currentScene) return;
+        this._currentScene.update();
     }
 
     /**
@@ -48,14 +51,28 @@ export class SceneManager {
      * @param sceneName
      */
     public changeScene(sceneName: string): void {
-        this.currentScene.destroy();
+        if (this._currentScene) {
+            this._currentScene.destroy();
+            this._currentScene = null;
+        }
 
-        const scene: Scene | undefined = this.scenes.find((scene: Scene): boolean => scene.name === sceneName);
+        const scene: Scene | undefined = this._scenes.find((scene: Scene): boolean => scene.name === sceneName);
         if (!scene) {
             throw new Error(`Scene ${sceneName} not found`);
         }
 
-        this.currentScene = scene;
-        this.currentScene.start();
+        scene.loadAssets().then((): void => {
+            scene.start();
+            this._currentScene = scene;
+        });
+    }
+
+    public displayDebugLayer(): void {
+        // hide/show the Inspector
+        if (this._currentScene?.scene.debugLayer.isVisible()) {
+            this._currentScene?.scene.debugLayer.hide();
+        } else {
+            this._currentScene?.scene.debugLayer.show({overlay: true, handleResize: true});
+        }
     }
 }

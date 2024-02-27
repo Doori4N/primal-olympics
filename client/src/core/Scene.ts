@@ -24,6 +24,8 @@ export class Scene {
         this.mainCamera = new B.FreeCamera("mainCamera", new B.Vector3(0, 5, -10), this.scene);
     }
 
+    public async loadAssets(): Promise<void> {};
+
     /**
      * Function to override
      * Initialize all entities
