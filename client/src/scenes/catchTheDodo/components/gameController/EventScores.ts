@@ -1,8 +1,8 @@
-import {IComponent} from "../../../core/IComponent";
-import {Entity} from "../../../core/Entity";
-import {Scene} from "../../../core/Scene";
+import {IComponent} from "../../../../core/IComponent";
+import {Entity} from "../../../../core/Entity";
+import {Scene} from "../../../../core/Scene";
 import {PlayerBehaviour} from "../PlayerBehaviour";
-import {MeshComponent} from "../../../core/components/MeshComponent";
+import {MeshComponent} from "../../../../core/components/MeshComponent";
 
 export class EventScores implements IComponent {
     public name: string = "EventScores";

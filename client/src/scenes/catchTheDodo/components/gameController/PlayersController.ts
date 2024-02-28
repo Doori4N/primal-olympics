@@ -1,7 +1,7 @@
-import {IComponent} from "../../../core/IComponent";
-import {Entity} from "../../../core/Entity";
-import {Scene} from "../../../core/Scene";
-import {MeshComponent} from "../../../core/components/MeshComponent";
+import {IComponent} from "../../../../core/IComponent";
+import {Entity} from "../../../../core/Entity";
+import {Scene} from "../../../../core/Scene";
+import {MeshComponent} from "../../../../core/components/MeshComponent";
 import {PlayerBehaviour} from "../PlayerBehaviour";
 
 export class PlayersController implements IComponent {

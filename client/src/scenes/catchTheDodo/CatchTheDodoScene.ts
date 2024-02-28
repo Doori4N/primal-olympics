@@ -2,16 +2,16 @@ import {Scene} from "../../core/Scene";
 import * as B from "@babylonjs/core";
 import {Entity} from "../../core/Entity";
 import {MeshComponent} from "../../core/components/MeshComponent";
-import {PlayerBehaviour} from "./PlayerBehaviour";
+import {PlayerBehaviour} from "./components/PlayerBehaviour";
 import {CameraComponent} from "../../core/components/CameraComponent";
-import {CameraMovement} from "./camera/CameraMovement";
-import {DodoBehaviour} from "./DodoBehaviour";
+import {CameraMovement} from "./components/camera/CameraMovement";
+import {DodoBehaviour} from "./components/DodoBehaviour";
 import {GamePresentation} from "../../core/components/GamePresentation";
-import {CameraAnimation} from "./camera/CameraAnimation";
+import {CameraAnimation} from "./components/camera/CameraAnimation";
 import {GameMessages} from "../../core/components/GameMessages";
 import {Leaderboard} from "../../core/components/Leaderboard";
-import {EventScores} from "./gameController/EventScores";
-import {PlayersController} from "./gameController/PlayersController";
+import {EventScores} from "./components/gameController/EventScores";
+import {PlayersController} from "./components/gameController/PlayersController";
 
 export class CatchTheDodoScene extends Scene {
     constructor() {

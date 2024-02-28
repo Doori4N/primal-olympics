@@ -6,12 +6,12 @@ import {GameMessages} from "../../core/components/GameMessages";
 import {Leaderboard} from "../../core/components/Leaderboard";
 import {MeshComponent} from "../../core/components/MeshComponent";
 import {RigidBodyComponent} from "../../core/components/RigidBodyComponent";
-import {PlayerBehaviour} from "./PlayerBehaviour";
-import {MeteoriteController} from "./MeteoriteController";
+import {PlayerBehaviour} from "./components/PlayerBehaviour";
+import {MeteoriteController} from "./components/MeteoriteController";
 import {GameTimer} from "../../core/components/GameTimer";
 import {CameraComponent} from "../../core/components/CameraComponent";
-import {CameraAnimation} from "./CameraAnimation";
-import {GameScores} from "./GameScores";
+import {CameraAnimation} from "./components/CameraAnimation";
+import {GameScores} from "./components/GameScores";
 
 export class MeteoritesScene extends Scene {
     constructor() {
