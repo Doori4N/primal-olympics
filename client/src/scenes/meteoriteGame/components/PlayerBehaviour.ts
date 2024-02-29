@@ -49,7 +49,7 @@ export class PlayerBehaviour implements IComponent {
         if (!this._isGameStarted || this._isGameFinished) return;
 
         // apply velocity
-        const deltaTime: number = this.scene.scene.deltaTime ?? 0;
+        const deltaTime: number = this.scene.game.engine.getDeltaTime();
         const velocity: B.Vector3 = new B.Vector3(this._inputStates.direction.x, 0, -this._inputStates.direction.y).normalize();
         velocity.scaleInPlace(this._speed * deltaTime);
         this._physicsAggregate.body.setLinearVelocity(velocity);

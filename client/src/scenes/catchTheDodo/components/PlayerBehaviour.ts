@@ -110,7 +110,7 @@ export class PlayerBehaviour implements IComponent {
 
     private applySlowDown(): void {
         if (this.velocityX >= this.slowDown) {
-            this.velocityX -= this.slowDown * this.scene.scene.deltaTime;
+            this.velocityX -= this.slowDown * this.scene.game.engine.getDeltaTime();
         }
         else {
             this.velocityX = 0;
@@ -125,7 +125,7 @@ export class PlayerBehaviour implements IComponent {
 
         // the player needs to release the button and press it again to accelerate
         if (this.inputStates.buttons["jump"] && !this.isButtonDown) {
-            this.velocityX += this.speed * this.scene.scene.deltaTime;
+            this.velocityX += this.speed * this.scene.game.engine.getDeltaTime();
             this.isButtonDown = true;
         }
     }

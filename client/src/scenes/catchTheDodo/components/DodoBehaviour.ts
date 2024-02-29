@@ -60,7 +60,7 @@ export class DodoBehaviour implements IComponent {
 
     private slowDownVelocity(): void {
         if (this.velocityX >= this.slowDown + 0.001) {
-            this.velocityX -= this.slowDown * this.scene.scene.deltaTime;
+            this.velocityX -= this.slowDown * this.scene.game.engine.getDeltaTime();
         }
         else {
             console.log("stopped");
