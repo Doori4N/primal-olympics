@@ -44,20 +44,20 @@ export class InputManager {
             }
 
             // update the inputStates
-            switch (event.key) {
-                case "z":
+            switch (event.code) {
+                case "KeyW":
                     this.inputMap[index].buttons["up"] = true;
                     break;
-                case "s":
+                case "KeyS":
                     this.inputMap[index].buttons["down"] = true;
                     break;
-                case "q":
+                case "KeyA":
                     this.inputMap[index].buttons["left"] = true;
                     break;
-                case "d":
+                case "KeyD":
                     this.inputMap[index].buttons["right"] = true;
                     break;
-                case " ":
+                case "Space":
                     this.inputMap[index].buttons["jump"] = true;
                     break;
             }
@@ -70,20 +70,20 @@ export class InputManager {
             if (index === -1) return;
 
             // update the inputStates
-            switch (event.key) {
-                case "z":
+            switch (event.code) {
+                case "KeyW":
                     this.inputMap[index].buttons["up"] = false;
                     break;
-                case "s":
+                case "KeyS":
                     this.inputMap[index].buttons["down"] = false;
                     break;
-                case "q":
+                case "KeyA":
                     this.inputMap[index].buttons["left"] = false;
                     break;
-                case "d":
+                case "KeyD":
                     this.inputMap[index].buttons["right"] = false;
                     break;
-                case " ":
+                case "Space":
                     this.inputMap[index].buttons["jump"] = false;
                     break;
             }
