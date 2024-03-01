@@ -1,10 +1,12 @@
 import {Scene} from "./Scene";
-import {LocalMenuScene} from "../scenes/LocalMenuScene";
 import {CatchTheDodoScene} from "../scenes/catchTheDodo/CatchTheDodoScene";
 import {GameSelectionScene} from "../scenes/gameSelection/GameSelectionScene";
 import {GameOverScene} from "../scenes/gameOver/GameOverScene";
 import {MeteoritesScene} from "../scenes/meteoriteGame/MeteoritesScene";
 import {EscapeDinoScene} from "../scenes/escapeDino/EscapeDinoScene";
+import {MenuScene} from "../scenes/menu/MenuScene";
+import {LobbyScene} from "../scenes/lobby/LobbyScene";
+import {JoinLobbyScene} from "../scenes/joinLobby/JoinLobbyScene";
 
 export class SceneManager {
     private static _instance: SceneManager;
@@ -26,11 +28,13 @@ export class SceneManager {
      */
     public initializeScenes(): void {
         // add all scenes
-        this._scenes.push(new LocalMenuScene());
+        this._scenes.push(new MenuScene());
         this._scenes.push(new CatchTheDodoScene());
         this._scenes.push(new MeteoritesScene());
         this._scenes.push(new EscapeDinoScene());
         this._scenes.push(new GameSelectionScene());
+        this._scenes.push(new LobbyScene());
+        this._scenes.push(new JoinLobbyScene());
         this._scenes.push(new GameOverScene());
 
         // start the first scene

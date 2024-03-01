@@ -3,6 +3,7 @@ import HavokPhysics, {HavokPhysicsWithBindings} from "@babylonjs/havok"
 import {SceneManager} from "./SceneManager";
 import {InputManager} from "./InputManager";
 import {PlayerData} from "./types";
+import {INetworkInstance} from "./network/INetworkInstance";
 
 export class Game {
     private static instance: Game;
@@ -12,6 +13,7 @@ export class Game {
     public physicsPlugin!: B.HavokPlugin;
     public inputs: InputManager = new InputManager();
     public playerData: PlayerData[] = [];
+    public networkInstance: INetworkInstance | null = null;
     // public events: string[] = ["catchTheDodo", "meteorites", "escapeDino"];
     // public events: string[] = ["catchTheDodo"];
     public events: string[] = ["meteorites"];

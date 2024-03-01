@@ -19,6 +19,7 @@
   "dependencies": {
     "@babylonjs/gui": "^6.41.0",
     "colyseus.js": "^0.15.18",
+    "peerjs": "^1.5.2",
     "uuid": "^9.0.1"
   }
 }

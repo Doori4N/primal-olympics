@@ -13,7 +13,7 @@ export class Scene {
     public game: Game = Game.getInstance();
     public eventManager = new EventManager();
     public entityManager = new EntityManager();
-    public sceneManager = SceneManager.getInstance();
+    public sceneManager: SceneManager = SceneManager.getInstance();
     public loadedAssets: { [name: string]: B.AssetContainer } = {};
 
     constructor(name: string) {
@@ -44,6 +44,7 @@ export class Scene {
      * Destroy the scene and all entities
      */
     public destroy(): void {
+        // TODO: destroy loadedAssets
         this.mainCamera.dispose();
         this.scene.dispose();
         this.entityManager.destroyAllEntities();

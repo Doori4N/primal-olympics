@@ -59,7 +59,13 @@ export class MeteoriteController implements IComponent {
 
     private spawnMeteorite(position: B.Vector3): void {
         const meteoriteEntity = new Entity("meteorite");
-        const meteorite: B.Mesh = B.MeshBuilder.CreateSphere(`meteorite${meteoriteEntity.id}`, {diameter: 2}, this.scene.scene);
+        const entries: B.InstantiatedEntries = this.scene.loadedAssets["meteorite"].instantiateModelsToScene(
+            (sourceName: string): string => sourceName + meteoriteEntity.id,
+            false,
+            {doNotInstantiate: true}
+        );
+        const meteorite: B.Mesh = entries.rootNodes[0] as B.Mesh;
+        meteorite.scaling = new B.Vector3(0.5, 0.5, 0.5);
         meteorite.metadata = {tag: meteoriteEntity.tag, id: meteoriteEntity.id};
         meteorite.position = position;
         meteoriteEntity.addComponent(new MeshComponent(meteoriteEntity, this.scene, {mesh: meteorite}));

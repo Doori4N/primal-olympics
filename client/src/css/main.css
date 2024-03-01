@@ -5,6 +5,30 @@
     overflow: hidden;
 }
 
+#menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transform: translate(-50%, -50%);
+    background-color: #f0f0f0;
+}
+
+#lobby {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transform: translate(-50%, -50%);
+    background-color: #f0f0f0;
+}
+
 #presentation-ui {
     position: absolute;
     top: 50%;

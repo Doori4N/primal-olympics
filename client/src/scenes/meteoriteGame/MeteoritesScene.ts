@@ -28,6 +28,12 @@ export class MeteoritesScene extends Scene {
             this.scene
         );
 
+        this.loadedAssets["meteorite"] = await B.SceneLoader.LoadAssetContainerAsync(
+            "meshes/",
+            "meteorite.glb",
+            this.scene
+        );
+
         this.game.engine.hideLoadingUI();
     }
 
