@@ -1,9 +1,14 @@
 import {Scene} from "../../core/Scene";
-import {HostNetwork} from "../../core/network/HostNetwork";
-import {ClientNetwork} from "../../core/network/ClientNetwork";
+import {NetworkHost} from "../../core/network/NetworkHost";
+import {NetworkClient} from "../../core/network/NetworkClient";
 
 export class LobbyScene extends Scene {
     private _lobbyDiv!: HTMLDivElement;
+
+    // event listeners
+    private _addPlayer = this._addPlayerHostRpc.bind(this);
+    private _getPlayers = this._getPlayersHostRpc.bind(this);
+    private _setPlayers = this._setPlayersClientRpc.bind(this);
 
     constructor() {
         super("lobby");
@@ -17,7 +22,7 @@ export class LobbyScene extends Scene {
         this._lobbyDiv.id = "lobby";
         uiContainer.appendChild(this._lobbyDiv);
 
-        if (!this.game.networkInstance) throw new Error("Network instance not found");
+        if (this.game.isOnline && !this.game.networkInstance) throw new Error("Network instance not found");
 
         if (this.game.networkInstance.isHost) {
             this._handleHost();
@@ -34,49 +39,56 @@ export class LobbyScene extends Scene {
         if (!uiContainer) throw new Error("UI element not found");
 
         uiContainer.innerHTML = "";
+
+        if (this.game.networkInstance.isHost) {
+            const networkHost = this.game.networkInstance as NetworkHost;
+            networkHost.removeEventListener("player-joined", this._addPlayer);
+            networkHost.removeEventListener("getPlayers", this._getPlayers);
+        }
+        else {
+            const networkClient = this.game.networkInstance as NetworkClient;
+            networkClient.removeEventListener("setPlayers", this._setPlayers);
+        }
     }
 
     private _handleHost(): void {
-        const hostNetwork = this.game.networkInstance as HostNetwork;
+        const networkHost = this.game.networkInstance as NetworkHost;
         this._lobbyDiv.innerHTML = `
-                <h2>Room ID: ${hostNetwork.peer.id}</h2>
+                <h2>Room ID: ${networkHost.peer.id}</h2>
                 <ul id="player-list">
-                    <li>${hostNetwork.players[0]}</li>
+                    <li>${networkHost.players[0]}</li>
                 </ul>
             `;
 
         // if a player joins, update the player list
-        hostNetwork.addEventListener("player-joined", (players: string[]): void => {
-            this._updatePlayerList(players);
-        });
+        networkHost.addEventListener("player-joined", this._addPlayer);
 
-        hostNetwork.addEventListener("getPlayers", (): void => {
-            // tell to all players to update their player list
-            hostNetwork.sendToAllClients("setPlayers", hostNetwork.players);
-        });
+        networkHost.addEventListener("getPlayers", this._getPlayers);
 
         const startBtn: HTMLButtonElement = document.createElement("button");
         startBtn.innerHTML = "Start Game";
         this._lobbyDiv.appendChild(startBtn);
+
+        startBtn.onclick = (): void => {
+            networkHost.sendToAllClients("changeScene", "gameSelection");
+            this.sceneManager.changeScene("gameSelection");
+        }
     }
 
     private _handleClient(): void {
-        const clientNetwork = this.game.networkInstance as ClientNetwork;
+        const networkClient = this.game.networkInstance as NetworkClient;
 
         this._lobbyDiv.innerHTML = `
-                <h2>Room ID: ${clientNetwork.hostId}</h2>
-                <ul id="player-list"></ul>
-                <p>Waiting for host to start the game...</p>
-            `;
+            <h2>Room ID: ${networkClient.hostId}</h2>
+            <ul id="player-list"></ul>
+            <p>Waiting for host to start the game...</p>
+        `;
 
         // if a player joins, update the player list
-        clientNetwork.addEventListener("setPlayers", (players: string[]): void => {
-            clientNetwork.players = players;
-            this._updatePlayerList(players);
-        });
+        networkClient.addEventListener("setPlayers", this._setPlayers);
 
         // get the player list from the host
-        clientNetwork.sendToHost("getPlayers");
+        networkClient.sendToHost("getPlayers");
     }
 
     private _updatePlayerList(players: string[]): void {
@@ -89,5 +101,21 @@ export class LobbyScene extends Scene {
             li.innerHTML = player;
             playerList.appendChild(li);
         });
+    }
+
+    private _setPlayersClientRpc(players: string[]): void {
+        const networkClient = this.game.networkInstance as NetworkClient;
+        networkClient.players = players;
+        this._updatePlayerList(players);
+    }
+
+    private _getPlayersHostRpc(): void {
+        const networkHost = this.game.networkInstance as NetworkHost;
+        // tell to all players to update their player list
+        networkHost.sendToAllClients("setPlayers", networkHost.players);
+    }
+
+    private _addPlayerHostRpc(players: string[]): void {
+        this._updatePlayerList(players);
     }
 }

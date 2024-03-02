@@ -1,6 +1,6 @@
 import {Scene} from "../../core/Scene";
-import {HostNetwork} from "../../core/network/HostNetwork";
-import {ClientNetwork} from "../../core/network/ClientNetwork";
+import {NetworkHost} from "../../core/network/NetworkHost";
+import {NetworkClient} from "../../core/network/NetworkClient";
 
 export class MenuScene extends Scene {
     constructor() {
@@ -24,6 +24,10 @@ export class MenuScene extends Scene {
         onlineBtn.id = "onlineBtn";
         onlineBtn.innerHTML = "Online";
         menuDiv.appendChild(onlineBtn);
+
+        const versionText: HTMLParagraphElement = document.createElement("p");
+        versionText.innerHTML = "Version: 0.0.0";
+        menuDiv.appendChild(versionText);
 
         localBtn.onclick = (): void => {
             menuDiv.innerHTML = "";
@@ -55,12 +59,14 @@ export class MenuScene extends Scene {
         onlineBtn.onclick = (): void => {
             menuDiv.innerHTML = "";
 
+            this.game.isOnline = true;
+
             const hostBtn: HTMLButtonElement = document.createElement("button");
             hostBtn.innerHTML = "Host";
             menuDiv.appendChild(hostBtn);
 
             hostBtn.onclick = (): void => {
-                this.game.networkInstance = new HostNetwork();
+                this.game.networkInstance = new NetworkHost();
                 this.sceneManager.changeScene("lobby");
             }
 
@@ -69,7 +75,7 @@ export class MenuScene extends Scene {
             menuDiv.appendChild(joinBtn);
 
             joinBtn.onclick = (): void => {
-                this.game.networkInstance = new ClientNetwork();
+                this.game.networkInstance = new NetworkClient();
                 this.sceneManager.changeScene("joinLobby");
             }
         };

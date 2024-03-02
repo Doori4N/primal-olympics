@@ -4,13 +4,13 @@ import {v4 as uuid} from "uuid";
 import {EventManager} from "../EventManager";
 import {NetworkMessage} from "./types";
 
-export class HostNetwork implements INetworkInstance {
+export class NetworkHost implements INetworkInstance {
     public isHost: boolean = true;
     public peer: Peer;
     public connections: DataConnection[] = [];
     public players: string[] = [];
 
-    private eventManager = new EventManager();
+    private _eventManager = new EventManager();
 
     constructor() {
         this.peer = new Peer(uuid());
@@ -23,7 +23,7 @@ export class HostNetwork implements INetworkInstance {
             // listen for messages from the client
             connection.on("data", (data: unknown): void => {
                 const msg = data as NetworkMessage;
-                this.eventManager.notify(msg.type, ...msg.data);
+                this._eventManager.notify(msg.type, ...msg.data);
             });
 
             // set player list
@@ -31,7 +31,7 @@ export class HostNetwork implements INetworkInstance {
             this.players.push(playerName);
 
             // tell the host that a new player has joined
-            this.eventManager.notify("player-joined", this.players);
+            this._eventManager.notify("player-joined", this.players);
         });
 
         this.peer.on("error", (err: any): void => {
@@ -40,15 +40,19 @@ export class HostNetwork implements INetworkInstance {
     }
 
     public addEventListener(event: string, callback: Function): void {
-        this.eventManager.subscribe(event, callback);
+        this._eventManager.subscribe(event, callback);
     }
 
     public removeEventListener(event: string, callback: Function): void {
-        this.eventManager.unsubscribe(event, callback);
+        this._eventManager.unsubscribe(event, callback);
     }
 
     public notify(event: string, ...args: any[]): void {
-        this.eventManager.notify(event, ...args);
+        this._eventManager.notify(event, ...args);
+    }
+
+    public clearEventListeners(): void {
+        this._eventManager.clear();
     }
 
     public sendToAllClients(event: string, ...args: any[]): void {

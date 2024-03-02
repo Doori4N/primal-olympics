@@ -15,4 +15,12 @@ export interface INetworkInstance {
      * @description List of player names in the game
      */
     players: string[];
+
+    addEventListener(event: string, callback: Function): void;
+
+    removeEventListener(event: string, callback: Function): void;
+
+    notify(event: string, ...args: any[]): void;
+
+    clearEventListeners(): void;
 }

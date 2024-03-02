@@ -13,7 +13,8 @@ export class Game {
     public physicsPlugin!: B.HavokPlugin;
     public inputs: InputManager = new InputManager();
     public playerData: PlayerData[] = [];
-    public networkInstance: INetworkInstance | null = null;
+    public networkInstance!: INetworkInstance;
+    public isOnline: boolean = false;
     // public events: string[] = ["catchTheDodo", "meteorites", "escapeDino"];
     // public events: string[] = ["catchTheDodo"];
     public events: string[] = ["meteorites"];

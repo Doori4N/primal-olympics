@@ -1,5 +1,5 @@
 import {Scene} from "../../core/Scene";
-import {ClientNetwork} from "../../core/network/ClientNetwork";
+import {NetworkClient} from "../../core/network/NetworkClient";
 
 export class JoinLobbyScene extends Scene {
     constructor() {
@@ -7,6 +7,11 @@ export class JoinLobbyScene extends Scene {
     }
 
     public start(): void {
+        if (this.game.isOnline && !this.game.networkInstance) throw new Error("Network instance not found");
+
+        if (this.game.networkInstance.isHost) return;
+        const networkClient = this.game.networkInstance as NetworkClient;
+
         const uiContainer: Element | null = document.querySelector("#ui");
         if (!uiContainer) throw new Error("UI element not found");
 
@@ -28,10 +33,8 @@ export class JoinLobbyScene extends Scene {
         joinBtn.onclick = (): void => {
             const hostId: string = input.value;
 
-            if (this.game.networkInstance instanceof ClientNetwork) {
-                this.game.networkInstance.addEventListener("connected", this._onClientConnected.bind(this));
-                this.game.networkInstance.connectToHost(hostId);
-            }
+            networkClient.addEventListener("connected", this._onClientConnected.bind(this));
+            networkClient.connectToHost(hostId);
         };
     }
 

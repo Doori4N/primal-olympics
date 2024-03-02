@@ -61,4 +61,11 @@ export class EventManager {
             callback(...args);
         });
     }
+
+    /**
+     * Clears all listeners
+     */
+    public clear(): void {
+        this.listeners.clear();
+    }
 }
