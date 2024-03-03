@@ -1,6 +1,6 @@
 import {Scene} from "../../core/Scene";
-import {NetworkHost} from "../../core/network/NetworkHost";
-import {NetworkClient} from "../../core/network/NetworkClient";
+import {NetworkHost} from "../../network/NetworkHost";
+import {NetworkClient} from "../../network/NetworkClient";
 
 export class MenuScene extends Scene {
     constructor() {
@@ -15,51 +15,19 @@ export class MenuScene extends Scene {
         menuDiv.id = "menu";
         uiContainer.appendChild(menuDiv);
 
-        const localBtn: HTMLButtonElement = document.createElement("button");
-        localBtn.id = "localBtn";
-        localBtn.innerHTML = "Local";
-        menuDiv.appendChild(localBtn);
-
-        const onlineBtn: HTMLButtonElement = document.createElement("button");
-        onlineBtn.id = "onlineBtn";
-        onlineBtn.innerHTML = "Online";
-        menuDiv.appendChild(onlineBtn);
+        const startBtn: HTMLButtonElement = document.createElement("button");
+        startBtn.id = "startBtn";
+        startBtn.innerHTML = "Start";
+        menuDiv.appendChild(startBtn);
 
         const versionText: HTMLParagraphElement = document.createElement("p");
         versionText.innerHTML = "Version: 0.0.0";
         menuDiv.appendChild(versionText);
 
-        localBtn.onclick = (): void => {
+        // TODO: put the connection to the network here
+
+        startBtn.onclick = (): void => {
             menuDiv.innerHTML = "";
-
-            const localSceneDiv: HTMLDivElement = document.createElement("div");
-            localSceneDiv.id = "localScene";
-            menuDiv.appendChild(localSceneDiv);
-
-            this.game.inputs.onKeyboardConnected.push((): void => {
-                localSceneDiv.innerHTML += "Keyboard connected<br>";
-                this.addPlayer();
-            });
-            this.game.inputs.onGamepadConnected.push((): void => {
-                localSceneDiv.innerHTML += "Gamepad connected<br>";
-                this.addPlayer();
-            });
-
-            const startBtn: HTMLButtonElement = document.createElement("button");
-            startBtn.innerHTML = "Start Game";
-            menuDiv.appendChild(startBtn);
-
-            startBtn.onclick = (): void => {
-                if (this.game.playerData.length > 0) {
-                    this.sceneManager.changeScene("gameSelection");
-                }
-            }
-        };
-
-        onlineBtn.onclick = (): void => {
-            menuDiv.innerHTML = "";
-
-            this.game.isOnline = true;
 
             const hostBtn: HTMLButtonElement = document.createElement("button");
             hostBtn.innerHTML = "Host";
@@ -91,14 +59,5 @@ export class MenuScene extends Scene {
 
         this.game.inputs.onKeyboardConnected = [];
         this.game.inputs.onGamepadConnected = [];
-    }
-
-    private addPlayer(): void {
-        this.game.playerData.push({
-            name: "Player " + (this.game.playerData.length + 1),
-            goldMedals: 0,
-            silverMedals: 0,
-            bronzeMedals: 0
-        })
     }
 }

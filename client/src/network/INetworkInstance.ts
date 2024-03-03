@@ -16,6 +16,8 @@ export interface INetworkInstance {
      */
     players: string[];
 
+    ping: number;
+
     addEventListener(event: string, callback: Function): void;
 
     removeEventListener(event: string, callback: Function): void;

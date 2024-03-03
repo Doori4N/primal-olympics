@@ -1,5 +1,5 @@
 import {Scene} from "../../core/Scene";
-import {NetworkClient} from "../../core/network/NetworkClient";
+import {NetworkClient} from "../../network/NetworkClient";
 
 export class JoinLobbyScene extends Scene {
     constructor() {
@@ -7,8 +7,6 @@ export class JoinLobbyScene extends Scene {
     }
 
     public start(): void {
-        if (this.game.isOnline && !this.game.networkInstance) throw new Error("Network instance not found");
-
         if (this.game.networkInstance.isHost) return;
         const networkClient = this.game.networkInstance as NetworkClient;
 

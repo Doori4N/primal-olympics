@@ -1,6 +1,6 @@
 import {Scene} from "../../core/Scene";
-import {NetworkHost} from "../../core/network/NetworkHost";
-import {NetworkClient} from "../../core/network/NetworkClient";
+import {NetworkHost} from "../../network/NetworkHost";
+import {NetworkClient} from "../../network/NetworkClient";
 
 export class LobbyScene extends Scene {
     private _lobbyDiv!: HTMLDivElement;
@@ -21,8 +21,6 @@ export class LobbyScene extends Scene {
         this._lobbyDiv = document.createElement("div");
         this._lobbyDiv.id = "lobby";
         uiContainer.appendChild(this._lobbyDiv);
-
-        if (this.game.isOnline && !this.game.networkInstance) throw new Error("Network instance not found");
 
         if (this.game.networkInstance.isHost) {
             this._handleHost();

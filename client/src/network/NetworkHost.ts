@@ -1,7 +1,7 @@
 import {INetworkInstance} from "./INetworkInstance";
 import Peer, {DataConnection} from "peerjs";
 import {v4 as uuid} from "uuid";
-import {EventManager} from "../EventManager";
+import {EventManager} from "../core/EventManager";
 import {NetworkMessage} from "./types";
 
 export class NetworkHost implements INetworkInstance {
@@ -9,6 +9,7 @@ export class NetworkHost implements INetworkInstance {
     public peer: Peer;
     public connections: DataConnection[] = [];
     public players: string[] = [];
+    public ping: number = 0;
 
     private _eventManager = new EventManager();
 
@@ -37,6 +38,12 @@ export class NetworkHost implements INetworkInstance {
         this.peer.on("error", (err: any): void => {
             console.error("Host error: ", err);
         });
+
+        this._initEventListeners();
+    }
+
+    private _initEventListeners(): void {
+        this._listenToPing();
     }
 
     public addEventListener(event: string, callback: Function): void {
@@ -58,6 +65,22 @@ export class NetworkHost implements INetworkInstance {
     public sendToAllClients(event: string, ...args: any[]): void {
         this.connections.forEach((connection: DataConnection): void => {
             connection.send({type: event, data: args});
+        });
+    }
+
+    public sendToClient(event: string, clientId: string, ...args: any[]): void {
+        const connection: DataConnection | undefined = this.connections.find((connection: DataConnection): boolean => {
+            return connection.peer === clientId;
+        });
+
+        if (!connection) throw new Error("Client not found");
+
+        connection.send({type: event, data: args});
+    }
+
+    private _listenToPing(): void {
+        this.addEventListener("ping", (startTime: number, clientId: string): void => {
+            this.sendToClient("pong", clientId, startTime);
         });
     }
 }
