@@ -2,7 +2,6 @@ import * as B from "@babylonjs/core";
 import HavokPhysics, {HavokPhysicsWithBindings} from "@babylonjs/havok"
 import {SceneManager} from "./SceneManager";
 import {InputManager} from "./InputManager";
-import {PlayerData} from "./types";
 import {INetworkInstance} from "../network/INetworkInstance";
 
 export class Game {
@@ -12,7 +11,6 @@ export class Game {
     public engine!: B.Engine;
     public physicsPlugin!: B.HavokPlugin;
     public inputs: InputManager = new InputManager();
-    public playerData: PlayerData[] = [];
     public networkInstance!: INetworkInstance;
 
     /**
@@ -80,7 +78,7 @@ export class Game {
         // TODO: change this to a more elegant solution
         // dirty hack to get the wasm file to load
         const wasmBinary: Response = await fetch(
-            './node_modules/@babylonjs/havok/lib/esm/HavokPhysics.wasm'
+            'lib/HavokPhysics.wasm'
         );
         const wasmBinaryArrayBuffer: ArrayBuffer = await wasmBinary.arrayBuffer();
         const havokInstance: HavokPhysicsWithBindings = await HavokPhysics({

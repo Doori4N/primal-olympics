@@ -62,7 +62,7 @@ export class CatchTheDodoScene extends Scene {
 
         // players
         const playerContainer: B.AssetContainer = this.loadedAssets["player"];
-        for (let i: number = 0; i < this.game.playerData.length; i++) {
+        for (let i: number = 0; i < 1; i++) {
             const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + i, false, {doNotInstantiate: true});
             const player = this.scene.getMeshByName("__root__" + i) as B.Mesh;
             if (!player) throw new Error("Player mesh not found");

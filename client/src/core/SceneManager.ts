@@ -3,7 +3,6 @@ import {CatchTheDodoScene} from "../scenes/catchTheDodo/CatchTheDodoScene";
 import {GameSelectionScene} from "../scenes/gameSelection/GameSelectionScene";
 import {GameOverScene} from "../scenes/gameOver/GameOverScene";
 import {MeteoritesScene} from "../scenes/meteoriteGame/MeteoritesScene";
-import {EscapeDinoScene} from "../scenes/escapeDino/EscapeDinoScene";
 import {MenuScene} from "../scenes/menu/MenuScene";
 import {LobbyScene} from "../scenes/lobby/LobbyScene";
 import {JoinLobbyScene} from "../scenes/joinLobby/JoinLobbyScene";
@@ -31,7 +30,6 @@ export class SceneManager {
         this._scenes.push(new MenuScene());
         this._scenes.push(new CatchTheDodoScene());
         this._scenes.push(new MeteoritesScene());
-        this._scenes.push(new EscapeDinoScene());
         this._scenes.push(new GameSelectionScene());
         this._scenes.push(new LobbyScene());
         this._scenes.push(new JoinLobbyScene());

@@ -16,7 +16,7 @@ export class PlayerBehaviour implements IComponent {
     private _modelMesh!: B.Mesh;
     private _animations: {[key: string]: B.AnimationGroup} = {};
     private _physicsAggregate!: B.PhysicsAggregate;
-    private _speed: number = 0.2;
+    private _speed: number = 3;
     private _isGameStarted: boolean = false;
     private _isGameFinished: boolean = false;
     private _lastDirection: number = 0;
@@ -62,9 +62,8 @@ export class PlayerBehaviour implements IComponent {
         let inputStates: InputStates = (this.playerId === networkHost.playerId) ? this.scene.game.inputs.inputStates : networkHost.playerInputs[this.playerId];
 
         // apply velocity
-        const deltaTime: number = this.scene.game.engine.getDeltaTime();
         const velocity: B.Vector3 = new B.Vector3(inputStates.direction.x, 0, inputStates.direction.y).normalize();
-        velocity.scaleInPlace(this._speed * deltaTime);
+        velocity.scaleInPlace(this._speed);
         this._physicsAggregate.body.setLinearVelocity(velocity);
 
         // rotate the model

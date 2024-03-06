@@ -21,7 +21,7 @@ export class MenuScene extends Scene {
         menuDiv.appendChild(startBtn);
 
         const versionText: HTMLParagraphElement = document.createElement("p");
-        versionText.innerHTML = "Version: 0.0.0";
+        versionText.innerHTML = "Version: 0.1.0";
         menuDiv.appendChild(versionText);
 
         // TODO: put the connection to the network here
@@ -56,8 +56,5 @@ export class MenuScene extends Scene {
         if (!uiContainer) throw new Error("UI element not found");
 
         uiContainer.innerHTML = "";
-
-        this.game.inputs.onKeyboardConnected = [];
-        this.game.inputs.onGamepadConnected = [];
     }
 }

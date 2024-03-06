@@ -1,8 +1,8 @@
 import {IComponent} from "../../../../core/IComponent";
 import {Entity} from "../../../../core/Entity";
 import {Scene} from "../../../../core/Scene";
-import {PlayerBehaviour} from "../PlayerBehaviour";
-import {MeshComponent} from "../../../../core/components/MeshComponent";
+// import {PlayerBehaviour} from "../PlayerBehaviour";
+// import {MeshComponent} from "../../../../core/components/MeshComponent";
 
 export class EventScores implements IComponent {
     public name: string = "EventScores";
@@ -10,7 +10,7 @@ export class EventScores implements IComponent {
     public scene: Scene;
 
     // component properties
-    private scores: {index: number, score: number}[] = [];
+    // private scores: {index: number, score: number}[] = [];
 
     constructor(entity: Entity, scene: Scene) {
         this.entity = entity;
@@ -29,7 +29,7 @@ export class EventScores implements IComponent {
     public onDestroy(): void {}
 
     private displayEventScores(): void {
-        this.setPlayerMedals();
+        // this.setPlayerMedals();
 
         setTimeout((): void => {
             this.scene.eventManager.notify("onDisplayLeaderboard");
@@ -37,47 +37,47 @@ export class EventScores implements IComponent {
     }
 
     private onGameFinished(): void {
-        this.scores = this.getScores();
+        // this.scores = this.getScores();
     }
 
-    private getScores(): {index: number, score: number}[] {
-        const players: Entity[] = this.scene.entityManager.getEntitiesWithTag("player");
-        const scores: {index: number, score: number}[] = [];
+    // private getScores(): {index: number, score: number}[] {
+    //     const players: Entity[] = this.scene.entityManager.getEntitiesWithTag("player");
+    //     const scores: {index: number, score: number}[] = [];
+    //
+    //     players.forEach((player: Entity): void => {
+    //         const playerBehaviour = player.getComponent("PlayerBehaviour") as PlayerBehaviour;
+    //         const playerMesh = player.getComponent("Mesh") as MeshComponent;
+    //         const playerIndex: number = playerBehaviour.inputIndex;
+    //         scores.push({
+    //             index: playerIndex,
+    //             score: Math.round(playerMesh.mesh.position.x)
+    //         });
+    //     });
+    //
+    //     scores.sort((a, b) => b.score - a.score);
+    //
+    //     return scores;
+    // }
 
-        players.forEach((player: Entity): void => {
-            const playerBehaviour = player.getComponent("PlayerBehaviour") as PlayerBehaviour;
-            const playerMesh = player.getComponent("Mesh") as MeshComponent;
-            const playerIndex: number = playerBehaviour.inputIndex;
-            scores.push({
-                index: playerIndex,
-                score: Math.round(playerMesh.mesh.position.x)
-            });
-        });
-
-        scores.sort((a, b) => b.score - a.score);
-
-        return scores;
-    }
-
-    private setPlayerMedals(): void {
-        for (let i: number = 0; i < this.scores.length; i++) {
-            switch (i) {
-                case 0:
-                    console.log("First place: ", this.scene.game.playerData[this.scores[i].index].name);
-                    this.scene.game.playerData[this.scores[i].index].goldMedals++;
-                    break;
-                case 1:
-                    console.log("Second place: ", this.scene.game.playerData[this.scores[i].index].name);
-                    this.scene.game.playerData[this.scores[i].index].silverMedals++;
-                    break;
-                case 2:
-                    console.log("Third place: ", this.scene.game.playerData[this.scores[i].index].name);
-                    this.scene.game.playerData[this.scores[i].index].bronzeMedals++;
-                    break;
-                default:
-                    console.log("No medals: ", this.scene.game.playerData[this.scores[i].index].name);
-                    break;
-            }
-        }
-    }
+    // private setPlayerMedals(): void {
+    //     for (let i: number = 0; i < this.scores.length; i++) {
+    //         switch (i) {
+    //             case 0:
+    //                 console.log("First place: ", this.scene.game.playerData[this.scores[i].index].name);
+    //                 this.scene.game.playerData[this.scores[i].index].goldMedals++;
+    //                 break;
+    //             case 1:
+    //                 console.log("Second place: ", this.scene.game.playerData[this.scores[i].index].name);
+    //                 this.scene.game.playerData[this.scores[i].index].silverMedals++;
+    //                 break;
+    //             case 2:
+    //                 console.log("Third place: ", this.scene.game.playerData[this.scores[i].index].name);
+    //                 this.scene.game.playerData[this.scores[i].index].bronzeMedals++;
+    //                 break;
+    //             default:
+    //                 console.log("No medals: ", this.scene.game.playerData[this.scores[i].index].name);
+    //                 break;
+    //         }
+    //     }
+    // }
 }
