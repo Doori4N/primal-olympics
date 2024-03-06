@@ -69,6 +69,12 @@ export class EntityManager {
         });
     }
 
+    public tickUpdate(): void {
+        this.entities.forEach((entity: Entity): void => {
+            entity.tickUpdateComponents();
+        });
+    }
+
     /**
      * Destroys an entity and its components
      * @param entity

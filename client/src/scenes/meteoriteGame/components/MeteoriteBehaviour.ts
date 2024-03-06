@@ -32,6 +32,8 @@ export class MeteoriteBehaviour implements IComponent {
 
     public onUpdate(): void {}
 
+    public onTickUpdate(): void {}
+
     public onDestroy(): void {
         this.shadow.dispose();
     }

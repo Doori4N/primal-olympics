@@ -2,18 +2,26 @@ import {INetworkInstance} from "./INetworkInstance";
 import Peer, {DataConnection} from "peerjs";
 import {v4 as uuid} from "uuid";
 import {EventManager} from "../core/EventManager";
-import {NetworkMessage} from "./types";
+import {NetworkMessage, PlayerData} from "./types";
 import {SceneManager} from "../core/SceneManager";
+import {Game} from "../core/Game";
+
+// simulate lag for one way trip (ms)
+const LAG: number = 150;
+
+// ping interval (ms)
+const PING_INTERVAL: number = 2000;
 
 export class NetworkClient implements INetworkInstance {
     public isHost: boolean = false;
     public peer: Peer;
-    public players: string[] = [];
+    public players: PlayerData[] = [];
+    public playerId: string = uuid();
     public ping: number = 0;
-    public lag: number = 150;
 
     private _eventManager = new EventManager();
     private _sceneManager = SceneManager.getInstance();
+    private _game = Game.getInstance();
 
     /**
      * @description The connection to the host peer
@@ -40,13 +48,9 @@ export class NetworkClient implements INetworkInstance {
     }
 
     public connectToHost(hostId: string): void {
-        this.hostConnection = this.peer.connect(hostId);
+        this.hostConnection = this.peer.connect(hostId, {metadata: {playerId: this.playerId}});
 
-        this.hostConnection.on("open", (): void => {
-            console.log("Connected to host!");
-            this.hostId = hostId;
-            this.notify("connected");
-        });
+        this.hostConnection.on("open", this.onConnectedToHost.bind(this, hostId));
 
         this.hostConnection.on("data", (data: unknown): void => {
             const msg = data as NetworkMessage;
@@ -56,8 +60,15 @@ export class NetworkClient implements INetworkInstance {
         this.hostConnection.on("error", (err: any): void => {
             console.error("Error connecting to host: ", err);
         });
+    }
 
-        this._sendPingLoop(2000);
+    private onConnectedToHost(hostId: string): void {
+        console.log("Connected to host!");
+        this.hostId = hostId;
+        this.notify("connected");
+
+        this._sendPingLoop(PING_INTERVAL);
+        this._sendInputStatesLoop(this._game.tickRate);
     }
 
     private _initEventListeners(): void {
@@ -74,10 +85,15 @@ export class NetworkClient implements INetworkInstance {
     }
 
     public notify(event: string, ...args: any[]): void {
+        if (LAG === 0) {
+            this._eventManager.notify(event, ...args);
+            return;
+        }
+
         // simulate receiving a message with lag
         setTimeout((): void => {
             this._eventManager.notify(event, ...args);
-        }, this.lag);
+        }, LAG);
     }
 
     public clearEventListeners(): void {
@@ -90,10 +106,15 @@ export class NetworkClient implements INetworkInstance {
             data: args
         };
 
+        if (LAG === 0) {
+            this.hostConnection.send(msg);
+            return;
+        }
+
         // simulate sending a message with lag
         setTimeout((): void => {
             this.hostConnection.send(msg);
-        }, this.lag);
+        }, LAG);
     }
 
     private _listenToChangeScene(): void {
@@ -113,6 +134,12 @@ export class NetworkClient implements INetworkInstance {
         setInterval((): void => {
             const startTime: number = Date.now();
             this.sendToHost("ping", startTime, this.peer.id);
+        }, interval);
+    }
+
+    private _sendInputStatesLoop(interval: number): void {
+        setInterval((): void => {
+            this.sendToHost("inputStates", this.playerId, this._game.inputs.inputStates);
         }, interval);
     }
 }

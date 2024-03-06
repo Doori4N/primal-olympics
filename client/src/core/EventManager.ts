@@ -1,5 +1,5 @@
 export class EventManager {
-    private listeners = new Map<string, Function[]>();
+    private _listeners = new Map<string, Function[]>();
 
     constructor() {}
 
@@ -9,11 +9,11 @@ export class EventManager {
      * @param callback
      */
     public subscribe(eventName: string, callback: Function): void {
-        if (!this.listeners.has(eventName)) {
-            this.listeners.set(eventName, []);
+        if (!this._listeners.has(eventName)) {
+            this._listeners.set(eventName, []);
         }
 
-        this.listeners.get(eventName)?.push(callback);
+        this._listeners.get(eventName)?.push(callback);
     }
 
     /**
@@ -22,11 +22,11 @@ export class EventManager {
      * @param callback
      */
     public unsubscribe(eventName: string, callback: Function): void {
-        if (!this.listeners.has(eventName)) {
+        if (!this._listeners.has(eventName)) {
             return;
         }
 
-        const callbacks: Function[] | undefined = this.listeners.get(eventName);
+        const callbacks: Function[] | undefined = this._listeners.get(eventName);
 
         if (!callbacks) {
             return;
@@ -47,11 +47,11 @@ export class EventManager {
      * @param args
      */
     public notify(eventName: string, ...args: any[]): void {
-        if (!this.listeners.has(eventName)) {
+        if (!this._listeners.has(eventName)) {
             return;
         }
 
-        const callbacks: Function[] | undefined = this.listeners.get(eventName);
+        const callbacks: Function[] | undefined = this._listeners.get(eventName);
 
         if (!callbacks) {
             return;
@@ -66,6 +66,6 @@ export class EventManager {
      * Clears all listeners
      */
     public clear(): void {
-        this.listeners.clear();
+        this._listeners.clear();
     }
 }

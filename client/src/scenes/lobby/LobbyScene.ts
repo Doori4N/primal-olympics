@@ -1,6 +1,7 @@
 import {Scene} from "../../core/Scene";
 import {NetworkHost} from "../../network/NetworkHost";
 import {NetworkClient} from "../../network/NetworkClient";
+import {PlayerData} from "../../network/types";
 
 export class LobbyScene extends Scene {
     private _lobbyDiv!: HTMLDivElement;
@@ -54,7 +55,7 @@ export class LobbyScene extends Scene {
         this._lobbyDiv.innerHTML = `
                 <h2>Room ID: ${networkHost.peer.id}</h2>
                 <ul id="player-list">
-                    <li>${networkHost.players[0]}</li>
+                    <li>${networkHost.players[0].name}</li>
                 </ul>
             `;
 
@@ -89,31 +90,31 @@ export class LobbyScene extends Scene {
         networkClient.sendToHost("getPlayers");
     }
 
-    private _updatePlayerList(players: string[]): void {
+    private _updatePlayerList(players: PlayerData[]): void {
         const playerList: HTMLUListElement | null = document.querySelector("#player-list");
         if (!playerList) throw new Error("Player list not found");
 
         playerList.innerHTML = "";
-        players.forEach((player: string): void => {
+        players.forEach((player: PlayerData): void => {
             const li: HTMLLIElement = document.createElement("li");
-            li.innerHTML = player;
+            li.innerHTML = player.name;
             playerList.appendChild(li);
         });
     }
 
-    private _setPlayersClientRpc(players: string[]): void {
+    private _setPlayersClientRpc(players: PlayerData[]): void {
         const networkClient = this.game.networkInstance as NetworkClient;
         networkClient.players = players;
         this._updatePlayerList(players);
     }
 
-    private _getPlayersHostRpc(): void {
+    private _getPlayersHostRpc(_clientId: string): void {
         const networkHost = this.game.networkInstance as NetworkHost;
         // tell to all players to update their player list
         networkHost.sendToAllClients("setPlayers", networkHost.players);
     }
 
-    private _addPlayerHostRpc(players: string[]): void {
+    private _addPlayerHostRpc(_clientId: string, players: PlayerData[]): void {
         this._updatePlayerList(players);
     }
 }

@@ -72,6 +72,8 @@ export class PlayerBehaviour implements IComponent {
         this.mesh.position.x += this.velocityX;
     }
 
+    public onTickUpdate(): void {}
+
     public onDestroy(): void {}
 
     private createVelocityGUI(): void {

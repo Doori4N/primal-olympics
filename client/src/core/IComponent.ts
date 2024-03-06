@@ -8,5 +8,6 @@ export interface IComponent {
 
     onStart(): void;
     onUpdate(): void;
+    onTickUpdate(): void;
     onDestroy(): void;
 }

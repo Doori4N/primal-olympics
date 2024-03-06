@@ -49,6 +49,8 @@ export class RigidBodyComponent implements IComponent {
 
     public onUpdate(): void {}
 
+    public onTickUpdate(): void {}
+
     public onDestroy(): void {
         this.physicsAggregate.dispose();
     }

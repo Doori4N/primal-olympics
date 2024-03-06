@@ -32,6 +32,8 @@ export class CameraAnimation implements IComponent {
 
     public onUpdate(): void {}
 
+    public onTickUpdate(): void {}
+
     public onDestroy(): void {}
 
     private initCameraAnimation(): void {

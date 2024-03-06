@@ -6,8 +6,8 @@ export class Entity {
     public tag: string;
     private components = new Map<string, IComponent>();
 
-    constructor(tag: string = "") {
-        this.id = uuid();
+    constructor(tag: string = "", id?: string) {
+        this.id = id ?? uuid();
         this.tag = tag;
     }
 
@@ -72,6 +72,12 @@ export class Entity {
     public updateComponents(): void {
         this.components.forEach((component: IComponent): void => {
             component.onUpdate();
+        });
+    }
+
+    public tickUpdateComponents(): void {
+        this.components.forEach((component: IComponent): void => {
+            component.onTickUpdate();
         });
     }
 

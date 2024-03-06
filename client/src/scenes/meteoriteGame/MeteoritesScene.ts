@@ -12,6 +12,8 @@ import {GameTimer} from "../../core/components/GameTimer";
 import {CameraComponent} from "../../core/components/CameraComponent";
 import {CameraAnimation} from "./components/CameraAnimation";
 import {GameScores} from "./components/GameScores";
+import {NetworkHost} from "../../network/NetworkHost";
+import {NetworkMeshComponent} from "../../network/components/NetworkMeshComponent";
 
 export class MeteoritesScene extends Scene {
     constructor() {
@@ -31,6 +33,12 @@ export class MeteoritesScene extends Scene {
         this.loadedAssets["meteorite"] = await B.SceneLoader.LoadAssetContainerAsync(
             "meshes/",
             "meteorite.glb",
+            this.scene
+        );
+
+        this.loadedAssets["meteoriteMap"] = await B.SceneLoader.LoadAssetContainerAsync(
+            "meshes/",
+            "map_meteorite.glb",
             this.scene
         );
 
@@ -62,9 +70,13 @@ export class MeteoritesScene extends Scene {
 
         // ground
         const groundEntity = new Entity("ground");
+        // const mapContainer: B.AssetContainer = this.loadedAssets["meteoriteMap"];
+        // mapContainer.addAllToScene();
+        // const ground: B.Mesh = mapContainer.meshes[0] as B.Mesh;
+        // ground.rotationQuaternion = B.Quaternion.RotationAxis(new B.Vector3(1, 0, 0), Math.PI);
+        // ground.scaling.scaleInPlace(2);
         const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: 18, height: 18}, this.scene);
         ground.metadata = {tag: groundEntity.tag};
-        ground.position.y = 0;
         groundEntity.addComponent(new MeshComponent(groundEntity, this, {mesh: ground}));
         groundEntity.addComponent(new RigidBodyComponent(groundEntity, this, {
             physicsShape: B.PhysicsShapeType.BOX,
@@ -74,34 +86,21 @@ export class MeteoritesScene extends Scene {
 
         // players
         const playerContainer: B.AssetContainer = this.loadedAssets["player"];
-        for (let i: number = 0; i < this.game.playerData.length; i++) {
-            const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + i, false, {doNotInstantiate: true});
-            const player = entries.rootNodes[0] as B.Mesh;
-
-            player.scaling.scaleInPlace(0.1);
-            const playerEntity = new Entity("player");
-
-            const hitbox = new B.Mesh(`hitbox${i}`, this.scene);
-            hitbox.metadata = {tag: playerEntity.tag, id: playerEntity.id};
-
-            player.setParent(hitbox);
-            player.position = new B.Vector3(0.5, 0, 0.5);
-
-            playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
-            const playerPhysicsShape = new B.PhysicsShapeBox(
-                new B.Vector3(0.5, 1, 0.5),
-                new B.Quaternion(0, 0, 0, 1),
-                new B.Vector3(1, 2, 1),
-                this.scene
-            );
-            playerEntity.addComponent(new RigidBodyComponent(playerEntity, this, {
-                physicsShape: playerPhysicsShape,
-                physicsProps: {mass: 1},
-                massProps: {inertia: new B.Vector3(0, 0, 0)},
-                isTrigger: false
-            }));
-            playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {inputIndex: i, animationGroups: entries.animationGroups}));
-            this.entityManager.addEntity(playerEntity);
+        if (this.game.networkInstance.isHost) {
+            const networkHost = this.game.networkInstance as NetworkHost;
+            console.log(networkHost.players);
+            for (let i: number = 0; i < networkHost.players.length; i++) {
+                const playerId: string = networkHost.players[i].id;
+                const playerEntity: Entity = this._createPlayer(playerContainer, playerId);
+                this.entityManager.addEntity(playerEntity);
+                networkHost.sendToAllClients("onCreatePlayer", {playerId: playerId, id: playerEntity.id});
+            }
+        }
+        else {
+            this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerId: string, id: string}): void => {
+                const playerEntity: Entity = this._createPlayer(playerContainer, args.playerId, args.id);
+                this.entityManager.addEntity(playerEntity);
+            });
         }
 
         // meteorites
@@ -123,5 +122,40 @@ export class MeteoritesScene extends Scene {
         gameController.addComponent(new GameTimer(gameController, this, {duration: 60}));
         gameController.addComponent(new GameScores(gameController, this));
         this.entityManager.addEntity(gameController);
+    }
+
+    private _createPlayer(playerContainer: B.AssetContainer, playerId: string, entityId?: string): Entity {
+        const playerEntity = new Entity("player", entityId);
+
+        const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + playerEntity.id, false, {doNotInstantiate: true});
+        const player = entries.rootNodes[0] as B.Mesh;
+
+        player.scaling.scaleInPlace(0.1);
+
+        const hitbox = new B.Mesh(`hitbox${playerEntity.id}`, this.scene);
+        hitbox.metadata = {tag: playerEntity.tag, id: playerEntity.id};
+
+        player.setParent(hitbox);
+        player.position = new B.Vector3(0.5, 0, 0.5);
+
+        playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
+        const playerPhysicsShape = new B.PhysicsShapeBox(
+            new B.Vector3(0.5, 1, 0.5),
+            new B.Quaternion(0, 0, 0, 1),
+            new B.Vector3(1, 2, 1),
+            this.scene
+        );
+        playerEntity.addComponent(new NetworkMeshComponent(playerEntity, this, {mesh: hitbox}));
+        if (this.game.networkInstance.isHost) {
+            playerEntity.addComponent(new RigidBodyComponent(playerEntity, this, {
+                physicsShape: playerPhysicsShape,
+                physicsProps: {mass: 1},
+                massProps: {inertia: new B.Vector3(0, 0, 0)},
+                isTrigger: false
+            }));
+        }
+        playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerId: playerId, animationGroups: entries.animationGroups}));
+
+        return playerEntity;
     }
 }

@@ -47,6 +47,8 @@ export class GamePresentation implements IComponent {
         this.checkPlayerSkip();
     }
 
+    public onTickUpdate(): void {}
+
     public onDestroy(): void {
         this.uiContainer.innerHTML = "";
     }
@@ -82,11 +84,11 @@ export class GamePresentation implements IComponent {
     }
 
     private checkPlayerSkip(): void {
-        this.scene.game.inputs.inputMap.forEach((input: InputStates, index: number): void => {
-            if (input.buttons["jump"]) {
-                this.updatePlayerSkipUI(index);
-                this.isPlayerSkipping[index] = true;
-            }
-        });
+        // this.scene.game.inputs.inputMap.forEach((input: InputStates, index: number): void => {
+        //     if (input.buttons["jump"]) {
+        //         this.updatePlayerSkipUI(index);
+        //         this.isPlayerSkipping[index] = true;
+        //     }
+        // });
     }
 }

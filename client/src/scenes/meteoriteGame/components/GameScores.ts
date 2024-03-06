@@ -30,6 +30,8 @@ export class GameScores implements IComponent {
 
     public onUpdate(): void {}
 
+    public onTickUpdate(): void {}
+
     public onDestroy(): void {}
 
     private initScores(): void {

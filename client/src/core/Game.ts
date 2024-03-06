@@ -14,6 +14,11 @@ export class Game {
     public inputs: InputManager = new InputManager();
     public playerData: PlayerData[] = [];
     public networkInstance!: INetworkInstance;
+
+    /**
+     * Server update rate (ms)
+     */
+    public tickRate: number = 1000 / 15;
     // public events: string[] = ["catchTheDodo", "meteorites", "escapeDino"];
     // public events: string[] = ["catchTheDodo"];
     public events: string[] = ["meteorites"];

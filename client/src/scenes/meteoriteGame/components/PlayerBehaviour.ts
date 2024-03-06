@@ -5,6 +5,7 @@ import * as B from "@babylonjs/core";
 import {MeshComponent} from "../../../core/components/MeshComponent";
 import {RigidBodyComponent} from "../../../core/components/RigidBodyComponent";
 import {InputStates} from "../../../core/types";
+import {NetworkHost} from "../../../network/NetworkHost";
 
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";
@@ -21,36 +22,48 @@ export class PlayerBehaviour implements IComponent {
     private _lastDirection: number = 0;
 
     // inputs
-    public readonly inputIndex!: number;
-    private _inputStates!: InputStates;
+    public readonly playerId!: string;
 
-    constructor(entity: Entity, scene: Scene, props: {inputIndex: number, animationGroups: B.AnimationGroup[]}) {
+    constructor(entity: Entity, scene: Scene, props: {playerId: string, animationGroups: B.AnimationGroup[]}) {
         this.entity = entity;
         this.scene = scene;
-        this.inputIndex = props.inputIndex;
+        this.playerId = props.playerId;
         this._animations["Idle"] = props.animationGroups[0];
         this._animations["Walking"] = props.animationGroups[2];
     }
 
     public onStart(): void {
+        if (!this.scene.game.networkInstance.isHost) return;
+
         const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
         this._hitbox = meshComponent.mesh;
 
         const rigidBodyComponent = this.entity.getComponent("RigidBody") as RigidBodyComponent;
         this._physicsAggregate = rigidBodyComponent.physicsAggregate;
 
-        this._inputStates = this.scene.game.inputs.inputMap[this.inputIndex];
-
         this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
         this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
     }
 
     public onUpdate(): void {
+        if (!this.scene.game.networkInstance.isHost) return;
+
         if (!this._isGameStarted || this._isGameFinished) return;
+
+        // this._animate();
+    }
+
+    public onTickUpdate(): void {
+        if (!this.scene.game.networkInstance.isHost) return;
+
+        if (!this._isGameStarted || this._isGameFinished) return;
+
+        const networkHost = this.scene.game.networkInstance as NetworkHost;
+        let inputStates: InputStates = (this.playerId === networkHost.playerId) ? this.scene.game.inputs.inputStates : networkHost.playerInputs[this.playerId];
 
         // apply velocity
         const deltaTime: number = this.scene.game.engine.getDeltaTime();
-        const velocity: B.Vector3 = new B.Vector3(this._inputStates.direction.x, 0, -this._inputStates.direction.y).normalize();
+        const velocity: B.Vector3 = new B.Vector3(inputStates.direction.x, 0, inputStates.direction.y).normalize();
         velocity.scaleInPlace(this._speed * deltaTime);
         this._physicsAggregate.body.setLinearVelocity(velocity);
 
@@ -58,9 +71,6 @@ export class PlayerBehaviour implements IComponent {
         const modelMesh: B.Mesh = this._hitbox.getChildMeshes()[0] as B.Mesh;
         // set z rotation to 180 degrees cause the imported model is inverted (best solution for now)
         modelMesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, this._getDirection(velocity), Math.PI);
-
-        // animate
-        this._animate();
     }
 
     public onDestroy(): void {}

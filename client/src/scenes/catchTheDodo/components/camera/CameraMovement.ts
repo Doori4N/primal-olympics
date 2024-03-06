@@ -34,6 +34,8 @@ export class CameraMovement implements IComponent {
         this.camera.position.x += (averagePosition.x - this.camera.position.x) * 0.1;
     }
 
+    public onTickUpdate(): void {}
+
     public onDestroy(): void {}
 
     private getAveragePosition(players: Entity[]): B.Vector3 {

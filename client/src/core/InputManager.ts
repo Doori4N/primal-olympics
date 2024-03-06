@@ -7,11 +7,17 @@ export class InputManager {
     private gamepadManager: B.GamepadManager;
 
     // events
-    public onKeyboardConnected: Function[] = [];
     public onGamepadConnected: Function[] = [];
     public onGamepadDisconnected: Function[] = [];
 
-    public inputMap: InputStates[] = [];
+    public inputStates: InputStates = {
+        type: InputType.KEYBOARD,
+        direction: {
+            x: 0,
+            y: 0
+        },
+        buttons: {}
+    };
 
     constructor() {
         this.gamepadManager = new B.GamepadManager();
@@ -20,125 +26,104 @@ export class InputManager {
     }
 
     /**
-     * Listen to keyboard events and update the inputMap accordingly
+     * Listen to keyboard events and update the inputStates accordingly
      */
     private listenToKeyboard(): void {
         window.addEventListener("keydown", (event: KeyboardEvent): void => {
-            const index: number = this.inputMap.findIndex((inputState: InputStates): boolean => inputState.type === InputType.KEYBOARD);
-
-            // if no keyboard inputStates are found, add a new one (this should only happen once)
-            if (index === -1) {
-                // signal that a keyboard has been connected
-                this.onKeyboardConnected.forEach((callback: Function): void => callback());
-
-                // add a new inputStates to the inputMap
-                this.inputMap.push({
-                    type: InputType.KEYBOARD,
-                    direction: {
-                        x: 0,
-                        y: 0
-                    },
-                    buttons: {}
-                });
-                return;
-            }
+            if (this.inputStates.type !== InputType.KEYBOARD) return;
 
             // update the inputStates
             switch (event.code) {
                 case "KeyW":
-                    this.inputMap[index].buttons["up"] = true;
+                    this.inputStates.buttons["up"] = true;
                     break;
                 case "KeyS":
-                    this.inputMap[index].buttons["down"] = true;
+                    this.inputStates.buttons["down"] = true;
                     break;
                 case "KeyA":
-                    this.inputMap[index].buttons["left"] = true;
+                    this.inputStates.buttons["left"] = true;
                     break;
                 case "KeyD":
-                    this.inputMap[index].buttons["right"] = true;
+                    this.inputStates.buttons["right"] = true;
                     break;
                 case "Space":
-                    this.inputMap[index].buttons["jump"] = true;
+                    this.inputStates.buttons["jump"] = true;
                     break;
             }
 
-            this.updateKeyboardDirections(index);
+            this.updateKeyboardDirections();
         });
 
         window.addEventListener("keyup", (event: KeyboardEvent): void => {
-            const index: number = this.inputMap.findIndex((inputState: InputStates): boolean => inputState.type === InputType.KEYBOARD);
-            if (index === -1) return;
+            if (this.inputStates.type !== InputType.KEYBOARD) return;
 
             // update the inputStates
             switch (event.code) {
                 case "KeyW":
-                    this.inputMap[index].buttons["up"] = false;
+                    this.inputStates.buttons["up"] = false;
                     break;
                 case "KeyS":
-                    this.inputMap[index].buttons["down"] = false;
+                    this.inputStates.buttons["down"] = false;
                     break;
                 case "KeyA":
-                    this.inputMap[index].buttons["left"] = false;
+                    this.inputStates.buttons["left"] = false;
                     break;
                 case "KeyD":
-                    this.inputMap[index].buttons["right"] = false;
+                    this.inputStates.buttons["right"] = false;
                     break;
                 case "Space":
-                    this.inputMap[index].buttons["jump"] = false;
+                    this.inputStates.buttons["jump"] = false;
                     break;
             }
 
-            this.updateKeyboardDirections(index);
+            this.updateKeyboardDirections();
         });
     }
 
-    private updateKeyboardDirections(index: number): void {
+    private updateKeyboardDirections(): void {
         // reset directions
-        this.inputMap[index].direction.x = 0;
-        this.inputMap[index].direction.y = 0;
+        this.inputStates.direction.x = 0;
+        this.inputStates.direction.y = 0;
 
         // update directions
-        if (this.inputMap[index].buttons["up"] && !this.inputMap[index].buttons["down"]) {
-            this.inputMap[index].direction.y = -1;
+        if (this.inputStates.buttons["up"] && !this.inputStates.buttons["down"]) {
+            this.inputStates.direction.y = 1;
         }
-        if (this.inputMap[index].buttons["down"] && !this.inputMap[index].buttons["up"]) {
-            this.inputMap[index].direction.y = 1;
+        if (this.inputStates.buttons["down"] && !this.inputStates.buttons["up"]) {
+            this.inputStates.direction.y = -1;
         }
-        if (this.inputMap[index].buttons["left"] && !this.inputMap[index].buttons["right"]) {
-            this.inputMap[index].direction.x = -1;
+        if (this.inputStates.buttons["left"] && !this.inputStates.buttons["right"]) {
+            this.inputStates.direction.x = -1;
         }
-        if (this.inputMap[index].buttons["right"] && !this.inputMap[index].buttons["left"]) {
-            this.inputMap[index].direction.x = 1;
+        if (this.inputStates.buttons["right"] && !this.inputStates.buttons["left"]) {
+            this.inputStates.direction.x = 1;
         }
     }
 
     /**
-     * Listen to gamepad events and update the inputMap accordingly
+     * Listen to gamepad events and update inputStates accordingly
      */
     private listenToGamepad(): void {
         this.gamepadManager.onGamepadConnectedObservable.add((gamepad: B.Gamepad): void => {
             // signal that a gamepad has been connected
             this.onGamepadConnected.forEach((callback: Function): void => callback());
 
-            // add a new inputStates to the inputMap
-            this.inputMap.push({
+            // set inputStates type to gamepad
+            this.inputStates = {
                 type: InputType.GAMEPAD,
                 direction: {
                     x: 0,
                     y: 0
                 },
                 buttons: {}
-            });
-
-            // get the index of the gamepad
-            const index: number = this.inputMap.length - 1;
+            };
 
             // PLAYSTATION
             if (gamepad instanceof B.DualShockPad) {
                 gamepad.onButtonDownObservable.add((button: number): void => {
                     switch (button) {
                         case B.DualShockButton.Cross:
-                            this.inputMap[index].buttons["jump"] = true;
+                            this.inputStates.buttons["jump"] = true;
                             break;
                     }
                 });
@@ -146,7 +131,7 @@ export class InputManager {
                 gamepad.onButtonUpObservable.add((button: number): void => {
                     switch (button) {
                         case B.DualShockButton.Cross:
-                            this.inputMap[index].buttons["jump"] = false;
+                            this.inputStates.buttons["jump"] = false;
                             break;
                     }
                 });
@@ -157,7 +142,7 @@ export class InputManager {
                 gamepad.onButtonDownObservable.add((button: number): void => {
                     switch (button) {
                         case 0:
-                            this.inputMap[index].buttons["jump"] = true;
+                            this.inputStates.buttons["jump"] = true;
                             break;
                     }
                 });
@@ -165,7 +150,7 @@ export class InputManager {
                 gamepad.onButtonUpObservable.add((button: number): void => {
                     switch (button) {
                         case 0:
-                            this.inputMap[index].buttons["jump"] = false;
+                            this.inputStates.buttons["jump"] = false;
                             break;
                     }
                 });
@@ -176,7 +161,7 @@ export class InputManager {
                 gamepad.onButtonDownObservable.add((button: number): void => {
                     switch (button) {
                         case B.Xbox360Button.A:
-                            this.inputMap[index].buttons["jump"] = true;
+                            this.inputStates.buttons["jump"] = true;
                             break;
                     }
                 });
@@ -184,7 +169,7 @@ export class InputManager {
                 gamepad.onButtonUpObservable.add((button: number): void => {
                     switch (button) {
                         case B.Xbox360Button.A:
-                            this.inputMap[index].buttons["jump"] = false;
+                            this.inputStates.buttons["jump"] = false;
                             break;
                     }
                 });
@@ -193,18 +178,33 @@ export class InputManager {
             // handle left stick
             gamepad.onleftstickchanged((values: B.StickValues): void => {
                 if (Math.abs(values.x) < DEADZONE) {
-                    this.inputMap[index].direction.x = 0;
+                    this.inputStates.direction.x = 0;
                 }
                 else {
-                    this.inputMap[index].direction.x = values.x;
+                    this.inputStates.direction.x = values.x;
                 }
                 if (Math.abs(values.y) < DEADZONE) {
-                    this.inputMap[index].direction.y = 0;
+                    this.inputStates.direction.y = 0;
                 }
                 else {
-                    this.inputMap[index].direction.y = values.y;
+                    this.inputStates.direction.y = values.y;
                 }
             });
+        });
+
+        this.gamepadManager.onGamepadDisconnectedObservable.add((): void => {
+            // signal that a gamepad has been disconnected
+            this.onGamepadDisconnected.forEach((callback: Function): void => callback());
+
+            // set inputStates type to keyboard
+            this.inputStates = {
+                type: InputType.KEYBOARD,
+                direction: {
+                    x: 0,
+                    y: 0
+                },
+                buttons: {}
+            };
         });
     }
 }

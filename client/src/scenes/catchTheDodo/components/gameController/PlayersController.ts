@@ -23,6 +23,8 @@ export class PlayersController implements IComponent {
         this.checkSlowPlayers();
     }
 
+    public onTickUpdate(): void {}
+
     public onDestroy(): void {}
 
     private checkSlowPlayers(): void {

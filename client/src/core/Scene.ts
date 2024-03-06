@@ -15,6 +15,7 @@ export class Scene {
     public entityManager = new EntityManager();
     public sceneManager: SceneManager = SceneManager.getInstance();
     public loadedAssets: { [name: string]: B.AssetContainer } = {};
+    private _elapsedTime: number = 0;
 
     constructor(name: string) {
         this.name = name;
@@ -38,6 +39,12 @@ export class Scene {
     public update(): void {
         this.scene.render();
         this.entityManager.update();
+
+        this._elapsedTime += this.game.engine.getDeltaTime();
+        while (this._elapsedTime >= this.game.tickRate) {
+            this._elapsedTime -= this.game.tickRate;
+            this.entityManager.tickUpdate();
+        }
     }
 
     /**

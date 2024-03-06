@@ -1,4 +1,5 @@
 import Peer from "peerjs";
+import {PlayerData} from "./types";
 
 export interface INetworkInstance {
     /**
@@ -14,7 +15,9 @@ export interface INetworkInstance {
     /**
      * @description List of player names in the game
      */
-    players: string[];
+    players: PlayerData[];
+
+    playerId: string;
 
     ping: number;
 

@@ -22,6 +22,8 @@ export class Leaderboard implements IComponent {
 
     public onUpdate(): void {}
 
+    public onTickUpdate(): void {}
+
     public onDestroy(): void {}
 
     public displayLeaderboard(): void {
