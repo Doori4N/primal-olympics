@@ -21,7 +21,10 @@ export class NetworkHost implements INetworkInstance {
 
         this.players.push({
             id: this.playerId,
-            name: "player 1"
+            name: "player 1",
+            goldMedals: 0,
+            silverMedals: 0,
+            bronzeMedals: 0
         });
 
         this.peer.on("connection", (connection: DataConnection): void => {
@@ -38,7 +41,10 @@ export class NetworkHost implements INetworkInstance {
             const playerName: string = `player ${this.connections.length + 1}`;
             this.players.push({
                 id: connection.metadata.playerId,
-                name: playerName
+                name: playerName,
+                goldMedals: 0,
+                silverMedals: 0,
+                bronzeMedals: 0
             });
 
             // tell the host that a new player has joined

@@ -2,10 +2,10 @@ import {IComponent} from "../../../core/IComponent";
 import {Entity} from "../../../core/Entity";
 import {Scene} from "../../../core/Scene";
 import * as B from "@babylonjs/core";
-import {MeshComponent} from "../../../core/components/MeshComponent";
 import {RigidBodyComponent} from "../../../core/components/RigidBodyComponent";
 import {InputStates} from "../../../core/types";
 import {NetworkHost} from "../../../network/NetworkHost";
+import {NetworkMeshComponent} from "../../../network/components/NetworkMeshComponent";
 
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";
@@ -13,7 +13,7 @@ export class PlayerBehaviour implements IComponent {
     public scene: Scene;
 
     // component properties
-    private _hitbox!: B.Mesh;
+    private _modelMesh!: B.Mesh;
     private _animations: {[key: string]: B.AnimationGroup} = {};
     private _physicsAggregate!: B.PhysicsAggregate;
     private _speed: number = 0.2;
@@ -35,8 +35,8 @@ export class PlayerBehaviour implements IComponent {
     public onStart(): void {
         if (!this.scene.game.networkInstance.isHost) return;
 
-        const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
-        this._hitbox = meshComponent.mesh;
+        const networkMeshComponent = this.entity.getComponent("NetworkMesh") as NetworkMeshComponent;
+        this._modelMesh = networkMeshComponent.meshRotation;
 
         const rigidBodyComponent = this.entity.getComponent("RigidBody") as RigidBodyComponent;
         this._physicsAggregate = rigidBodyComponent.physicsAggregate;
@@ -68,9 +68,8 @@ export class PlayerBehaviour implements IComponent {
         this._physicsAggregate.body.setLinearVelocity(velocity);
 
         // rotate the model
-        const modelMesh: B.Mesh = this._hitbox.getChildMeshes()[0] as B.Mesh;
         // set z rotation to 180 degrees cause the imported model is inverted (best solution for now)
-        modelMesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, this._getDirection(velocity), Math.PI);
+        this._modelMesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, this._getDirection(velocity), Math.PI);
     }
 
     public onDestroy(): void {}
@@ -83,20 +82,22 @@ export class PlayerBehaviour implements IComponent {
         return this._lastDirection;
     }
 
-    private _animate(): void {
-        const isInputPressed: boolean = this._inputStates.direction.x !== 0 || this._inputStates.direction.y !== 0;
-        if (isInputPressed && !this._animations["Walking"].isPlaying) {
-            this._animations["Idle"].stop();
-            this._animations["Walking"].start(true, 1.0, this._animations["Walking"].from, this._animations["Walking"].to, false);
-        }
-        else if (!isInputPressed && !this._animations["Idle"].isPlaying) {
-            this._animations["Walking"].stop();
-            this._animations["Idle"].start(true, 1.0, this._animations["Idle"].from, this._animations["Idle"].to, false);
-        }
-    }
+    // private _animate(): void {
+    //     const isInputPressed: boolean = this._inputStates.direction.x !== 0 || this._inputStates.direction.y !== 0;
+    //     if (isInputPressed && !this._animations["Walking"].isPlaying) {
+    //         this._animations["Idle"].stop();
+    //         this._animations["Walking"].start(true, 1.0, this._animations["Walking"].from, this._animations["Walking"].to, false);
+    //     }
+    //     else if (!isInputPressed && !this._animations["Idle"].isPlaying) {
+    //         this._animations["Walking"].stop();
+    //         this._animations["Idle"].start(true, 1.0, this._animations["Idle"].from, this._animations["Idle"].to, false);
+    //     }
+    // }
 
     public kill(): void {
         this.scene.entityManager.destroyEntity(this.entity);
+        const networkHost = this.scene.game.networkInstance as NetworkHost;
+        networkHost.sendToAllClients("onDestroyPlayer", {entityId: this.entity.id});
     }
 
     private _onGameStarted(): void {

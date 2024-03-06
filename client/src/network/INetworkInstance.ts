@@ -13,7 +13,7 @@ export interface INetworkInstance {
     peer: Peer;
 
     /**
-     * @description List of player names in the game
+     * @description The list of players with their data
      */
     players: PlayerData[];
 

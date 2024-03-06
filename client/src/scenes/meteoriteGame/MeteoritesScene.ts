@@ -88,7 +88,6 @@ export class MeteoritesScene extends Scene {
         const playerContainer: B.AssetContainer = this.loadedAssets["player"];
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;
-            console.log(networkHost.players);
             for (let i: number = 0; i < networkHost.players.length; i++) {
                 const playerId: string = networkHost.players[i].id;
                 const playerEntity: Entity = this._createPlayer(playerContainer, playerId);
@@ -101,6 +100,7 @@ export class MeteoritesScene extends Scene {
                 const playerEntity: Entity = this._createPlayer(playerContainer, args.playerId, args.id);
                 this.entityManager.addEntity(playerEntity);
             });
+            this.game.networkInstance.addEventListener("onDestroyPlayer", this._destroyPlayerClientRpc.bind(this));
         }
 
         // meteorites
@@ -119,7 +119,7 @@ export class MeteoritesScene extends Scene {
         gameController.addComponent(new GamePresentation(gameController, this, {htmlTemplate}));
         gameController.addComponent(new GameMessages(gameController, this));
         gameController.addComponent(new Leaderboard(gameController, this));
-        gameController.addComponent(new GameTimer(gameController, this, {duration: 60}));
+        gameController.addComponent(new GameTimer(gameController, this, {duration: 600}));
         gameController.addComponent(new GameScores(gameController, this));
         this.entityManager.addEntity(gameController);
     }
@@ -139,14 +139,14 @@ export class MeteoritesScene extends Scene {
         player.position = new B.Vector3(0.5, 0, 0.5);
 
         playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
-        const playerPhysicsShape = new B.PhysicsShapeBox(
-            new B.Vector3(0.5, 1, 0.5),
-            new B.Quaternion(0, 0, 0, 1),
-            new B.Vector3(1, 2, 1),
-            this.scene
-        );
-        playerEntity.addComponent(new NetworkMeshComponent(playerEntity, this, {mesh: hitbox}));
+        playerEntity.addComponent(new NetworkMeshComponent(playerEntity, this, {mesh: hitbox, useSubMeshForRotation: true}));
         if (this.game.networkInstance.isHost) {
+            const playerPhysicsShape = new B.PhysicsShapeBox(
+                new B.Vector3(0.5, 1, 0.5),
+                new B.Quaternion(0, 0, 0, 1),
+                new B.Vector3(1, 2, 1),
+                this.scene
+            );
             playerEntity.addComponent(new RigidBodyComponent(playerEntity, this, {
                 physicsShape: playerPhysicsShape,
                 physicsProps: {mass: 1},
@@ -157,5 +157,10 @@ export class MeteoritesScene extends Scene {
         playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerId: playerId, animationGroups: entries.animationGroups}));
 
         return playerEntity;
+    }
+
+    private _destroyPlayerClientRpc(args: {entityId: string}): void {
+        const playerEntity: Entity = this.entityManager.getEntityById(args.entityId);
+        this.entityManager.destroyEntity(playerEntity);
     }
 }

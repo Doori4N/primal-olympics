@@ -1,7 +1,7 @@
 import {IComponent} from "../IComponent";
 import {Entity} from "../Entity";
 import {Scene} from "../Scene";
-import {PlayerData} from "../types";
+import {PlayerData} from "../../network/types";
 
 export class Leaderboard implements IComponent {
     public name: string = "Leaderboard";
@@ -28,7 +28,7 @@ export class Leaderboard implements IComponent {
 
     public displayLeaderboard(): void {
         // sort players by score
-        const sortedPlayers: PlayerData[] = this.scene.game.playerData.slice();
+        const sortedPlayers: PlayerData[] = this.scene.game.networkInstance.players.slice();
         sortedPlayers.sort(this.compareMedals.bind(this));
 
         let playerScores: string = "";

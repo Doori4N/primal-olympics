@@ -7,7 +7,7 @@ import {SceneManager} from "../core/SceneManager";
 import {Game} from "../core/Game";
 
 // simulate lag for one way trip (ms)
-const LAG: number = 150;
+const LAG: number = 0;
 
 // ping interval (ms)
 const PING_INTERVAL: number = 2000;
