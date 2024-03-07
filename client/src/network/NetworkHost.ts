@@ -29,6 +29,7 @@ export class NetworkHost implements INetworkInstance {
 
         this.peer.on("connection", (connection: DataConnection): void => {
             console.log(`${connection.peer} is connected !`);
+            console.log(connection.provider);
             this.connections.push(connection);
 
             // listen for messages from the client

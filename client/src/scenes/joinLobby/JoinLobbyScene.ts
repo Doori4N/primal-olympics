@@ -29,6 +29,9 @@ export class JoinLobbyScene extends Scene {
         joinLobbyDiv.appendChild(joinBtn);
 
         joinBtn.onclick = (): void => {
+            joinBtn.disabled = true;
+            this.game.engine.displayLoadingUI();
+
             const hostId: string = input.value;
 
             networkClient.addEventListener("connected", this._onClientConnected.bind(this));
@@ -46,6 +49,7 @@ export class JoinLobbyScene extends Scene {
     }
 
     private _onClientConnected(): void {
+        this.game.engine.hideLoadingUI();
         this.sceneManager.changeScene("lobby");
     }
 }
