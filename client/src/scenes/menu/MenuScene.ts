@@ -21,7 +21,7 @@ export class MenuScene extends Scene {
         menuDiv.appendChild(startBtn);
 
         const versionText: HTMLParagraphElement = document.createElement("p");
-        versionText.innerHTML = "Version: 0.1.0";
+        versionText.innerHTML = "Version: 0.1.1";
         menuDiv.appendChild(versionText);
 
         // TODO: put the connection to the network here
