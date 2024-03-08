@@ -69,9 +69,9 @@ export class EntityManager {
         });
     }
 
-    public tickUpdate(): void {
+    public fixedUpdate(): void {
         this.entities.forEach((entity: Entity): void => {
-            entity.tickUpdateComponents();
+            entity.fixedUpdateComponents();
         });
     }
 

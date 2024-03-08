@@ -53,7 +53,7 @@ export class PlayerBehaviour implements IComponent {
         // this._animate();
     }
 
-    public onTickUpdate(): void {
+    public onFixedUpdate(): void {
         if (!this.scene.game.networkInstance.isHost) return;
 
         if (!this._isGameStarted || this._isGameFinished) return;

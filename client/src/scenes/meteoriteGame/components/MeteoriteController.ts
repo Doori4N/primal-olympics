@@ -40,7 +40,7 @@ export class MeteoriteController implements IComponent {
 
     public onUpdate(): void {}
 
-    public onTickUpdate(): void {}
+    public onFixedUpdate(): void {}
 
     public onDestroy(): void {
         this._observer.remove();

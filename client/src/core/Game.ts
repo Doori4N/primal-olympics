@@ -16,7 +16,10 @@ export class Game {
     /**
      * Server update rate (ms)
      */
-    public tickRate: number = 1000 / 15;
+    public tickRate: number = 1000 / 20;
+
+    public tickCount: number = 0;
+
     // public events: string[] = ["catchTheDodo", "meteorites", "escapeDino"];
     // public events: string[] = ["catchTheDodo"];
     public events: string[] = ["meteorites"];
@@ -53,6 +56,11 @@ export class Game {
         this.engine.runRenderLoop((): void => {
             sceneManager.updateCurrentScene();
         });
+
+        setInterval((): void => {
+            this.tickCount++;
+            sceneManager.fixedUpdateCurrentScene();
+        }, this.tickRate);
     }
 
     /**

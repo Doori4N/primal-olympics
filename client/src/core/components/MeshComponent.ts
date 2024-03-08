@@ -21,7 +21,7 @@ export class MeshComponent implements IComponent {
 
     public onUpdate(): void {}
 
-    public onTickUpdate(): void {}
+    public onFixedUpdate(): void {}
 
     public onDestroy(): void {
         this.mesh.dispose();

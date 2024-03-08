@@ -119,7 +119,7 @@ export class MeteoritesScene extends Scene {
         gameController.addComponent(new GamePresentation(gameController, this, {htmlTemplate}));
         gameController.addComponent(new GameMessages(gameController, this));
         gameController.addComponent(new Leaderboard(gameController, this));
-        gameController.addComponent(new GameTimer(gameController, this, {duration: 600}));
+        gameController.addComponent(new GameTimer(gameController, this, {duration: 60}));
         gameController.addComponent(new GameScores(gameController, this));
         this.entityManager.addEntity(gameController);
     }
@@ -139,7 +139,14 @@ export class MeteoritesScene extends Scene {
         player.position = new B.Vector3(0.5, 0, 0.5);
 
         playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
-        playerEntity.addComponent(new NetworkMeshComponent(playerEntity, this, {mesh: hitbox, useSubMeshForRotation: true}));
+
+        const useInterpolation: boolean = playerId !== this.game.networkInstance.playerId;
+        playerEntity.addComponent(new NetworkMeshComponent(playerEntity, this, {
+            mesh: hitbox,
+            interpolate: useInterpolation,
+            useSubMeshForRotation: true
+        }));
+
         if (this.game.networkInstance.isHost) {
             const playerPhysicsShape = new B.PhysicsShapeBox(
                 new B.Vector3(0.5, 1, 0.5),

@@ -55,7 +55,7 @@ export class GamePresentation implements IComponent {
 
     public onUpdate(): void {}
 
-    public onTickUpdate(): void {
+    public onFixedUpdate(): void {
         if (this._networkInstance.isHost) {
             this._checkPlayerSkip();
         }

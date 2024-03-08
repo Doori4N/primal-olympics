@@ -22,7 +22,7 @@ export class Leaderboard implements IComponent {
 
     public onUpdate(): void {}
 
-    public onTickUpdate(): void {}
+    public onFixedUpdate(): void {}
 
     public onDestroy(): void {}
 

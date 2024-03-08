@@ -47,6 +47,11 @@ export class SceneManager {
         this._currentScene.update();
     }
 
+    public fixedUpdateCurrentScene(): void {
+        if (!this._currentScene) return;
+        this._currentScene.fixedUpdate();
+    }
+
     /**
      * Stop the current scene and start the new one
      * @param sceneName

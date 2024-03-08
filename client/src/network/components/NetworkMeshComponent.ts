@@ -15,32 +15,40 @@ export class NetworkMeshComponent implements IComponent {
     public mesh!: B.Mesh;
     public meshRotation!: B.Mesh;
 
-    // event listeners
-    private _updateMeshTransformEvent = this._updateMeshTransformClientRpc.bind(this);
+    private readonly _interpolate: boolean;
+    private _transformBuffer: {transform: TransformUpdate, timestamp: number}[] = [];
 
-    constructor(entity: Entity, scene: Scene, props: {mesh: B.Mesh, useSubMeshForRotation?: boolean}) {
+    // event listeners
+    private _processHostMessageEvent = this._processHostMessage.bind(this);
+
+    constructor(entity: Entity, scene: Scene, props: {mesh: B.Mesh, interpolate?: boolean, useSubMeshForRotation?: boolean}) {
         this.entity = entity;
         this.scene = scene;
         this.mesh = props.mesh;
         this.meshRotation = props.useSubMeshForRotation ? this.mesh.getChildMeshes()[0] as B.Mesh : this.mesh;
+        this._interpolate = props.interpolate ?? true;
     }
 
     public onStart(): void {
         if (this.scene.game.networkInstance.isHost) return;
 
         const networkClient = this.scene.game.networkInstance as NetworkClient;
-        networkClient.addEventListener(`meshTransform${this.entity.id}`, this._updateMeshTransformEvent);
+        networkClient.addEventListener(`meshTransformUpdate${this.entity.id}`, this._processHostMessageEvent);
     }
 
-    public onUpdate(): void {}
+    public onUpdate(): void {
+        if (this.scene.game.networkInstance.isHost) return;
 
-    public onTickUpdate(): void {
+        if (this._interpolate) this._interpolateTransforms();
+    }
+
+    public onFixedUpdate(): void {
         if (!this.scene.game.networkInstance.isHost) return;
 
         const rotation = (this.meshRotation.rotationQuaternion) ? this.meshRotation.rotationQuaternion.toEulerAngles() : this.meshRotation.rotation;
 
         const networkHost = this.scene.game.networkInstance as NetworkHost;
-        networkHost.sendToAllClients(`meshTransform${this.entity.id}`, {
+        networkHost.sendToAllClients(`meshTransformUpdate${this.entity.id}`, {
             position: {
                 x: this.mesh.position.x,
                 y: this.mesh.position.y,
@@ -57,13 +65,59 @@ export class NetworkMeshComponent implements IComponent {
     public onDestroy(): void {
         if (!this.scene.game.networkInstance.isHost) {
             const networkClient = this.scene.game.networkInstance as NetworkClient;
-            networkClient.removeEventListener(`meshTransform${this.entity.id}`, this._updateMeshTransformEvent);
+            networkClient.removeEventListener(`meshTransformUpdate${this.entity.id}`, this._processHostMessageEvent);
         }
 
         this.mesh.dispose();
     }
 
-    private _updateMeshTransformClientRpc(transform: TransformUpdate): void {
+    private _processHostMessage(transform: TransformUpdate): void {
+        if (this._interpolate) {
+            this._transformBuffer.push({transform, timestamp: Date.now()});
+        }
+        else {
+            this._updateMeshTransform(transform);
+        }
+    }
+
+    private _interpolateTransforms(): void {
+        const now: number = Date.now();
+
+        // get the render timestamp (current time - 1 frame) to interpolate between the two latest transforms
+        const renderTimestamp: number = now - this.scene.game.tickRate;
+
+        // drop older transforms
+        while (this._transformBuffer.length >= 2 && this._transformBuffer[1].timestamp <= renderTimestamp) {
+            this._transformBuffer.shift();
+        }
+
+        if (this._transformBuffer.length < 2
+            || this._transformBuffer[0].timestamp > renderTimestamp
+            || renderTimestamp > this._transformBuffer[1].timestamp
+        ) return;
+
+        const position0 = this._transformBuffer[0].transform.position;
+        const position1 = this._transformBuffer[1].transform.position;
+
+        const rotation0 = this._transformBuffer[0].transform.rotation;
+        const rotation1 = this._transformBuffer[1].transform.rotation;
+
+        const elapsedTime: number = renderTimestamp - this._transformBuffer[0].timestamp;
+        const duration: number = this._transformBuffer[1].timestamp - this._transformBuffer[0].timestamp;
+        const lerpAmount: number = elapsedTime / duration;
+
+        this.mesh.position.x = B.Scalar.Lerp(position0.x, position1.x, lerpAmount);
+        this.mesh.position.y = B.Scalar.Lerp(position0.y, position1.y, lerpAmount);
+        this.mesh.position.z = B.Scalar.Lerp(position0.z, position1.z, lerpAmount);
+
+        this.meshRotation.rotationQuaternion = B.Quaternion.Slerp(
+            B.Quaternion.FromEulerAngles(rotation0.x, rotation0.y, rotation0.z),
+            B.Quaternion.FromEulerAngles(rotation1.x, rotation1.y, rotation1.z),
+            lerpAmount
+        );
+    }
+
+    private _updateMeshTransform(transform: TransformUpdate): void {
         this.mesh.position.x = transform.position.x;
         this.mesh.position.y = transform.position.y;
         this.mesh.position.z = transform.position.z;

@@ -75,9 +75,9 @@ export class Entity {
         });
     }
 
-    public tickUpdateComponents(): void {
+    public fixedUpdateComponents(): void {
         this.components.forEach((component: IComponent): void => {
-            component.onTickUpdate();
+            component.onFixedUpdate();
         });
     }
 

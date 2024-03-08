@@ -34,7 +34,7 @@ export class CameraMovement implements IComponent {
         this.camera.position.x += (averagePosition.x - this.camera.position.x) * 0.1;
     }
 
-    public onTickUpdate(): void {}
+    public onFixedUpdate(): void {}
 
     public onDestroy(): void {}
 
