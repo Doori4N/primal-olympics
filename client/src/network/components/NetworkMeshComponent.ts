@@ -19,7 +19,7 @@ export class NetworkMeshComponent implements IComponent {
     private _transformBuffer: {transform: TransformUpdate, timestamp: number}[] = [];
 
     // event listeners
-    private _processHostMessageEvent = this._processHostMessage.bind(this);
+    private _processHostMessageListener = this._processHostMessage.bind(this);
 
     constructor(entity: Entity, scene: Scene, props: {mesh: B.Mesh, interpolate?: boolean, useSubMeshForRotation?: boolean}) {
         this.entity = entity;
@@ -33,7 +33,7 @@ export class NetworkMeshComponent implements IComponent {
         if (this.scene.game.networkInstance.isHost) return;
 
         const networkClient = this.scene.game.networkInstance as NetworkClient;
-        networkClient.addEventListener(`meshTransformUpdate${this.entity.id}`, this._processHostMessageEvent);
+        networkClient.addEventListener(`meshTransformUpdate${this.entity.id}`, this._processHostMessageListener);
     }
 
     public onUpdate(): void {
@@ -65,7 +65,7 @@ export class NetworkMeshComponent implements IComponent {
     public onDestroy(): void {
         if (!this.scene.game.networkInstance.isHost) {
             const networkClient = this.scene.game.networkInstance as NetworkClient;
-            networkClient.removeEventListener(`meshTransformUpdate${this.entity.id}`, this._processHostMessageEvent);
+            networkClient.removeEventListener(`meshTransformUpdate${this.entity.id}`, this._processHostMessageListener);
         }
 
         this.mesh.dispose();
@@ -99,7 +99,7 @@ export class NetworkMeshComponent implements IComponent {
         const position0 = this._transformBuffer[0].transform.position;
         const position1 = this._transformBuffer[1].transform.position;
 
-        const rotation0 = this._transformBuffer[0].transform.rotation;
+        // const rotation0 = this._transformBuffer[0].transform.rotation;
         const rotation1 = this._transformBuffer[1].transform.rotation;
 
         const elapsedTime: number = renderTimestamp - this._transformBuffer[0].timestamp;
@@ -110,11 +110,13 @@ export class NetworkMeshComponent implements IComponent {
         this.mesh.position.y = B.Scalar.Lerp(position0.y, position1.y, lerpAmount);
         this.mesh.position.z = B.Scalar.Lerp(position0.z, position1.z, lerpAmount);
 
-        this.meshRotation.rotationQuaternion = B.Quaternion.Slerp(
-            B.Quaternion.FromEulerAngles(rotation0.x, rotation0.y, rotation0.z),
-            B.Quaternion.FromEulerAngles(rotation1.x, rotation1.y, rotation1.z),
-            lerpAmount
-        );
+        // this.meshRotation.rotationQuaternion = B.Quaternion.Slerp(
+        //     B.Quaternion.FromEulerAngles(rotation0.x, rotation0.y, rotation0.z),
+        //     B.Quaternion.FromEulerAngles(rotation1.x, rotation1.y, rotation1.z),
+        //     lerpAmount
+        // );
+
+        this.meshRotation.rotationQuaternion = B.Quaternion.FromEulerAngles(rotation1.x, rotation1.y, rotation1.z);
     }
 
     private _updateMeshTransform(transform: TransformUpdate): void {

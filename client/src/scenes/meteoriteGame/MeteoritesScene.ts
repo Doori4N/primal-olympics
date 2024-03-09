@@ -14,6 +14,7 @@ import {CameraAnimation} from "./components/CameraAnimation";
 import {GameScores} from "./components/GameScores";
 import {NetworkHost} from "../../network/NetworkHost";
 import {NetworkMeshComponent} from "../../network/components/NetworkMeshComponent";
+import {NetworkAnimationComponent} from "../../network/components/NetworkAnimationComponent";
 
 export class MeteoritesScene extends Scene {
     constructor() {
@@ -140,6 +141,11 @@ export class MeteoritesScene extends Scene {
 
         playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
 
+        const animations: {[key: string]: B.AnimationGroup} = {};
+        animations["Idle"] = entries.animationGroups[0];
+        animations["Walking"] = entries.animationGroups[2];
+        playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
+
         const useInterpolation: boolean = playerId !== this.game.networkInstance.playerId;
         playerEntity.addComponent(new NetworkMeshComponent(playerEntity, this, {
             mesh: hitbox,
@@ -161,7 +167,7 @@ export class MeteoritesScene extends Scene {
                 isTrigger: false
             }));
         }
-        playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerId: playerId, animationGroups: entries.animationGroups}));
+        playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerId: playerId}));
 
         return playerEntity;
     }

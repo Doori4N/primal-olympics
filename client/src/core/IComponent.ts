@@ -7,7 +7,10 @@ export interface IComponent {
     scene: Scene;
 
     onStart(): void;
+
     onUpdate(): void;
+
     onFixedUpdate(): void;
+
     onDestroy(): void;
 }
