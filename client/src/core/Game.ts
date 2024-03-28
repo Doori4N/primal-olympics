@@ -6,23 +6,15 @@ import {INetworkInstance} from "../network/INetworkInstance";
 
 export class Game {
     private static instance: Game;
-    
     public canvas!: HTMLCanvasElement;
     public engine!: B.Engine;
     public physicsPlugin!: B.HavokPlugin;
-    public inputs: InputManager = new InputManager();
+    public inputManager: InputManager = new InputManager();
     public networkInstance!: INetworkInstance;
-
-    /**
-     * Server update rate (ms)
-     */
-    public tickRate: number = 1000 / 20;
-
-    public tickCount: number = 0;
-
-    // public events: string[] = ["catchTheDodo", "meteorites", "escapeDino"];
-    // public events: string[] = ["catchTheDodo"];
-    public events: string[] = ["meteorites"];
+    public tick: number = 45; // Number of server updates per second
+    public tickIndex: number = 0; // Index of the current tick
+    private _timer: number = 0; // Timer to keep track of the time passed since the last tick
+    public miniGames: string[] = ["meteorites"];
 
     private constructor() {}
 
@@ -38,35 +30,44 @@ export class Game {
      */
     public async start(): Promise<void> {
         // canvas
-        this.canvas = this.createCanvas();
+        this.canvas = this._createCanvas();
         this.engine = new B.Engine(this.canvas, true);
-        this.resize(this.engine);
+        this._resize(this.engine);
 
         // physics
-        const havokInstance: HavokPhysicsWithBindings = await this.getHavokInstance();
-        this.physicsPlugin = new B.HavokPlugin(true, havokInstance);
+        const havokInstance: HavokPhysicsWithBindings = await this._getHavokInstance();
+        this.physicsPlugin = new B.HavokPlugin(false, havokInstance);
 
         // scenes
         const sceneManager: SceneManager = SceneManager.getInstance();
         sceneManager.initializeScenes();
 
+        // debug layer
         this._listenToDebugInputs(sceneManager);
 
         // game loop
         this.engine.runRenderLoop((): void => {
             sceneManager.updateCurrentScene();
+            this._fixedUpdate(sceneManager);
         });
-
-        setInterval((): void => {
-            this.tickCount++;
-            sceneManager.fixedUpdateCurrentScene();
-        }, this.tickRate);
     }
 
     /**
-     * Create a canvas element and append it to the document body
+     * Update the game with a fixed time step
      */
-    private createCanvas(): HTMLCanvasElement {
+    private _fixedUpdate(sceneManager: SceneManager): void {
+        this._timer += this.engine.getDeltaTime();
+        const tickRate: number = 1000 / this.tick;
+
+        while (this._timer >= tickRate) {
+            this.tickIndex++;
+            this.inputManager.updateInputTick(this.tickIndex);
+            sceneManager.fixedUpdateCurrentScene();
+            this._timer -= tickRate;
+        }
+    }
+
+    private _createCanvas(): HTMLCanvasElement {
         const canvas: HTMLCanvasElement = document.createElement("canvas");
         canvas.id = "renderCanvas";
         canvas.width = window.innerWidth;
@@ -75,10 +76,7 @@ export class Game {
         return canvas;
     }
 
-    /**
-     * Load the Havok physics plugin
-     */
-    private async getHavokInstance(): Promise<HavokPhysicsWithBindings> {
+    private async _getHavokInstance(): Promise<HavokPhysicsWithBindings> {
         // load physics plugin
         // doesn't work with the following code
         // const havokInstance: HavokPhysicsWithBindings = await HavokPhysics();
@@ -96,16 +94,15 @@ export class Game {
         return havokInstance;
     }
 
-    /**
-     * Resize the canvas when the window is resized
-     * @param engine
-     */
-    private resize(engine: B.Engine): void {
+    private _resize(engine: B.Engine): void {
         window.addEventListener("resize", (): void => {
             engine.resize();
         });
     }
 
+    /**
+     * Listen to inputs to display the debug layer of Babylon.js
+     */
     private _listenToDebugInputs(sceneManager: SceneManager): void {
         window.addEventListener("keydown", (e: KeyboardEvent): void => {
             // Shift+Ctrl+I

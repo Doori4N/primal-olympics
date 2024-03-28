@@ -12,14 +12,14 @@ export class GameSelectionScene extends Scene {
 
         const networkHost = this.game.networkInstance as NetworkHost;
 
-        if (this.game.events.length <= 0) {
+        if (this.game.miniGames.length <= 0) {
             networkHost.sendToAllClients("changeScene", "gameOver");
             this.sceneManager.changeScene("gameOver");
             return;
         }
 
         // choose random game
-        const randomGame: string = this.game.events.splice(Math.floor(Math.random() * this.game.events.length), 1)[0];
+        const randomGame: string = this.game.miniGames.splice(Math.floor(Math.random() * this.game.miniGames.length), 1)[0];
         networkHost.sendToAllClients("changeScene", randomGame);
         this.sceneManager.changeScene(randomGame);
     }

@@ -93,9 +93,7 @@ export class MeteoriteController implements IComponent {
             meteoriteEntity.addComponent(new RigidBodyComponent(meteoriteEntity, this.scene, {
                 physicsShape: B.PhysicsShapeType.SPHERE,
                 physicsProps: {
-                    mass: 1,
-                    friction: 0,
-                    restitution: 0
+                    mass: 1
                 },
                 isTrigger: true
             }));

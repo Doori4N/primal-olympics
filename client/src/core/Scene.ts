@@ -5,6 +5,7 @@ import {Game} from "./Game";
 import {EventManager} from "./EventManager";
 import {EntityManager} from "./EntityManager";
 import {SceneManager} from "./SceneManager";
+import {IPhysicsEngine} from "@babylonjs/core/Physics/IPhysicsEngine";
 
 export class Scene {
     public name: string;
@@ -42,6 +43,8 @@ export class Scene {
 
     public fixedUpdate(): void {
         this.entityManager.fixedUpdate();
+        if (this.game.networkInstance?.isConnected) this.game.networkInstance.fixedUpdate();
+        this._executeStep(1 / 60);
     }
 
     /**
@@ -52,5 +55,24 @@ export class Scene {
         this.mainCamera.dispose();
         this.scene.dispose();
         this.entityManager.destroyAllEntities();
+    }
+
+    public enablePhysics(gravityVector?: B.Vector3): void {
+        this.scene.enablePhysics(gravityVector, this.game.physicsPlugin);
+        // set physics to disabled to update it manually in fixedUpdate
+        this.scene.physicsEnabled = false;
+    }
+
+    /**
+     * Execute one physics step and notify observers
+     * @param delta - defines the timespan between frames
+     */
+    private _executeStep(delta: number): void {
+        const physicsEngine: B.Nullable<IPhysicsEngine> = this.scene.getPhysicsEngine();
+        if (!physicsEngine) return;
+
+        this.scene.onBeforePhysicsObservable.notifyObservers(this.scene);
+        physicsEngine._step(delta);
+        this.scene.onAfterPhysicsObservable.notifyObservers(this.scene);
     }
 }

@@ -4,7 +4,7 @@ import * as B from "@babylonjs/core";
 const DEADZONE: number = 0.3;
 
 export class InputManager {
-    private gamepadManager: B.GamepadManager;
+    private _gamepadManager: B.GamepadManager;
 
     // events
     public onGamepadConnected: Function[] = [];
@@ -16,19 +16,24 @@ export class InputManager {
             x: 0,
             y: 0
         },
-        buttons: {}
+        buttons: {},
+        tick: 0
     };
 
     constructor() {
-        this.gamepadManager = new B.GamepadManager();
-        this.listenToKeyboard();
-        this.listenToGamepad();
+        this._gamepadManager = new B.GamepadManager();
+        this._listenToKeyboard();
+        this._listenToGamepad();
+    }
+
+    public updateInputTick(tick: number): void {
+        this.inputStates.tick = tick;
     }
 
     /**
      * Listen to keyboard events and update the inputStates accordingly
      */
-    private listenToKeyboard(): void {
+    private _listenToKeyboard(): void {
         window.addEventListener("keydown", (event: KeyboardEvent): void => {
             if (this.inputStates.type !== InputType.KEYBOARD) return;
 
@@ -51,7 +56,7 @@ export class InputManager {
                     break;
             }
 
-            this.updateKeyboardDirections();
+            this._updateKeyboardDirections();
         });
 
         window.addEventListener("keyup", (event: KeyboardEvent): void => {
@@ -76,11 +81,11 @@ export class InputManager {
                     break;
             }
 
-            this.updateKeyboardDirections();
+            this._updateKeyboardDirections();
         });
     }
 
-    private updateKeyboardDirections(): void {
+    private _updateKeyboardDirections(): void {
         // reset directions
         this.inputStates.direction.x = 0;
         this.inputStates.direction.y = 0;
@@ -103,8 +108,8 @@ export class InputManager {
     /**
      * Listen to gamepad events and update inputStates accordingly
      */
-    private listenToGamepad(): void {
-        this.gamepadManager.onGamepadConnectedObservable.add((gamepad: B.Gamepad): void => {
+    private _listenToGamepad(): void {
+        this._gamepadManager.onGamepadConnectedObservable.add((gamepad: B.Gamepad): void => {
             // signal that a gamepad has been connected
             this.onGamepadConnected.forEach((callback: Function): void => callback());
 
@@ -115,7 +120,8 @@ export class InputManager {
                     x: 0,
                     y: 0
                 },
-                buttons: {}
+                buttons: {},
+                tick: 0
             };
 
             // PLAYSTATION
@@ -192,7 +198,7 @@ export class InputManager {
             });
         });
 
-        this.gamepadManager.onGamepadDisconnectedObservable.add((): void => {
+        this._gamepadManager.onGamepadDisconnectedObservable.add((): void => {
             // signal that a gamepad has been disconnected
             this.onGamepadDisconnected.forEach((callback: Function): void => callback());
 
@@ -203,8 +209,23 @@ export class InputManager {
                     x: 0,
                     y: 0
                 },
-                buttons: {}
+                buttons: {},
+                tick: 0
             };
         });
+    }
+
+    public cloneInputStates(inputStates: InputStates): InputStates {
+        return {
+            type: inputStates.type,
+            direction: {
+                x: inputStates.direction.x,
+                y: inputStates.direction.y
+            },
+            buttons: {
+                ...inputStates.buttons
+            },
+            tick: inputStates.tick
+        };
     }
 }

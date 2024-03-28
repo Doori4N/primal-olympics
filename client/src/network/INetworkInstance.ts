@@ -7,6 +7,8 @@ export interface INetworkInstance {
      */
     isHost: boolean;
 
+    isConnected: boolean;
+
     /**
      * @description The peer instance
      */
@@ -28,4 +30,6 @@ export interface INetworkInstance {
     notify(event: string, ...args: any[]): void;
 
     clearEventListeners(): void;
+
+    fixedUpdate(): void;
 }

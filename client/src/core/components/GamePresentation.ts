@@ -3,6 +3,8 @@ import {Entity} from "../Entity";
 import {Scene} from "../Scene";
 import {INetworkInstance} from "../../network/INetworkInstance";
 import {NetworkHost} from "../../network/NetworkHost";
+import {InputStates} from "../types";
+import {PlayerData} from "../../network/types";
 
 export class GamePresentation implements IComponent {
     public name: string = "GamePresentation";
@@ -10,11 +12,11 @@ export class GamePresentation implements IComponent {
     public scene: Scene;
 
     // component properties
-    private timer: number = 30;
-    private isPlayerSkipping!: boolean[];
-    private uiContainer!: Element;
-    private htmlTemplate: string;
-    private _networkInstance: INetworkInstance;
+    private _timer: number = 30;
+    private _isPlayerSkipping!: boolean[];
+    private _uiContainer!: Element;
+    private readonly _htmlTemplate: string;
+    private readonly _networkInstance: INetworkInstance;
 
     // event listeners
     private _playerSkipEvent = this._onPlayerSkip.bind(this);
@@ -22,7 +24,7 @@ export class GamePresentation implements IComponent {
     constructor(entity: Entity, scene: Scene, props: {htmlTemplate: string}) {
         this.entity = entity;
         this.scene = scene;
-        this.htmlTemplate = props.htmlTemplate;
+        this._htmlTemplate = props.htmlTemplate;
         this._networkInstance = this.scene.game.networkInstance;
     }
 
@@ -31,18 +33,18 @@ export class GamePresentation implements IComponent {
             this._networkInstance.addEventListener("onPlayerSkip", this._playerSkipEvent);
         }
 
-        this.isPlayerSkipping = new Array(this._networkInstance.players.length).fill(false);
+        this._isPlayerSkipping = new Array(this._networkInstance.players.length).fill(false);
 
         let uiContainer: Element | null = document.querySelector("#ui");
         if (!uiContainer) throw new Error("UI element not found");
 
-        this.uiContainer = uiContainer;
+        this._uiContainer = uiContainer;
         this._displayGUI();
 
         // countdown interval
         const interval: number = setInterval((): void => {
-            this.timer--;
-            if (this.timer < 0 || this.isPlayerSkipping.every((isSkipping: boolean): boolean => isSkipping)) {
+            this._timer--;
+            if (this._timer < 0 || this._isPlayerSkipping.every((isSkipping: boolean): boolean => isSkipping)) {
                 clearInterval(interval);
                 this.entity.removeComponent("GamePresentation");
                 this.scene.eventManager.notify("onPresentationFinished");
@@ -62,7 +64,7 @@ export class GamePresentation implements IComponent {
     }
 
     public onDestroy(): void {
-        this.uiContainer.innerHTML = "";
+        this._uiContainer.innerHTML = "";
 
         if (!this._networkInstance.isHost) {
             this._networkInstance.removeEventListener("onPlayerSkip", this._playerSkipEvent);
@@ -75,12 +77,12 @@ export class GamePresentation implements IComponent {
             playerSkipUI += `<p id="playerSkip${i}">${this._networkInstance.players[i].name} : ❌</p>`;
         }
 
-        this.uiContainer.innerHTML = `
+        this._uiContainer.innerHTML = `
             <div id="presentation-ui">
-                ${this.htmlTemplate}
+                ${this._htmlTemplate}
                 <p>Press Space/X/A to skip</p>
                 ${playerSkipUI}
-                <p id="timer">Game starts in ${this.timer} seconds</p>
+                <p id="timer">Game starts in ${this._timer} seconds</p>
             </div>
         `;
     }
@@ -89,7 +91,7 @@ export class GamePresentation implements IComponent {
         let timerUI: Element | null = document.querySelector("#timer");
         if (!timerUI) throw new Error("Timer element not found");
 
-        timerUI.innerHTML = `Game starts in ${this.timer} seconds`;
+        timerUI.innerHTML = `Game starts in ${this._timer} seconds`;
     }
 
     private _updatePlayerSkipUI(playerIndex: number): void {
@@ -101,14 +103,18 @@ export class GamePresentation implements IComponent {
 
     private _checkPlayerSkip(): void {
         const networkHost = this._networkInstance as NetworkHost;
-        for (const playerId in networkHost.playerInputs) {
-            if (networkHost.playerInputs[playerId].buttons["jump"]) {
-                const playerIndex: number = networkHost.players.findIndex((player: {id: string}): boolean => player.id === playerId);
+
+        networkHost.players.forEach((playerData: PlayerData): void => {
+            if (playerData.id === networkHost.playerId) return;
+            const inputStates: InputStates = networkHost.getPlayerInput(playerData.id);
+            if (inputStates.buttons["jump"]) {
+                const playerIndex: number = networkHost.players.findIndex((player: {id: string}): boolean => player.id === playerData.id);
                 networkHost.sendToAllClients("onPlayerSkip", playerIndex);
                 this._onPlayerSkip(playerIndex);
             }
-        }
-        if (this.scene.game.inputs.inputStates.buttons["jump"]) {
+        });
+
+        if (this.scene.game.inputManager.inputStates.buttons["jump"]) {
             const playerIndex: number = networkHost.players.findIndex((player: {id: string}): boolean => player.id === networkHost.playerId);
             networkHost.sendToAllClients("onPlayerSkip", playerIndex);
             this._onPlayerSkip(playerIndex);
@@ -117,6 +123,6 @@ export class GamePresentation implements IComponent {
 
     private _onPlayerSkip(playerIndex: number): void {
         this._updatePlayerSkipUI(playerIndex);
-        this.isPlayerSkipping[playerIndex] = true;
+        this._isPlayerSkipping[playerIndex] = true;
     }
 }

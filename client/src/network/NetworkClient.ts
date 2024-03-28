@@ -5,6 +5,7 @@ import {EventManager} from "../core/EventManager";
 import {NetworkMessage, PlayerData} from "./types";
 import {SceneManager} from "../core/SceneManager";
 import {Game} from "../core/Game";
+import {InputStates} from "../core/types";
 
 // simulate lag for one way trip (ms)
 const LAG: number = 0;
@@ -14,6 +15,7 @@ const PING_INTERVAL: number = 2000;
 
 export class NetworkClient implements INetworkInstance {
     public isHost: boolean = false;
+    public isConnected: boolean = false;
     public peer: Peer;
     public players: PlayerData[] = [];
     public playerId: string = uuid();
@@ -33,15 +35,11 @@ export class NetworkClient implements INetworkInstance {
      */
     public hostId!: string;
 
-    constructor() {
-        this.peer = new Peer(uuid());
+    constructor(peer: Peer) {
+        this.peer = peer;
 
         this.peer.on("error", (err: any): void => {
             console.error("Client error: ", err);
-        });
-
-        this.peer.on("open", (): void => {
-            console.log("Client connected to peer server");
         });
 
         this._initEventListeners();
@@ -63,17 +61,16 @@ export class NetworkClient implements INetworkInstance {
     }
 
     private onConnectedToHost(hostId: string): void {
-        console.log("Connected to host!");
+        this.isConnected = true;
         this.hostId = hostId;
         this.notify("connected");
-
         this._sendPingLoop(PING_INTERVAL);
-        this._sendInputStatesLoop(this._game.tickRate);
     }
 
     private _initEventListeners(): void {
         this._listenToChangeScene();
         this._listenToPing();
+        this._listenToSyncClientTick();
     }
 
     public addEventListener(event: string, callback: Function): void {
@@ -98,6 +95,11 @@ export class NetworkClient implements INetworkInstance {
 
     public clearEventListeners(): void {
         this._eventManager.clear();
+    }
+
+    public fixedUpdate(): void {
+        const inputStates: InputStates = this._game.inputManager.cloneInputStates(this._game.inputManager.inputStates);
+        this.sendToHost("inputStates", this.playerId, inputStates);
     }
 
     public sendToHost(event: string, ...args: any[]): void {
@@ -126,7 +128,7 @@ export class NetworkClient implements INetworkInstance {
     private _listenToPing(): void {
         this.addEventListener("pong", (startTime: number): void => {
             this.ping = Math.round((Date.now() - startTime));
-            console.log("Ping: ", this.ping);
+            // console.log("Ping: ", this.ping);
         });
     }
 
@@ -137,9 +139,12 @@ export class NetworkClient implements INetworkInstance {
         }, interval);
     }
 
-    private _sendInputStatesLoop(interval: number): void {
-        setInterval((): void => {
-            this.sendToHost("inputStates", this.playerId, this._game.inputs.inputStates);
-        }, interval);
+    private _listenToSyncClientTick(): void {
+        this.addEventListener("synchronizeClientTick", (hostTime: number, hostTickIndex: number): void => {
+            const clientTime: number = Date.now();
+            const latency: number = clientTime - hostTime;
+            const tickRate: number = 1000 / this._game.tick;
+            this._game.tickIndex = hostTickIndex + Math.ceil(latency / tickRate);
+        });
     }
 }

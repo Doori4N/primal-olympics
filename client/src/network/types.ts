@@ -16,6 +16,15 @@ export type TransformUpdate = {
     };
 }
 
+export type PhysicsUpdate = {
+    linearVelocity: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    transform: TransformUpdate;
+}
+
 export type PlayerData = {
     id: string;
     name: string;

@@ -5,6 +5,7 @@ export type InputStates = {
         y: number;
     };
     buttons: {[key: string]: boolean};
+    tick: number;
 }
 
 export enum InputType {

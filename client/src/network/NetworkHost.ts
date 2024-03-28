@@ -3,22 +3,27 @@ import Peer, {DataConnection} from "peerjs";
 import {v4 as uuid} from "uuid";
 import {EventManager} from "../core/EventManager";
 import {NetworkMessage, PlayerData} from "./types";
-import {InputStates} from "../core/types";
+import {InputStates, InputType} from "../core/types";
+import {Game} from "../core/Game";
 
 export class NetworkHost implements INetworkInstance {
     public isHost: boolean = true;
+    public isConnected: boolean = true;
     public peer: Peer;
     public connections: DataConnection[] = [];
     public players: PlayerData[] = [];
-    public playerInputs: {[key: string]: InputStates} = {};
+    public playerInputBuffers = new Map<string, InputStates[]>();
     public playerId: string = uuid();
     public ping: number = 0;
+    private _isClientTickSynchronized: {[key: string]: boolean} = {};
 
     private _eventManager = new EventManager();
+    private _game: Game = Game.getInstance();
 
-    constructor() {
-        this.peer = new Peer(uuid());
+    constructor(peer: Peer) {
+        this.peer = peer;
 
+        // initialize the player list with the host
         this.players.push({
             id: this.playerId,
             name: "player 1",
@@ -31,6 +36,9 @@ export class NetworkHost implements INetworkInstance {
             console.log(`${connection.peer} is connected !`);
             console.log(connection.provider);
             this.connections.push(connection);
+
+            // init player inputs buffer
+            this.playerInputBuffers.set(connection.metadata.playerId, []);
 
             // listen for messages from the client
             connection.on("data", (data: unknown): void => {
@@ -80,6 +88,14 @@ export class NetworkHost implements INetworkInstance {
         this._eventManager.clear();
     }
 
+    public fixedUpdate(): void {
+        // remove the first input state from the buffer for each player
+        this.playerInputBuffers.forEach((inputs: InputStates[]): void => {
+            if (inputs.length === 0) return;
+            inputs.shift();
+        });
+    }
+
     public sendToAllClients(event: string, ...args: any[]): void {
         this.connections.forEach((connection: DataConnection): void => {
             connection.send({type: event, data: args});
@@ -103,8 +119,43 @@ export class NetworkHost implements INetworkInstance {
     }
 
     private _listenToPlayerInputStates(): void {
-        this.addEventListener("inputStates", (_clientId: string, playerId: string, inputStates: InputStates): void => {
-            this.playerInputs[playerId] = inputStates;
+        this.addEventListener("inputStates", (
+            _clientId: string,
+            playerId: string,
+            inputStates: InputStates
+        ): void => {
+            // store input states in the buffer with one tick delay
+            setTimeout((): void => {
+                this.playerInputBuffers.get(playerId)!.push(inputStates);
+            }, 1000 / this._game.tick);
         });
+    }
+
+    public synchronizeClientTick(): void {
+        // reset the flag for each client
+        this.connections.forEach((connection: DataConnection): void => {
+            this._isClientTickSynchronized[connection.peer] = false;
+        });
+
+        this.sendToAllClients("synchronizeClientTick", Date.now(), this._game.tickIndex);
+    }
+
+    public getPlayerInput(playerId: string): InputStates {
+        const inputStates: InputStates[] = this.playerInputBuffers.get(playerId)!;
+
+        // if the buffer is empty (no input received yet), return a default input state
+        if (inputStates.length === 0) {
+            return {
+                type: InputType.KEYBOARD,
+                direction: {
+                    x: 0,
+                    y: 0
+                },
+                buttons: {},
+                tick: 0
+            } as InputStates;
+        }
+
+        return inputStates[0];
     }
 }

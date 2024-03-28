@@ -48,7 +48,7 @@ export class PlayerBehaviour implements IComponent {
     }
 
     public onStart(): void {
-        this.inputStates = this.scene.game.inputs.inputStates;
+        this.inputStates = this.scene.game.inputManager.inputStates;
         const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
         this.mesh = meshComponent.mesh;
         this.animations["Idle"].start(true, 1.0, this.animations["Idle"].from, this.animations["Idle"].to, false);

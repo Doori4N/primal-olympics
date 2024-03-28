@@ -15,6 +15,7 @@ import {GameScores} from "./components/GameScores";
 import {NetworkHost} from "../../network/NetworkHost";
 import {NetworkMeshComponent} from "../../network/components/NetworkMeshComponent";
 import {NetworkAnimationComponent} from "../../network/components/NetworkAnimationComponent";
+import {NetworkRigidBodyComponent} from "../../network/components/NetworkRigidBodyComponent";
 
 export class MeteoritesScene extends Scene {
     constructor() {
@@ -47,9 +48,7 @@ export class MeteoritesScene extends Scene {
     }
 
     public start(): void {
-        // Enable physics engine
-        const gravityVector = new B.Vector3(0, -9.81, 0);
-        this.scene.enablePhysics(gravityVector, this.game.physicsPlugin);
+        this.enablePhysics(new B.Vector3(0, -9.81, 0));
 
         // camera
         this.mainCamera.position = new B.Vector3(0, 30, -20);
@@ -146,27 +145,25 @@ export class MeteoritesScene extends Scene {
         animations["Walking"] = entries.animationGroups[2];
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
-        const useInterpolation: boolean = playerId !== this.game.networkInstance.playerId;
         playerEntity.addComponent(new NetworkMeshComponent(playerEntity, this, {
             mesh: hitbox,
-            interpolate: useInterpolation,
             useSubMeshForRotation: true
         }));
 
-        if (this.game.networkInstance.isHost) {
-            const playerPhysicsShape = new B.PhysicsShapeBox(
-                new B.Vector3(0.5, 1, 0.5),
-                new B.Quaternion(0, 0, 0, 1),
-                new B.Vector3(1, 2, 1),
-                this.scene
-            );
-            playerEntity.addComponent(new RigidBodyComponent(playerEntity, this, {
-                physicsShape: playerPhysicsShape,
-                physicsProps: {mass: 1},
-                massProps: {inertia: new B.Vector3(0, 0, 0)},
-                isTrigger: false
-            }));
-        }
+        const playerPhysicsShape = new B.PhysicsShapeBox(
+            new B.Vector3(0.5, 1, 0.5),
+            new B.Quaternion(0, 0, 0, 1),
+            new B.Vector3(1, 2, 1),
+            this.scene
+        );
+        playerEntity.addComponent(new NetworkRigidBodyComponent(playerEntity, this, {
+            physicsShape: playerPhysicsShape,
+            physicsProps: {mass: 1},
+            massProps: {inertia: new B.Vector3(0, 0, 0)},
+            isTrigger: false,
+            clientPrediction: true
+        }));
+
         playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerId: playerId}));
 
         return playerEntity;
