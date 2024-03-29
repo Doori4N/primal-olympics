@@ -29,19 +29,19 @@ export class MeteoritesScene extends Scene {
         this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync(
             "https://assets.babylonjs.com/meshes/",
             "HVGirl.glb",
-            this.scene
+            this.babylonScene
         );
 
         this.loadedAssets["meteorite"] = await B.SceneLoader.LoadAssetContainerAsync(
             "meshes/",
             "meteorite.glb",
-            this.scene
+            this.babylonScene
         );
 
         this.loadedAssets["meteoriteMap"] = await B.SceneLoader.LoadAssetContainerAsync(
             "meshes/",
             "map_meteorite.glb",
-            this.scene
+            this.babylonScene
         );
 
         this.game.engine.hideLoadingUI();
@@ -58,14 +58,14 @@ export class MeteoritesScene extends Scene {
 
         // start animation
         const cameraEntity = new Entity();
-        const camera = new B.FreeCamera("camera", new B.Vector3(0, 3, 15), this.scene);
+        const camera = new B.FreeCamera("camera", new B.Vector3(0, 3, 15), this.babylonScene);
         camera.rotation.y = Math.PI;
         cameraEntity.addComponent(new CameraComponent(cameraEntity, this, {camera: camera}));
         cameraEntity.addComponent(new CameraAnimation(cameraEntity, this));
         this.entityManager.addEntity(cameraEntity);
 
         // light
-        const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.scene);
+        const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.babylonScene);
         light.intensity = 0.7;
 
         // ground
@@ -75,7 +75,7 @@ export class MeteoritesScene extends Scene {
         // const ground: B.Mesh = mapContainer.meshes[0] as B.Mesh;
         // ground.rotationQuaternion = B.Quaternion.RotationAxis(new B.Vector3(1, 0, 0), Math.PI);
         // ground.scaling.scaleInPlace(2);
-        const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: 18, height: 18}, this.scene);
+        const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: 18, height: 18}, this.babylonScene);
         ground.metadata = {tag: groundEntity.tag};
         groundEntity.addComponent(new MeshComponent(groundEntity, this, {mesh: ground}));
         groundEntity.addComponent(new RigidBodyComponent(groundEntity, this, {
@@ -119,7 +119,7 @@ export class MeteoritesScene extends Scene {
         gameController.addComponent(new GamePresentation(gameController, this, {htmlTemplate}));
         gameController.addComponent(new GameMessages(gameController, this));
         gameController.addComponent(new Leaderboard(gameController, this));
-        gameController.addComponent(new GameTimer(gameController, this, {duration: 60}));
+        gameController.addComponent(new GameTimer(gameController, this, {duration: 600}));
         gameController.addComponent(new GameScores(gameController, this));
         this.entityManager.addEntity(gameController);
     }
@@ -132,7 +132,7 @@ export class MeteoritesScene extends Scene {
 
         player.scaling.scaleInPlace(0.1);
 
-        const hitbox = new B.Mesh(`hitbox${playerEntity.id}`, this.scene);
+        const hitbox = new B.Mesh(`hitbox${playerEntity.id}`, this.babylonScene);
         hitbox.metadata = {tag: playerEntity.tag, id: playerEntity.id};
 
         player.setParent(hitbox);
@@ -154,7 +154,7 @@ export class MeteoritesScene extends Scene {
             new B.Vector3(0.5, 1, 0.5),
             new B.Quaternion(0, 0, 0, 1),
             new B.Vector3(1, 2, 1),
-            this.scene
+            this.babylonScene
         );
         playerEntity.addComponent(new NetworkRigidBodyComponent(playerEntity, this, {
             physicsShape: playerPhysicsShape,

@@ -63,7 +63,7 @@ export class RigidBodyComponent implements IComponent {
         // disable collisions on the mesh and use physics engine for collisions
         this.mesh.checkCollisions = false;
 
-        this.physicsAggregate = new B.PhysicsAggregate(this.mesh, physicsShape, physicsProps, this.scene.scene);
+        this.physicsAggregate = new B.PhysicsAggregate(this.mesh, physicsShape, physicsProps, this.scene.babylonScene);
 
         if (massProps) {
             this.physicsAggregate.body.setMassProperties(massProps);

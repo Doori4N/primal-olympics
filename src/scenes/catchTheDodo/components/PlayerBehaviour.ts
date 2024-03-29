@@ -77,7 +77,7 @@ export class PlayerBehaviour implements IComponent {
     public onDestroy(): void {}
 
     private createVelocityGUI(): void {
-        this.gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI(`velocityUI${this.inputIndex}`, true, this.scene.scene);
+        this.gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI(`velocityUI${this.inputIndex}`, true, this.scene.babylonScene);
         this.slider = new GUI.Slider();
         this.slider.minimum = 0;
         this.slider.maximum = this.maxVelocityX;

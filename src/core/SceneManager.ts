@@ -79,10 +79,10 @@ export class SceneManager {
 
     public displayDebugLayer(): void {
         // hide/show the Inspector
-        if (this._currentScene?.scene.debugLayer.isVisible()) {
-            this._currentScene?.scene.debugLayer.hide();
+        if (this._currentScene?.babylonScene.debugLayer.isVisible()) {
+            this._currentScene?.babylonScene.debugLayer.hide();
         } else {
-            this._currentScene?.scene.debugLayer.show({overlay: true, handleResize: true});
+            this._currentScene?.babylonScene.debugLayer.show({overlay: true, handleResize: true});
         }
     }
 }

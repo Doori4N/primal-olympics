@@ -26,7 +26,7 @@ export class MeteoriteBehaviour implements IComponent {
         const meteoriteMesh: B.Mesh = meteoriteMeshComponent.mesh;
 
         const shadowPosition: B.Vector3 = new B.Vector3(meteoriteMesh.position.x, 1.5, meteoriteMesh.position.z);
-        this.shadow = new B.SpotLight(`spotLight${this.entity.id}`, shadowPosition, new B.Vector3(0, -1, 0), Math.PI / 2, 2, this.scene.scene);
+        this.shadow = new B.SpotLight(`spotLight${this.entity.id}`, shadowPosition, new B.Vector3(0, -1, 0), Math.PI / 2, 2, this.scene.babylonScene);
         this.shadow.includedOnlyMeshes = [groundMesh];
     }
 

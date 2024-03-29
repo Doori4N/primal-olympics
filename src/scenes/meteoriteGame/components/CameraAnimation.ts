@@ -22,7 +22,7 @@ export class CameraAnimation implements IComponent {
         const cameraComponent = this.entity.getComponent("Camera") as CameraComponent;
         this.camera = cameraComponent.camera;
 
-        this.scene.scene.switchActiveCamera(this.camera);
+        this.scene.babylonScene.switchActiveCamera(this.camera);
 
         this.initCameraAnimation();
 
@@ -84,7 +84,7 @@ export class CameraAnimation implements IComponent {
     }
 
     private onBeginAnimation(): void {
-        this.scene.scene.beginAnimation(
+        this.scene.babylonScene.beginAnimation(
             this.camera,
             0,
             7 * this.frameRate,

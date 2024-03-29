@@ -25,7 +25,7 @@ export class CatchTheDodoScene extends Scene {
         this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync(
             "https://assets.babylonjs.com/meshes/",
             "HVGirl.glb",
-            this.scene
+            this.babylonScene
         );
 
         this.game.engine.hideLoadingUI();
@@ -39,11 +39,11 @@ export class CatchTheDodoScene extends Scene {
         this.mainCamera.speed = 0.3;
 
         // light
-        const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.scene);
+        const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.babylonScene);
         light.intensity = 0.7;
 
         // ground
-        const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: 6, height: 6}, this.scene);
+        const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: 6, height: 6}, this.babylonScene);
         ground.position.y = 0;
 
         // camera
@@ -54,7 +54,7 @@ export class CatchTheDodoScene extends Scene {
 
         // start animation
         const cameraEntity = new Entity();
-        const camera = new B.FreeCamera("camera", new B.Vector3(5, 2, 10), this.scene);
+        const camera = new B.FreeCamera("camera", new B.Vector3(5, 2, 10), this.babylonScene);
         camera.rotation.y = -Math.PI / 2;
         cameraEntity.addComponent(new CameraComponent(cameraEntity, this, {camera: camera}));
         cameraEntity.addComponent(new CameraAnimation(cameraEntity, this));
@@ -64,7 +64,7 @@ export class CatchTheDodoScene extends Scene {
         const playerContainer: B.AssetContainer = this.loadedAssets["player"];
         for (let i: number = 0; i < 1; i++) {
             const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + i, false, {doNotInstantiate: true});
-            const player = this.scene.getMeshByName("__root__" + i) as B.Mesh;
+            const player = this.babylonScene.getMeshByName("__root__" + i) as B.Mesh;
             if (!player) throw new Error("Player mesh not found");
 
             player.scaling.scaleInPlace(0.1);
@@ -80,7 +80,7 @@ export class CatchTheDodoScene extends Scene {
         }
 
         // dodo
-        const dodo: B.Mesh = B.MeshBuilder.CreateSphere("dodo", {diameter: 1}, this.scene);
+        const dodo: B.Mesh = B.MeshBuilder.CreateSphere("dodo", {diameter: 1}, this.babylonScene);
         dodo.position.x = 2;
         dodo.position.y = 0.5;
         const dodoEntity = new Entity("dodo");

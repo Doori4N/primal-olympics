@@ -9,7 +9,7 @@ import {IPhysicsEngine} from "@babylonjs/core/Physics/IPhysicsEngine";
 
 export class Scene {
     public name: string;
-    public scene: B.Scene;
+    public babylonScene: B.Scene;
     public mainCamera: B.FreeCamera;
     public game: Game = Game.getInstance();
     public eventManager = new EventManager();
@@ -21,8 +21,8 @@ export class Scene {
         this.name = name;
 
         // initialize the scene with a main camera
-        this.scene = new B.Scene(this.game.engine);
-        this.mainCamera = new B.FreeCamera("mainCamera", new B.Vector3(0, 5, -10), this.scene);
+        this.babylonScene = new B.Scene(this.game.engine);
+        this.mainCamera = new B.FreeCamera("mainCamera", new B.Vector3(0, 5, -10), this.babylonScene);
     }
 
     public async loadAssets(): Promise<void> {};
@@ -37,7 +37,7 @@ export class Scene {
      * Render the scene and update entities
      */
     public update(): void {
-        this.scene.render();
+        this.babylonScene.render();
         this.entityManager.update();
     }
 
@@ -53,14 +53,14 @@ export class Scene {
     public destroy(): void {
         // TODO: destroy loadedAssets
         this.mainCamera.dispose();
-        this.scene.dispose();
+        this.babylonScene.dispose();
         this.entityManager.destroyAllEntities();
     }
 
     public enablePhysics(gravityVector?: B.Vector3): void {
-        this.scene.enablePhysics(gravityVector, this.game.physicsPlugin);
+        this.babylonScene.enablePhysics(gravityVector, this.game.physicsPlugin);
         // set physics to disabled to update it manually in fixedUpdate
-        this.scene.physicsEnabled = false;
+        this.babylonScene.physicsEnabled = false;
     }
 
     /**
@@ -68,11 +68,11 @@ export class Scene {
      * @param delta - defines the timespan between frames
      */
     private _executeStep(delta: number): void {
-        const physicsEngine: B.Nullable<IPhysicsEngine> = this.scene.getPhysicsEngine();
+        const physicsEngine: B.Nullable<IPhysicsEngine> = this.babylonScene.getPhysicsEngine();
         if (!physicsEngine) return;
 
-        this.scene.onBeforePhysicsObservable.notifyObservers(this.scene);
+        this.babylonScene.onBeforePhysicsObservable.notifyObservers(this.babylonScene);
         physicsEngine._step(delta);
-        this.scene.onAfterPhysicsObservable.notifyObservers(this.scene);
+        this.babylonScene.onAfterPhysicsObservable.notifyObservers(this.babylonScene);
     }
 }

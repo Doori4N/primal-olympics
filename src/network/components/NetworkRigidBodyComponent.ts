@@ -98,7 +98,7 @@ export class NetworkRigidBodyComponent implements IComponent {
         // disable collisions on the mesh and use physics engine for collisions
         this._mesh.checkCollisions = false;
 
-        this.physicsAggregate = new B.PhysicsAggregate(this._mesh, physicsShape, physicsProps, this.scene.scene);
+        this.physicsAggregate = new B.PhysicsAggregate(this._mesh, physicsShape, physicsProps, this.scene.babylonScene);
 
         // enable pre-step so we can still update position of the mesh with the TransformNode
         this.physicsAggregate.body.disablePreStep = false;
