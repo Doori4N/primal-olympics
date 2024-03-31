@@ -230,7 +230,7 @@ export class PlayerBehaviour implements IComponent {
         }, this._collisionBoxLifeSpan);
     }
 
-    public pushPlayer(impulseDirection: B.Vector3, ): void {
+    public pushPlayer(impulseDirection: B.Vector3): void {
         this._isPushed = true;
 
         this.velocity = impulseDirection.scale(this._pushForce);
@@ -248,7 +248,7 @@ export class PlayerBehaviour implements IComponent {
         else if (collisionEvent.collider.transformNode.metadata?.tag === "player" &&
             collisionEvent.collidedAgainst.transformNode.metadata?.tag === "collisionBox"
         ) {
-            if (collisionEvent.collider.transformNode.metadata?.ownerId === this.entity.id) return;
+            if (collisionEvent.collidedAgainst.transformNode.metadata?.ownerId === this.entity.id) return;
 
             const impulseDirection: B.Vector3 = collisionEvent.collidedAgainst.transformNode.metadata?.direction;
 
