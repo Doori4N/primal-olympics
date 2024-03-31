@@ -68,13 +68,30 @@ export class MeteoritesScene extends Scene {
         const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.babylonScene);
         light.intensity = 0.7;
 
-        // ground
-        const groundEntity = new Entity("ground");
+        // // ground
+        // const groundEntity = new Entity("ground");
         // const mapContainer: B.AssetContainer = this.loadedAssets["meteoriteMap"];
         // mapContainer.addAllToScene();
         // const ground: B.Mesh = mapContainer.meshes[0] as B.Mesh;
         // ground.rotationQuaternion = B.Quaternion.RotationAxis(new B.Vector3(1, 0, 0), Math.PI);
-        // ground.scaling.scaleInPlace(2);
+        // ground.scaling.scaleInPlace(5);
+        // ground.position.y = -3.9;
+        // ground.metadata = {tag: groundEntity.tag};
+        // groundEntity.addComponent(new MeshComponent(groundEntity, this, {mesh: ground}));
+        // const groundPhysicsShape = new B.PhysicsShapeBox(
+        //     new B.Vector3(5, 3.8, 5),
+        //     new B.Quaternion(0, 0, 0, 1),
+        //     new B.Vector3(30, 0.2, 30),
+        //     this.babylonScene
+        // );
+        // groundEntity.addComponent(new RigidBodyComponent(groundEntity, this, {
+        //     physicsShape: groundPhysicsShape,
+        //     physicsProps: {mass: 0}
+        // }));
+        // this.entityManager.addEntity(groundEntity);
+
+        // ground
+        const groundEntity = new Entity("ground");
         const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: 18, height: 18}, this.babylonScene);
         ground.metadata = {tag: groundEntity.tag};
         groundEntity.addComponent(new MeshComponent(groundEntity, this, {mesh: ground}));
