@@ -119,7 +119,7 @@ export class MeteoritesScene extends Scene {
         gameController.addComponent(new GamePresentation(gameController, this, {htmlTemplate}));
         gameController.addComponent(new GameMessages(gameController, this));
         gameController.addComponent(new Leaderboard(gameController, this));
-        gameController.addComponent(new GameTimer(gameController, this, {duration: 600}));
+        gameController.addComponent(new GameTimer(gameController, this, {duration: 60}));
         gameController.addComponent(new GameScores(gameController, this));
         this.entityManager.addEntity(gameController);
     }

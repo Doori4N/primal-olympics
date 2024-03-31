@@ -92,9 +92,7 @@ export class MeteoriteController implements IComponent {
         if (this.scene.game.networkInstance.isHost) {
             meteoriteEntity.addComponent(new RigidBodyComponent(meteoriteEntity, this.scene, {
                 physicsShape: B.PhysicsShapeType.SPHERE,
-                physicsProps: {
-                    mass: 1
-                },
+                physicsProps: {mass: 1},
                 isTrigger: true
             }));
         }
@@ -105,14 +103,18 @@ export class MeteoriteController implements IComponent {
     private _onTriggerCollision(collisionEvent: B.IBasePhysicsCollisionEvent): void {
         if (collisionEvent.type === "TRIGGER_ENTERED") {
             // ground collision
-            if (collisionEvent.collidedAgainst.transformNode.metadata?.tag === "ground") {
+            if (collisionEvent.collidedAgainst.transformNode.metadata?.tag === "ground" &&
+                collisionEvent.collider.transformNode.metadata?.tag === "meteorite"
+            ) {
                 const meteoriteEntity: Entity = this.scene.entityManager.getEntityById(collisionEvent.collider.transformNode.metadata?.id);
                 const networkHost = this.scene.game.networkInstance as NetworkHost;
                 networkHost.sendToAllClients("onDestroyMeteorite", {entityId: meteoriteEntity.id});
                 this.scene.entityManager.destroyEntity(meteoriteEntity);
             }
             // player collision
-            else if (collisionEvent.collider.transformNode.metadata?.tag === "player") {
+            else if (collisionEvent.collider.transformNode.metadata?.tag === "player" &&
+                collisionEvent.collidedAgainst.transformNode.metadata?.tag === "meteorite"
+            ) {
                 // kill player
                 const playerEntity: Entity = this.scene.entityManager.getEntityById(collisionEvent.collider.transformNode.metadata?.id);
                 const playerBehaviourComponent = playerEntity.getComponent("PlayerBehaviour") as PlayerBehaviour;

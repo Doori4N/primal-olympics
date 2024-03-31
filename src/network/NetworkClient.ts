@@ -128,7 +128,7 @@ export class NetworkClient implements INetworkInstance {
     private _listenToPing(): void {
         this.addEventListener("pong", (startTime: number): void => {
             this.ping = Math.round((Date.now() - startTime));
-            // console.log("Ping: ", this.ping);
+            console.log("Ping: ", this.ping);
         });
     }
 
