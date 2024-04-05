@@ -2,9 +2,9 @@ import {IComponent} from "../IComponent";
 import {Entity} from "../Entity";
 import {Scene} from "../Scene";
 import {INetworkInstance} from "../../network/INetworkInstance";
-import {NetworkHost} from "../../network/NetworkHost";
-import {InputStates} from "../types";
-import {PlayerData} from "../../network/types";
+// import {NetworkHost} from "../../network/NetworkHost";
+// import {InputStates} from "../types";
+// import {PlayerData} from "../../network/types";
 
 export class GamePresentation implements IComponent {
     public name: string = "GamePresentation";
@@ -59,7 +59,7 @@ export class GamePresentation implements IComponent {
 
     public onFixedUpdate(): void {
         if (this._networkInstance.isHost) {
-            this._checkPlayerSkip();
+            // this._checkPlayerSkip();
         }
     }
 
@@ -101,25 +101,25 @@ export class GamePresentation implements IComponent {
         playerSkipUI.innerHTML = `${this._networkInstance.players[playerIndex].name} : ✅`;
     }
 
-    private _checkPlayerSkip(): void {
-        const networkHost = this._networkInstance as NetworkHost;
-
-        networkHost.players.forEach((playerData: PlayerData): void => {
-            if (playerData.id === networkHost.playerId) return;
-            const inputStates: InputStates = networkHost.getPlayerInput(playerData.id);
-            if (inputStates.buttons["jump"]) {
-                const playerIndex: number = networkHost.players.findIndex((player: {id: string}): boolean => player.id === playerData.id);
-                networkHost.sendToAllClients("onPlayerSkip", playerIndex);
-                this._onPlayerSkip(playerIndex);
-            }
-        });
-
-        if (this.scene.game.inputManager.inputStates.buttons["jump"]) {
-            const playerIndex: number = networkHost.players.findIndex((player: {id: string}): boolean => player.id === networkHost.playerId);
-            networkHost.sendToAllClients("onPlayerSkip", playerIndex);
-            this._onPlayerSkip(playerIndex);
-        }
-    }
+    // private _checkPlayerSkip(): void {
+    //     const networkHost = this._networkInstance as NetworkHost;
+    //
+    //     networkHost.players.forEach((playerData: PlayerData): void => {
+    //         if (playerData.id === networkHost.playerId) return;
+    //         const inputStates: InputStates = networkHost.getPlayerInput(playerData.id);
+    //         if (inputStates.buttons["jump"]) {
+    //             const playerIndex: number = networkHost.players.findIndex((player: {id: string}): boolean => player.id === playerData.id);
+    //             networkHost.sendToAllClients("onPlayerSkip", playerIndex);
+    //             this._onPlayerSkip(playerIndex);
+    //         }
+    //     });
+    //
+    //     if (this.scene.game.inputManager.inputStates.buttons["jump"]) {
+    //         const playerIndex: number = networkHost.players.findIndex((player: {id: string}): boolean => player.id === networkHost.playerId);
+    //         networkHost.sendToAllClients("onPlayerSkip", playerIndex);
+    //         this._onPlayerSkip(playerIndex);
+    //     }
+    // }
 
     private _onPlayerSkip(playerIndex: number): void {
         this._updatePlayerSkipUI(playerIndex);

@@ -24,6 +24,7 @@ export class NetworkRigidBodyComponent implements IComponent {
     private _clientPrediction: boolean = false;
     private _pendingInputs: InputStates[] = []; // client predicted inputs
     private _serverStateBuffer: {physics: PhysicsUpdate, tick: number}[] = [];
+    private _serverStateBufferSize: number = 2;
     public onApplyInput!: (inputs: InputStates) => void;
 
     // event listeners
@@ -173,9 +174,16 @@ export class NetworkRigidBodyComponent implements IComponent {
     }
 
     private _handleClientUpdate(): void {
-        if (this._serverStateBuffer.length > 0) {
-            const state = this._serverStateBuffer.shift();
-            if (state) {
+        // if the buffer is full, empty it
+        if (this._serverStateBuffer.length > this._serverStateBufferSize) {
+            while (this._serverStateBuffer.length > 0) {
+                const state = this._serverStateBuffer.shift()!;
+                this._reconciliation(state.physics, state.tick);
+            }
+        }
+        else {
+            if (this._serverStateBuffer.length > 0) {
+                const state = this._serverStateBuffer.shift()!;
                 this._reconciliation(state.physics, state.tick);
             }
         }

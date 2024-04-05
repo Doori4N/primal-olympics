@@ -16,6 +16,7 @@ import {NetworkHost} from "../../network/NetworkHost";
 import {NetworkMeshComponent} from "../../network/components/NetworkMeshComponent";
 import {NetworkAnimationComponent} from "../../network/components/NetworkAnimationComponent";
 import {NetworkRigidBodyComponent} from "../../network/components/NetworkRigidBodyComponent";
+import {NetworkInputsComponent} from "../../network/components/NetworkInputsComponent";
 
 export class MeteoritesScene extends Scene {
     constructor() {
@@ -156,6 +157,7 @@ export class MeteoritesScene extends Scene {
         player.position = new B.Vector3(0.5, 0, 0.5);
 
         playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
+        playerEntity.addComponent(new NetworkInputsComponent(playerEntity, this));
 
         const animations: {[key: string]: B.AnimationGroup} = {};
         animations["Idle"] = entries.animationGroups[0];

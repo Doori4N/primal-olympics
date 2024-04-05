@@ -5,7 +5,6 @@ import {EventManager} from "../core/EventManager";
 import {NetworkMessage, PlayerData} from "./types";
 import {SceneManager} from "../core/SceneManager";
 import {Game} from "../core/Game";
-import {InputStates} from "../core/types";
 
 // simulate lag for one way trip (ms)
 const LAG: number = 0;
@@ -97,10 +96,7 @@ export class NetworkClient implements INetworkInstance {
         this._eventManager.clear();
     }
 
-    public fixedUpdate(): void {
-        const inputStates: InputStates = this._game.inputManager.cloneInputStates(this._game.inputManager.inputStates);
-        this.sendToHost("inputStates", this.playerId, inputStates);
-    }
+    public fixedUpdate(): void {}
 
     public sendToHost(event: string, ...args: any[]): void {
         const msg: NetworkMessage = {

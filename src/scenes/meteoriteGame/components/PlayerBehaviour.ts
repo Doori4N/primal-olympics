@@ -9,6 +9,7 @@ import {NetworkAnimationComponent} from "../../../network/components/NetworkAnim
 import {NetworkRigidBodyComponent} from "../../../network/components/NetworkRigidBodyComponent";
 import {RigidBodyComponent} from "../../../core/components/RigidBodyComponent";
 import {MeshComponent} from "../../../core/components/MeshComponent";
+import {NetworkInputsComponent} from "../../../network/components/NetworkInputsComponent";
 
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";
@@ -21,7 +22,8 @@ export class PlayerBehaviour implements IComponent {
     private _physicsAggregate!: B.PhysicsAggregate;
     private _networkRigidBodyComponent!: NetworkRigidBodyComponent;
     private _networkMeshComponent!: NetworkMeshComponent;
-    private networkAnimationComponent!: NetworkAnimationComponent;
+    private _networkAnimationComponent!: NetworkAnimationComponent;
+    private _networkInputsComponent!: NetworkInputsComponent;
 
     // properties
     private _isGameStarted: boolean = false;
@@ -45,7 +47,6 @@ export class PlayerBehaviour implements IComponent {
 
     // inputs
     public readonly playerId!: string;
-    private _inputStates!: InputStates;
 
     constructor(entity: Entity, scene: Scene, props: {playerId: string}) {
         this.entity = entity;
@@ -55,6 +56,8 @@ export class PlayerBehaviour implements IComponent {
     }
 
     public onStart(): void {
+        this._networkInputsComponent = this.entity.getComponent("NetworkInputs") as NetworkInputsComponent;
+
         if (!this.scene.game.networkInstance.isHost && !this._isOwner) return;
 
         // network mesh component
@@ -65,9 +68,9 @@ export class PlayerBehaviour implements IComponent {
         // network rigid body component
         this._networkRigidBodyComponent = this.entity.getComponent("NetworkRigidBody") as NetworkRigidBodyComponent;
         this._physicsAggregate = this._networkRigidBodyComponent.physicsAggregate;
-        this._networkRigidBodyComponent.onApplyInput = this._applyInput.bind(this);
+        this._networkRigidBodyComponent.onApplyInput = this._applyPredictedInput.bind(this);
 
-        this.networkAnimationComponent = this.entity.getComponent("NetworkAnimation") as NetworkAnimationComponent;
+        this._networkAnimationComponent = this.entity.getComponent("NetworkAnimation") as NetworkAnimationComponent;
 
         // subscribe to game events
         this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
@@ -82,32 +85,9 @@ export class PlayerBehaviour implements IComponent {
     public onUpdate(): void {}
 
     public onFixedUpdate(): void {
-        if (!this.scene.game.networkInstance.isHost && !this._isOwner) return;
         if (!this._isGameStarted || this._isGameFinished) return;
-
-        this._setInputStates();
-
-        if (!this._isPushed) {
-            this._movePlayer(this._inputStates);
-
-            if (this.scene.game.networkInstance.isHost) this._checkPush();
-
-            // rotate the model
-            // set z rotation to 180 degrees cause the imported model is inverted (best solution for now)
-            this._modelMesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, this._getDirection(this.velocity), Math.PI);
-        }
-
-        // client prediction
-        if (this._isOwner && !this.scene.game.networkInstance.isHost) {
-            const inputs: InputStates = this.scene.game.inputManager.cloneInputStates(this._inputStates);
-            this._networkRigidBodyComponent.predict(inputs);
-        }
-        // send authoritative physics
-        if (this.scene.game.networkInstance.isHost) {
-            this._networkRigidBodyComponent.sendAuthoritativePhysics(this._inputStates.tick, this.velocity.clone());
-        }
-
-        this._animate();
+        if (this.scene.game.networkInstance.isHost) this._handleServerUpdate();
+        else this._handleClientUpdate();
     }
 
     public onDestroy(): void {
@@ -125,13 +105,13 @@ export class PlayerBehaviour implements IComponent {
         return this._lastDirection;
     }
 
-    private _animate(): void {
-        const isInputPressed: boolean = this._inputStates.direction.x !== 0 || this._inputStates.direction.y !== 0;
+    private _animate(inputStates: InputStates): void {
+        const isInputPressed: boolean = inputStates.direction.x !== 0 || inputStates.direction.y !== 0;
         if (isInputPressed) {
-            this.networkAnimationComponent.startAnimation("Walking");
+            this._networkAnimationComponent.startAnimation("Walking");
         }
         else {
-            this.networkAnimationComponent.startAnimation("Idle");
+            this._networkAnimationComponent.startAnimation("Idle");
         }
     }
 
@@ -149,25 +129,62 @@ export class PlayerBehaviour implements IComponent {
         this._isGameFinished = true;
     }
 
-    private _setInputStates(): void {
-        // set input states based on the player
+    private _handleClientUpdate(): void {
+        const inputStates: InputStates = this.scene.game.inputManager.cloneInputStates(this.scene.game.inputManager.inputStates);
+        this._networkInputsComponent.sendInputStates(inputStates);
+
+        // client prediction
         if (this._isOwner) {
-            this._inputStates = this.scene.game.inputManager.inputStates;
+            this._processInputStates(inputStates);
+            this._networkRigidBodyComponent.predict(inputStates);
+            this._animate(inputStates);
         }
-        else if (this.scene.game.networkInstance.isHost) {
-            const networkHost = this.scene.game.networkInstance as NetworkHost;
-            this._inputStates = networkHost.getPlayerInput(this.playerId);
+    }
+
+    private _handleServerUpdate(): void {
+        if (this._isOwner) {
+            const inputStates: InputStates = this.scene.game.inputManager.inputStates;
+            this._processInputStates(inputStates);
+            this._networkRigidBodyComponent.sendAuthoritativePhysics(inputStates.tick, this.velocity.clone());
+            this._animate(inputStates);
         }
+        else {
+            const inputs: InputStates[] = this._networkInputsComponent.getInputs();
+            for (let i: number = 0; i < inputs.length; i++) {
+                const inputStates: InputStates = inputs[i];
+                this._processInputStates(inputStates);
+                this._networkRigidBodyComponent.sendAuthoritativePhysics(inputStates.tick, this.velocity.clone());
+                this._animate(inputStates);
+                // don't simulate the last input because it will be simulated automatically in this frame
+                if (i < inputs.length - 1) {
+                    this._networkRigidBodyComponent.simulate();
+                }
+            }
+        }
+    }
+
+    private _processInputStates(inputStates: InputStates): void {
+        if (this._isPushed) return;
+
+        this._movePlayer(inputStates);
+        if (this.scene.game.networkInstance.isHost) this._checkPush(inputStates);
+
+        // rotate the model
+        // set z rotation to 180 degrees cause the imported model is inverted (best solution for now)
+        this._modelMesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, this._getDirection(this.velocity), Math.PI);
     }
 
     /**
      * Re-apply the predicted input and simulate physics
      */
-    private _applyInput(inputs: InputStates): void {
+    private _applyPredictedInput(inputs: InputStates): void {
         this._movePlayer(inputs);
         this._networkRigidBodyComponent.simulate();
     }
 
+    /**
+     * Set the linear velocity of the player according to his inputs
+     */
     private _movePlayer(inputs: InputStates): void {
         this.velocity = new B.Vector3(inputs.direction.x, 0, inputs.direction.y).normalize();
         this.velocity.scaleInPlace(this._speed);
@@ -177,8 +194,8 @@ export class PlayerBehaviour implements IComponent {
     /**
      * Check if the player can push other players and create a collision box
      */
-    private _checkPush(): void {
-        if (!this._inputStates.buttons["jump"] || !this._canPush) return;
+    private _checkPush(inputStates: InputStates): void {
+        if (!inputStates.buttons["jump"] || !this._canPush) return;
 
         setTimeout((): void => {
             this._canPush = false;
@@ -230,6 +247,9 @@ export class PlayerBehaviour implements IComponent {
         }, this._collisionBoxLifeSpan);
     }
 
+    /**
+     * Push the player in the direction of the impulse
+     */
     public pushPlayer(impulseDirection: B.Vector3): void {
         this._isPushed = true;
 

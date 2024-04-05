@@ -27,7 +27,7 @@ export class MenuScene extends Scene {
         this._menuDiv.appendChild(startBtn);
 
         const versionText: HTMLParagraphElement = document.createElement("p");
-        versionText.innerHTML = "Version: 0.2.0";
+        versionText.innerHTML = "Version: 0.2.1";
         this._menuDiv.appendChild(versionText);
 
         startBtn.onclick = this._tryToConnectToServer.bind(this);
