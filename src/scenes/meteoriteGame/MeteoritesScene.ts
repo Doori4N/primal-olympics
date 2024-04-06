@@ -52,7 +52,7 @@ export class MeteoritesScene extends Scene {
         this.enablePhysics(new B.Vector3(0, -9.81, 0));
 
         // camera
-        this.mainCamera.position = new B.Vector3(0, 30, -20);
+        this.mainCamera.position = new B.Vector3(0, 25, -20);
         this.mainCamera.setTarget(B.Vector3.Zero());
         this.mainCamera.attachControl(this.game.canvas, true);
         this.mainCamera.speed = 0.3;
@@ -93,7 +93,7 @@ export class MeteoritesScene extends Scene {
 
         // ground
         const groundEntity = new Entity("ground");
-        const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: 18, height: 18}, this.babylonScene);
+        const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: 22, height: 22}, this.babylonScene);
         ground.metadata = {tag: groundEntity.tag};
         groundEntity.addComponent(new MeshComponent(groundEntity, this, {mesh: ground}));
         groundEntity.addComponent(new RigidBodyComponent(groundEntity, this, {
@@ -137,7 +137,7 @@ export class MeteoritesScene extends Scene {
         gameController.addComponent(new GamePresentation(gameController, this, {htmlTemplate}));
         gameController.addComponent(new GameMessages(gameController, this));
         gameController.addComponent(new Leaderboard(gameController, this));
-        gameController.addComponent(new GameTimer(gameController, this, {duration: 60}));
+        gameController.addComponent(new GameTimer(gameController, this, {duration: 90}));
         gameController.addComponent(new GameScores(gameController, this));
         this.entityManager.addEntity(gameController);
     }

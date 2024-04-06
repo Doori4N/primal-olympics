@@ -108,14 +108,14 @@ export class LobbyScene extends Scene {
         this._updatePlayerList(players);
     }
 
-    private _getPlayersHostRpc(_clientId: string): void {
+    private _getPlayersHostRpc(): void {
         const networkHost = this.game.networkInstance as NetworkHost;
         // tell to all players to update their player list
         networkHost.sendToAllClients("setPlayers", networkHost.players);
         networkHost.synchronizeClientTick();
     }
 
-    private _addPlayerHostRpc(_clientId: string, players: PlayerData[]): void {
+    private _addPlayerHostRpc(players: PlayerData[]): void {
         this._updatePlayerList(players);
     }
 }

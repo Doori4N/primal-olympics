@@ -2,9 +2,8 @@ import {IComponent} from "../IComponent";
 import {Entity} from "../Entity";
 import {Scene} from "../Scene";
 import {INetworkInstance} from "../../network/INetworkInstance";
-// import {NetworkHost} from "../../network/NetworkHost";
-// import {InputStates} from "../types";
-// import {PlayerData} from "../../network/types";
+import {NetworkClient} from "../../network/NetworkClient";
+import {NetworkHost} from "../../network/NetworkHost";
 
 export class GamePresentation implements IComponent {
     public name: string = "GamePresentation";
@@ -19,7 +18,8 @@ export class GamePresentation implements IComponent {
     private readonly _networkInstance: INetworkInstance;
 
     // event listeners
-    private _playerSkipEvent = this._onPlayerSkip.bind(this);
+    private _playerSkipEvent = this._onPlayerSkipClientRpc.bind(this);
+    private _clientSkipEvent = this._onClientSkipServerRpc.bind(this);
 
     constructor(entity: Entity, scene: Scene, props: {htmlTemplate: string}) {
         this.entity = entity;
@@ -29,7 +29,10 @@ export class GamePresentation implements IComponent {
     }
 
     public onStart(): void {
-        if (!this._networkInstance.isHost) {
+        if (this._networkInstance.isHost) {
+            this._networkInstance.addEventListener("onClientSkip", this._clientSkipEvent);
+        }
+        else {
             this._networkInstance.addEventListener("onPlayerSkip", this._playerSkipEvent);
         }
 
@@ -58,15 +61,16 @@ export class GamePresentation implements IComponent {
     public onUpdate(): void {}
 
     public onFixedUpdate(): void {
-        if (this._networkInstance.isHost) {
-            // this._checkPlayerSkip();
-        }
+        this._checkPlayerSkip();
     }
 
     public onDestroy(): void {
         this._uiContainer.innerHTML = "";
 
-        if (!this._networkInstance.isHost) {
+        if (this._networkInstance.isHost) {
+            this._networkInstance.removeEventListener("onClientSkip", this._clientSkipEvent);
+        }
+        else {
             this._networkInstance.removeEventListener("onPlayerSkip", this._playerSkipEvent);
         }
     }
@@ -101,28 +105,28 @@ export class GamePresentation implements IComponent {
         playerSkipUI.innerHTML = `${this._networkInstance.players[playerIndex].name} : ✅`;
     }
 
-    // private _checkPlayerSkip(): void {
-    //     const networkHost = this._networkInstance as NetworkHost;
-    //
-    //     networkHost.players.forEach((playerData: PlayerData): void => {
-    //         if (playerData.id === networkHost.playerId) return;
-    //         const inputStates: InputStates = networkHost.getPlayerInput(playerData.id);
-    //         if (inputStates.buttons["jump"]) {
-    //             const playerIndex: number = networkHost.players.findIndex((player: {id: string}): boolean => player.id === playerData.id);
-    //             networkHost.sendToAllClients("onPlayerSkip", playerIndex);
-    //             this._onPlayerSkip(playerIndex);
-    //         }
-    //     });
-    //
-    //     if (this.scene.game.inputManager.inputStates.buttons["jump"]) {
-    //         const playerIndex: number = networkHost.players.findIndex((player: {id: string}): boolean => player.id === networkHost.playerId);
-    //         networkHost.sendToAllClients("onPlayerSkip", playerIndex);
-    //         this._onPlayerSkip(playerIndex);
-    //     }
-    // }
+    private _checkPlayerSkip(): void {
+        if (!this.scene.game.inputManager.inputStates.buttons["jump"]) return;
 
-    private _onPlayerSkip(playerIndex: number): void {
+        const playerIndex: number = this._networkInstance.players.findIndex((player: {id: string}): boolean => player.id === this._networkInstance.playerId);
+
+        if (this._networkInstance.isHost) {
+            this._onClientSkipServerRpc(playerIndex);
+        }
+        else {
+            const networkClient = this._networkInstance as NetworkClient;
+            networkClient.sendToHost("onClientSkip", playerIndex);
+        }
+    }
+
+    private _onPlayerSkipClientRpc(playerIndex: number): void {
         this._updatePlayerSkipUI(playerIndex);
         this._isPlayerSkipping[playerIndex] = true;
+    }
+
+    private _onClientSkipServerRpc(playerIndex: number): void {
+        const networkHost = this._networkInstance as NetworkHost;
+        networkHost.sendToAllClients("onPlayerSkip", playerIndex);
+        this._onPlayerSkipClientRpc(playerIndex);
     }
 }

@@ -50,28 +50,8 @@ export class NetworkInputsComponent implements IComponent {
         networkClient.sendToHost(`input${this.entity.id}`, inputStates);
     }
 
-    private _onInputReceived(_clientId: string, inputStates: InputStates): void {
+    private _onInputReceived(inputStates: InputStates): void {
         this._inputBuffer.push(inputStates);
-        // const tickRate = 1000 / this.scene.game.tick;
-        // const currentTime = Date.now();
-        //
-        // if (this._lastInputTime === 0) {
-        //     setTimeout((): void => {
-        //         this._inputBuffer.push(inputStates);
-        //     }, tickRate);
-        //     this._lastInputDelay = tickRate;
-        // }
-        // else {
-        //     const delta = currentTime - this._lastInputTime;
-        //     let delay: number = Math.round(tickRate - (delta - this._lastInputDelay));
-        //     this._lastInputDelay = delay;
-        //
-        //     setTimeout((): void => {
-        //         this._inputBuffer.push(inputStates);
-        //     }, delay);
-        // }
-        //
-        // this._lastInputTime = currentTime;
     }
 
     /**

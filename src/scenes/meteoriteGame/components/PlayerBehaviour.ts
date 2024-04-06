@@ -32,7 +32,7 @@ export class PlayerBehaviour implements IComponent {
     private _observer!: B.Observer<B.IBasePhysicsCollisionEvent>;
 
     // movement
-    private _speed: number = 4.5;
+    private _speed: number = 5;
     private _lastDirection: number = 0;
     public velocity: B.Vector3 = B.Vector3.Zero();
 
@@ -40,9 +40,9 @@ export class PlayerBehaviour implements IComponent {
     private _collisionBoxLifeSpan: number = 200;
     private _pushCooldown: number = 2000;
     private _canPush: boolean = true;
-    private _pushDelay: number = 200;
+    private _pushDelay: number = 100;
     private _pushDuration: number = 500;
-    private _pushForce: number = 10;
+    private _pushForce: number = 15;
     private _isPushed: boolean = false;
 
     // inputs
@@ -262,13 +262,15 @@ export class PlayerBehaviour implements IComponent {
     }
 
     private _onTriggerCollision(collisionEvent: B.IBasePhysicsCollisionEvent): void {
+        const collider: B.TransformNode = collisionEvent.collider.transformNode;
+        const collidedAgainst: B.TransformNode = collisionEvent.collidedAgainst.transformNode;
+
         if (collisionEvent.type !== "TRIGGER_ENTERED") return;
 
         // player collision
-        else if (collisionEvent.collider.transformNode.metadata?.tag === "player" &&
-            collisionEvent.collidedAgainst.transformNode.metadata?.tag === "collisionBox"
-        ) {
-            if (collisionEvent.collidedAgainst.transformNode.metadata?.ownerId === this.entity.id) return;
+        else if (collider.metadata?.tag === "player" && collidedAgainst.metadata?.tag === "collisionBox") {
+            // don't push the player if he is the owner of the collision box
+            if (collidedAgainst.metadata?.ownerId === collider.metadata?.id) return;
 
             const impulseDirection: B.Vector3 = collisionEvent.collidedAgainst.transformNode.metadata?.direction;
 

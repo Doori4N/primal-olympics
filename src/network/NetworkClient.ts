@@ -9,6 +9,9 @@ import {Game} from "../core/Game";
 // simulate lag for one way trip (ms)
 const LAG: number = 0;
 
+// simulate not constant connection (add 0 to n*2 ms)
+const RANDOM_FACTOR: number = 0;
+
 // ping interval (ms)
 const PING_INTERVAL: number = 2000;
 
@@ -89,7 +92,7 @@ export class NetworkClient implements INetworkInstance {
         // simulate receiving a message with lag
         setTimeout((): void => {
             this._eventManager.notify(event, ...args);
-        }, LAG);
+        }, LAG + (Math.random() * RANDOM_FACTOR));
     }
 
     public clearEventListeners(): void {
@@ -112,7 +115,7 @@ export class NetworkClient implements INetworkInstance {
         // simulate sending a message with lag
         setTimeout((): void => {
             this.hostConnection.send(msg);
-        }, LAG);
+        }, LAG + (Math.random() * RANDOM_FACTOR));
     }
 
     private _listenToChangeScene(): void {
@@ -131,7 +134,7 @@ export class NetworkClient implements INetworkInstance {
     private _sendPingLoop(interval: number): void {
         setInterval((): void => {
             const startTime: number = Date.now();
-            this.sendToHost("ping", startTime, this.peer.id);
+            this.sendToHost("ping", this.peer.id, startTime);
         }, interval);
     }
 

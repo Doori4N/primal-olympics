@@ -38,7 +38,7 @@ export class NetworkHost implements INetworkInstance {
             // listen for messages from the client
             connection.on("data", (data: unknown): void => {
                 const msg = data as NetworkMessage;
-                this.notify(msg.type, connection.peer, ...msg.data);
+                this.notify(msg.type, ...msg.data);
             });
 
             // set player list
@@ -52,7 +52,7 @@ export class NetworkHost implements INetworkInstance {
             });
 
             // tell the host that a new player has joined
-            this.notify("player-joined", connection.peer, this.players);
+            this.notify("player-joined", this.players);
         });
 
         this.peer.on("error", (err: any): void => {
