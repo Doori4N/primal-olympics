@@ -45,6 +45,9 @@ export class Game {
         // debug layer
         this._listenToDebugInputs(sceneManager);
 
+        // info ui
+        this._createInfoUI();
+
         // game loop
         this.engine.runRenderLoop((): void => {
             sceneManager.updateCurrentScene();
@@ -108,6 +111,33 @@ export class Game {
             // Shift+Ctrl+I
             if (e.shiftKey && e.ctrlKey && e.code === "KeyI") {
                 sceneManager.displayDebugLayer();
+            }
+        });
+    }
+
+    private _createInfoUI(): void {
+        const uiContainer: Element | null = document.querySelector("#ui");
+        if (!uiContainer) throw new Error("UI element not found");
+
+        const infoDiv: HTMLDivElement = document.createElement("div");
+        infoDiv.id = "info";
+        uiContainer.appendChild(infoDiv);
+
+        const fpsDiv: HTMLDivElement = document.createElement("div");
+        fpsDiv.id = "fps";
+        infoDiv.appendChild(fpsDiv);
+
+        const pingDiv: HTMLDivElement = document.createElement("div");
+        pingDiv.id = "ping";
+        infoDiv.appendChild(pingDiv);
+
+        this.engine.onEndFrameObservable.add((): void => {
+            fpsDiv.innerText = `FPS: ${this.engine.getFps().toFixed()}`;
+            if (this.networkInstance?.isConnected) {
+                pingDiv.innerText = `Ping: ${this.networkInstance.ping}ms`;
+            }
+            else {
+                pingDiv.innerText = "Not connected";
             }
         });
     }

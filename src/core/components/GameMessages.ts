@@ -9,7 +9,8 @@ export class GameMessages implements IComponent {
     public scene: Scene;
 
     // component properties
-    private uiContainer!: Element;
+    private _uiContainer!: Element;
+    private _msgDiv!: HTMLDivElement;
 
     constructor(entity: Entity, scene: Scene) {
         this.entity = entity;
@@ -17,10 +18,7 @@ export class GameMessages implements IComponent {
     }
 
     public onStart(): void {
-        const uiContainer: Element | null = document.querySelector("#ui");
-        if (!uiContainer) throw new Error("UI element not found");
-
-        this.uiContainer = uiContainer;
+        this._uiContainer = document.querySelector("#ui")!;
 
         this.scene.eventManager.subscribe("onCameraAnimationFinished", this.startCountDown.bind(this, 3));
         this.scene.eventManager.subscribe("onGameFinished", this.displayGameOver.bind(this));
@@ -33,7 +31,10 @@ export class GameMessages implements IComponent {
     public onDestroy(): void {}
 
     private startCountDown(duration: number): void {
-        this.uiContainer.innerHTML = `<h1 id="msg">${duration}</h1>`;
+        this._msgDiv = document.createElement("div");
+        this._msgDiv.id = "msg";
+        this._msgDiv.innerHTML = `<h1>${duration}</h1>`;
+        this._uiContainer.appendChild(this._msgDiv);
 
         let timer: number = duration;
         const interval: number = setInterval((): void => {
@@ -45,7 +46,7 @@ export class GameMessages implements IComponent {
                 this.scene.eventManager.notify("onGameStarted");
 
                 setTimeout((): void => {
-                    this.uiContainer.removeChild(document.querySelector("#msg")!);
+                    this._uiContainer.removeChild(this._msgDiv);
                 }, 1000);
             }
             else {
@@ -55,19 +56,16 @@ export class GameMessages implements IComponent {
     }
 
     private updateTimerUI(msg: string): void {
-        const timerUI: Element | null = document.querySelector("#msg");
-        if (!timerUI) throw new Error("Timer element not found");
-
-        timerUI.textContent = msg;
+        this._msgDiv.innerHTML = `<h1>${msg}</h1>`;
     }
 
     private displayGameOver(): void {
-        const msgElement: Element = document.createElement("h1");
-        msgElement.id = "msg";
-        msgElement.textContent = "Finished!";
-        this.uiContainer.appendChild(msgElement);
+        this._msgDiv = document.createElement("div");
+        this._msgDiv.id = "msg";
+        this._msgDiv.innerHTML = "<h1>Finished!</h1>";
+        this._uiContainer.appendChild(this._msgDiv);
         setTimeout((): void => {
-            this.uiContainer.removeChild(msgElement);
+            this._uiContainer.removeChild(this._msgDiv);
             this.scene.eventManager.notify("onMessageFinished");
         }, 2000);
     }

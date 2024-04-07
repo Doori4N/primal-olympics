@@ -14,6 +14,7 @@ export class GamePresentation implements IComponent {
     private _timer: number = 30;
     private _isPlayerSkipping!: boolean[];
     private _uiContainer!: Element;
+    private _presentationDiv!: HTMLDivElement;
     private readonly _htmlTemplate: string;
     private readonly _networkInstance: INetworkInstance;
 
@@ -38,10 +39,7 @@ export class GamePresentation implements IComponent {
 
         this._isPlayerSkipping = new Array(this._networkInstance.players.length).fill(false);
 
-        let uiContainer: Element | null = document.querySelector("#ui");
-        if (!uiContainer) throw new Error("UI element not found");
-
-        this._uiContainer = uiContainer;
+        this._uiContainer = document.querySelector("#ui")!;
         this._displayGUI();
 
         // countdown interval
@@ -65,7 +63,7 @@ export class GamePresentation implements IComponent {
     }
 
     public onDestroy(): void {
-        this._uiContainer.innerHTML = "";
+        this._uiContainer.removeChild(this._presentationDiv);
 
         if (this._networkInstance.isHost) {
             this._networkInstance.removeEventListener("onClientSkip", this._clientSkipEvent);
@@ -76,25 +74,25 @@ export class GamePresentation implements IComponent {
     }
 
     private _displayGUI(): void {
+        this._presentationDiv = document.createElement("div");
+        this._presentationDiv.id = "presentation-ui";
+
         let playerSkipUI: string = "";
         for (let i: number = 0; i < this._networkInstance.players.length; i++) {
             playerSkipUI += `<p id="playerSkip${i}">${this._networkInstance.players[i].name} : ❌</p>`;
         }
 
-        this._uiContainer.innerHTML = `
-            <div id="presentation-ui">
+        this._presentationDiv.innerHTML = `
                 ${this._htmlTemplate}
                 <p>Press Space/X/A to skip</p>
                 ${playerSkipUI}
                 <p id="timer">Game starts in ${this._timer} seconds</p>
-            </div>
         `;
+        this._uiContainer.appendChild(this._presentationDiv);
     }
 
     private _updateTimerUI(): void {
-        let timerUI: Element | null = document.querySelector("#timer");
-        if (!timerUI) throw new Error("Timer element not found");
-
+        let timerUI: Element = document.querySelector("#timer")!;
         timerUI.innerHTML = `Game starts in ${this._timer} seconds`;
     }
 

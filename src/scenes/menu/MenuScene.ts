@@ -8,18 +8,18 @@ const CONNECTION_RETRY_INTERVAL: number = 500; // connection retry interval in m
 
 export class MenuScene extends Scene {
     private _menuDiv!: HTMLDivElement;
+    private _uiContainer!: Element;
 
     constructor() {
         super("menu");
     }
 
     public start(): void {
-        const uiContainer: Element | null = document.querySelector("#ui");
-        if (!uiContainer) throw new Error("UI element not found");
+        this._uiContainer = document.querySelector("#ui")!;
 
         this._menuDiv = document.createElement("div");
         this._menuDiv.id = "menu";
-        uiContainer.appendChild(this._menuDiv);
+        this._uiContainer.appendChild(this._menuDiv);
 
         const startBtn: HTMLButtonElement = document.createElement("button");
         startBtn.id = "startBtn";
@@ -35,11 +35,7 @@ export class MenuScene extends Scene {
 
     public destroy(): void {
         super.destroy();
-
-        const uiContainer: Element | null = document.querySelector("#ui");
-        if (!uiContainer) throw new Error("UI element not found");
-
-        uiContainer.innerHTML = "";
+        this._uiContainer.removeChild(this._menuDiv);
     }
 
     private _tryToConnectToServer(): void {

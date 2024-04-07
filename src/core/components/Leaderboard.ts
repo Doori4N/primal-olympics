@@ -9,7 +9,9 @@ export class Leaderboard implements IComponent {
     public scene: Scene;
 
     // component properties
-    private timer: number = 10;
+    private _timer: number = 10;
+    private _uiContainer!: Element;
+    private _leaderboardDiv!: HTMLDivElement;
 
     constructor(entity: Entity, scene: Scene) {
         this.entity = entity;
@@ -24,7 +26,9 @@ export class Leaderboard implements IComponent {
 
     public onFixedUpdate(): void {}
 
-    public onDestroy(): void {}
+    public onDestroy(): void {
+        this._uiContainer.removeChild(this._leaderboardDiv);
+    }
 
     public displayLeaderboard(): void {
         // sort players by score
@@ -41,23 +45,24 @@ export class Leaderboard implements IComponent {
                             </li>`;
         }
 
-        const uiContainer: Element | null = document.querySelector("#ui");
-        if (!uiContainer) throw new Error("UI element not found");
+        this._uiContainer = document.querySelector("#ui")!;
 
-        uiContainer.innerHTML = `
-            <div id="presentation-ui">
-                <h1>Leaderboard</h1>
-                <ol>
-                    ${playerScores}
-                </ol>
-                <p id="timer">Next game in ${this.timer} seconds</p>
-            </div>
+        this._leaderboardDiv = document.createElement("div");
+        this._leaderboardDiv.id = "presentation-ui";
+        this._leaderboardDiv.innerHTML = `
+            <h1>Leaderboard</h1>
+            <ol>
+                ${playerScores}
+            </ol>
+            <p id="timer">Next game in ${this._timer} seconds</p>
         `;
+
+        this._uiContainer.appendChild(this._leaderboardDiv);
 
         // countdown interval
         const interval: number = setInterval((): void => {
-            this.timer--;
-            if (this.timer < 0) {
+            this._timer--;
+            if (this._timer < 0) {
                 clearInterval(interval);
                 this.scene.sceneManager.changeScene("gameSelection");
             }
@@ -71,7 +76,7 @@ export class Leaderboard implements IComponent {
         const timerUI: Element | null = document.querySelector("#timer");
         if (!timerUI) throw new Error("Timer element not found");
 
-        timerUI.textContent = `Next game in ${this.timer} seconds`;
+        timerUI.textContent = `Next game in ${this._timer} seconds`;
     }
 
     private compareMedals(a: PlayerData, b: PlayerData): number {

@@ -60,3 +60,16 @@
     font-size: 20px;
     background-color: white;
 }
+
+#join-lobby {
+    position: absolute;
+    background-color: white;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#info {
+    position: absolute;
+    background-color: white;
+}

@@ -5,6 +5,7 @@ import {PlayerData} from "../../network/types";
 
 export class LobbyScene extends Scene {
     private _lobbyDiv!: HTMLDivElement;
+    private _uiContainer!: Element;
 
     // event listeners
     private _addPlayer = this._addPlayerHostRpc.bind(this);
@@ -16,12 +17,11 @@ export class LobbyScene extends Scene {
     }
 
     public start(): void {
-        const uiContainer: Element | null = document.querySelector("#ui");
-        if (!uiContainer) throw new Error("UI element not found");
+        this._uiContainer = document.querySelector("#ui")!;
 
         this._lobbyDiv = document.createElement("div");
         this._lobbyDiv.id = "lobby";
-        uiContainer.appendChild(this._lobbyDiv);
+        this._uiContainer.appendChild(this._lobbyDiv);
 
         if (this.game.networkInstance.isHost) {
             this._handleHost();
@@ -34,10 +34,7 @@ export class LobbyScene extends Scene {
     public destroy(): void {
         super.destroy();
 
-        const uiContainer: Element | null = document.querySelector("#ui");
-        if (!uiContainer) throw new Error("UI element not found");
-
-        uiContainer.innerHTML = "";
+        this._uiContainer.removeChild(this._lobbyDiv);
 
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;

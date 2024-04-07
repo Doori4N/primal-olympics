@@ -2,6 +2,9 @@ import {Scene} from "../../core/Scene";
 import {NetworkClient} from "../../network/NetworkClient";
 
 export class JoinLobbyScene extends Scene {
+    private _uiContainer!: Element;
+    private _joinLobbyDiv!: HTMLDivElement;
+
     constructor() {
         super("joinLobby");
     }
@@ -10,23 +13,22 @@ export class JoinLobbyScene extends Scene {
         if (this.game.networkInstance.isHost) return;
         const networkClient = this.game.networkInstance as NetworkClient;
 
-        const uiContainer: Element | null = document.querySelector("#ui");
-        if (!uiContainer) throw new Error("UI element not found");
+        this._uiContainer = document.querySelector("#ui")!;
 
-        const joinLobbyDiv: HTMLDivElement = document.createElement("div");
-        joinLobbyDiv.id = "join-lobby";
-        uiContainer.appendChild(joinLobbyDiv);
+        this._joinLobbyDiv = document.createElement("div");
+        this._joinLobbyDiv.id = "join-lobby";
+        this._uiContainer.appendChild(this._joinLobbyDiv);
 
-        joinLobbyDiv.innerHTML = `<h2>Join a Room</h2>`;
+        this._joinLobbyDiv.innerHTML = `<h2>Join a Room</h2>`;
 
         const input: HTMLInputElement = document.createElement("input");
         input.id = "room-id";
         input.placeholder = "Room ID";
-        joinLobbyDiv.appendChild(input);
+        this._joinLobbyDiv.appendChild(input);
 
         const joinBtn: HTMLButtonElement = document.createElement("button");
         joinBtn.innerHTML = "Join Room";
-        joinLobbyDiv.appendChild(joinBtn);
+        this._joinLobbyDiv.appendChild(joinBtn);
 
         joinBtn.onclick = (): void => {
             joinBtn.disabled = true;
@@ -41,11 +43,7 @@ export class JoinLobbyScene extends Scene {
 
     public destroy(): void {
         super.destroy();
-
-        const uiContainer: Element | null = document.querySelector("#ui");
-        if (!uiContainer) throw new Error("UI element not found");
-
-        uiContainer.innerHTML = "";
+        this._uiContainer.removeChild(this._joinLobbyDiv);
     }
 
     private _onClientConnected(): void {
