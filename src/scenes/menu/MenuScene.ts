@@ -39,7 +39,8 @@ export class MenuScene extends Scene {
     }
 
     private _tryToConnectToServer(): void {
-        const peer = new Peer(uuid());
+        const id: string = uuid().slice(0, 6) + "-gamesonweb2024";
+        const peer = new Peer(id);
 
         peer.on("open", (): void => {
             this._menuDiv.innerHTML = "Connected to server !";

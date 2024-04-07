@@ -47,7 +47,8 @@ export class NetworkClient implements INetworkInstance {
         this._initEventListeners();
     }
 
-    public connectToHost(hostId: string): void {
+    public connectToHost(roomId: string): void {
+        const hostId: string = roomId + "-gamesonweb2024";
         this.hostConnection = this.peer.connect(hostId, {metadata: {playerId: this.playerId}});
 
         this.hostConnection.on("open", this.onConnectedToHost.bind(this, hostId));

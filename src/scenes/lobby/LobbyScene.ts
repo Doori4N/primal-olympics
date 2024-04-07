@@ -49,12 +49,14 @@ export class LobbyScene extends Scene {
 
     private _handleHost(): void {
         const networkHost = this.game.networkInstance as NetworkHost;
+
+        const roomId: string = networkHost.peer.id.slice(0, 6);
         this._lobbyDiv.innerHTML = `
-                <h2>Room ID: ${networkHost.peer.id}</h2>
-                <ul id="player-list">
-                    <li>${networkHost.players[0].name}</li>
-                </ul>
-            `;
+            <h2>Room ID: ${roomId}</h2>
+            <ul id="player-list">
+                <li>${networkHost.players[0].name}</li>
+            </ul>
+        `;
 
         // if a player joins, update the player list
         networkHost.addEventListener("player-joined", this._addPlayer);
@@ -74,8 +76,9 @@ export class LobbyScene extends Scene {
     private _handleClient(): void {
         const networkClient = this.game.networkInstance as NetworkClient;
 
+        const roomId: string = networkClient.hostId.slice(0, 6);
         this._lobbyDiv.innerHTML = `
-            <h2>Room ID: ${networkClient.hostId}</h2>
+            <h2>Room ID: ${roomId}</h2>
             <ul id="player-list"></ul>
             <p>Waiting for host to start the game...</p>
         `;
