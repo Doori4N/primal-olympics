@@ -96,6 +96,6 @@ export class CameraAnimation implements IComponent {
 
     private onEndAnimation(): void {
         this.scene.eventManager.notify("onCameraAnimationFinished");
-        this.scene.entityManager.destroyEntity(this.entity);
+        this.scene.entityManager.removeEntity(this.entity);
     }
 }

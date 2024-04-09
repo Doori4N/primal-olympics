@@ -43,7 +43,6 @@ export class Scene {
 
     public fixedUpdate(): void {
         this.entityManager.fixedUpdate();
-        if (this.game.networkInstance?.isConnected) this.game.networkInstance.fixedUpdate();
         this._executeStep(1 / 60);
     }
 
@@ -54,7 +53,7 @@ export class Scene {
         // TODO: destroy loadedAssets
         this.mainCamera.dispose();
         this.babylonScene.dispose();
-        this.entityManager.destroyAllEntities();
+        this.entityManager.removeAllEntities();
     }
 
     public enablePhysics(gravityVector?: B.Vector3): void {
@@ -74,5 +73,9 @@ export class Scene {
         this.babylonScene.onBeforePhysicsObservable.notifyObservers(this.babylonScene);
         physicsEngine._step(delta);
         this.babylonScene.onAfterPhysicsObservable.notifyObservers(this.babylonScene);
+    }
+
+    public simulate(physicsBodies: B.PhysicsBody[]): void {
+        this.game.physicsPlugin.executeStep(1 / 60, physicsBodies);
     }
 }

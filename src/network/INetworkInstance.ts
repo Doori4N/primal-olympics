@@ -30,6 +30,4 @@ export interface INetworkInstance {
     notify(event: string, ...args: any[]): void;
 
     clearEventListeners(): void;
-
-    fixedUpdate(): void;
 }

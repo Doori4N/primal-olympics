@@ -21,7 +21,7 @@ export class GameMessages implements IComponent {
         this._uiContainer = document.querySelector("#ui")!;
 
         this.scene.eventManager.subscribe("onCameraAnimationFinished", this.startCountDown.bind(this, 3));
-        this.scene.eventManager.subscribe("onGameFinished", this.displayGameOver.bind(this));
+        this.scene.eventManager.subscribe("onGameFinished", this._displayGameOver.bind(this));
     }
 
     public onUpdate(): void {}
@@ -40,7 +40,7 @@ export class GameMessages implements IComponent {
         const interval: number = setInterval((): void => {
             timer--;
             if (timer <= 0) {
-                this.updateTimerUI("GO!");
+                this._updateTimerUI("GO!");
 
                 clearInterval(interval);
                 this.scene.eventManager.notify("onGameStarted");
@@ -50,16 +50,16 @@ export class GameMessages implements IComponent {
                 }, 1000);
             }
             else {
-                this.updateTimerUI(timer.toString());
+                this._updateTimerUI(timer.toString());
             }
         }, 1000);
     }
 
-    private updateTimerUI(msg: string): void {
+    private _updateTimerUI(msg: string): void {
         this._msgDiv.innerHTML = `<h1>${msg}</h1>`;
     }
 
-    private displayGameOver(): void {
+    private _displayGameOver(): void {
         this._msgDiv = document.createElement("div");
         this._msgDiv.id = "msg";
         this._msgDiv.innerHTML = "<h1>Finished!</h1>";
@@ -68,5 +68,16 @@ export class GameMessages implements IComponent {
             this._uiContainer.removeChild(this._msgDiv);
             this.scene.eventManager.notify("onMessageFinished");
         }, 2000);
+    }
+
+    public displayMessage(msg: string, lifeTime: number, callback?: Function): void {
+        this._msgDiv = document.createElement("div");
+        this._msgDiv.id = "msg";
+        this._msgDiv.innerHTML = `<h1>${msg}</h1>`;
+        this._uiContainer.appendChild(this._msgDiv);
+        setTimeout((): void => {
+            this._uiContainer.removeChild(this._msgDiv);
+            if (callback) callback();
+        }, lifeTime);
     }
 }

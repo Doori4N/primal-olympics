@@ -69,7 +69,7 @@ export class MeteoriteController implements IComponent {
         meteorites.forEach((meteorite: Entity): void => {
             const networkHost = this.scene.game.networkInstance as NetworkHost;
             networkHost.sendToAllClients("onDestroyMeteorite", {entityId: meteorite.id});
-            this.scene.entityManager.destroyEntity(meteorite);
+            this.scene.entityManager.removeEntity(meteorite);
         });
     }
 
@@ -109,7 +109,7 @@ export class MeteoriteController implements IComponent {
                 const meteoriteEntity: Entity = this.scene.entityManager.getEntityById(collisionEvent.collider.transformNode.metadata?.id);
                 const networkHost = this.scene.game.networkInstance as NetworkHost;
                 networkHost.sendToAllClients("onDestroyMeteorite", {entityId: meteoriteEntity.id});
-                this.scene.entityManager.destroyEntity(meteoriteEntity);
+                this.scene.entityManager.removeEntity(meteoriteEntity);
             }
             // player collision
             else if (collisionEvent.collider.transformNode.metadata?.tag === "player" &&
@@ -136,6 +136,6 @@ export class MeteoriteController implements IComponent {
 
     private _destroyMeteoriteClientRpc(args: {entityId: string}): void {
         const meteoriteEntity: Entity = this.scene.entityManager.getEntityById(args.entityId);
-        this.scene.entityManager.destroyEntity(meteoriteEntity);
+        this.scene.entityManager.removeEntity(meteoriteEntity);
     }
 }

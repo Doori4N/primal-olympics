@@ -56,9 +56,10 @@
 #gameTimer {
     position: absolute;
     top: 0;
-    right: 0;
+    right: 50%;
     font-size: 20px;
     background-color: white;
+    transform: translate(50%, 0);
 }
 
 #join-lobby {
@@ -71,5 +72,12 @@
 
 #info {
     position: absolute;
+    background-color: white;
+}
+
+#score {
+    position: absolute;
+    top: 0;
+    right: 0;
     background-color: white;
 }

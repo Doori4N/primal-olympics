@@ -126,20 +126,20 @@ export class MeteoritesScene extends Scene {
         meteoriteController.addComponent(new MeteoriteController(meteoriteController, this));
         this.entityManager.addEntity(meteoriteController);
 
-        //   gameController
-        const gameController = new Entity("gameController");
+        // gameManager
+        const gameManager = new Entity("gameManager");
         const htmlTemplate: string = `
             <h1>Stellar Storm</h1>
             <p>PC : Z/Q/S/D to move</p>
             <p>Gamepads : Left joystick to move</p>
             <p>Move your character to dodge meteorites falling from the sky</p>
         `;
-        gameController.addComponent(new GamePresentation(gameController, this, {htmlTemplate}));
-        gameController.addComponent(new GameMessages(gameController, this));
-        gameController.addComponent(new Leaderboard(gameController, this));
-        gameController.addComponent(new GameTimer(gameController, this, {duration: 90}));
-        gameController.addComponent(new GameScores(gameController, this));
-        this.entityManager.addEntity(gameController);
+        gameManager.addComponent(new GamePresentation(gameManager, this, {htmlTemplate}));
+        gameManager.addComponent(new GameMessages(gameManager, this));
+        gameManager.addComponent(new Leaderboard(gameManager, this));
+        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 90}));
+        gameManager.addComponent(new GameScores(gameManager, this));
+        this.entityManager.addEntity(gameManager);
     }
 
     private _createPlayer(playerContainer: B.AssetContainer, playerId: string, entityId?: string): Entity {
@@ -190,6 +190,6 @@ export class MeteoritesScene extends Scene {
 
     private _destroyPlayerClientRpc(args: {entityId: string}): void {
         const playerEntity: Entity = this.entityManager.getEntityById(args.entityId);
-        this.entityManager.destroyEntity(playerEntity);
+        this.entityManager.removeEntity(playerEntity);
     }
 }

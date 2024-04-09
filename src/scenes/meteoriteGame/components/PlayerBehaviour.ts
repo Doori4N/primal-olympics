@@ -116,7 +116,7 @@ export class PlayerBehaviour implements IComponent {
     }
 
     public kill(): void {
-        this.scene.entityManager.destroyEntity(this.entity);
+        this.scene.entityManager.removeEntity(this.entity);
         const networkHost = this.scene.game.networkInstance as NetworkHost;
         networkHost.sendToAllClients("onDestroyPlayer", {entityId: this.entity.id});
     }
@@ -243,7 +243,7 @@ export class PlayerBehaviour implements IComponent {
         this.scene.entityManager.addEntity(collisionBoxEntity);
 
         setTimeout((): void => {
-            this.scene.entityManager.destroyEntity(collisionBoxEntity);
+            this.scene.entityManager.removeEntity(collisionBoxEntity);
         }, this._collisionBoxLifeSpan);
     }
 

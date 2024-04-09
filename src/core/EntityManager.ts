@@ -79,7 +79,7 @@ export class EntityManager {
      * Destroys an entity and its components
      * @param entity
      */
-    public destroyEntity(entity: Entity): void {
+    public removeEntity(entity: Entity): void {
         entity.destroyComponents();
         this.entities.delete(entity.id);
     }
@@ -88,7 +88,7 @@ export class EntityManager {
      * Destroys all entities with a given tag
      * @param tag
      */
-    public destroyEntitiesWithTag(tag: string): void {
+    public removeEntitiesWithTag(tag: string): void {
         this.entities.forEach((entity: Entity): void => {
             if (entity.tag === tag) {
                 entity.destroyComponents();
@@ -100,7 +100,7 @@ export class EntityManager {
     /**
      * Destroys all entities and their components
      */
-    public destroyAllEntities(): void {
+    public removeAllEntities(): void {
         this.entities.forEach((entity: Entity): void => {
             entity.destroyComponents();
         });

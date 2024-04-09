@@ -1,3 +1,8 @@
+import {IComponent} from "../../../core/IComponent";
+import {Entity} from "../../../core/Entity";
+import {Scene} from "../../../core/Scene";
+import * as B from "@babylonjs/core";
+
 export class NAME implements IComponent {
     public name: string = "NAME";
     public entity: Entity;

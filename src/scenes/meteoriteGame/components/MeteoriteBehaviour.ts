@@ -28,7 +28,8 @@ export class MeteoriteBehaviour implements IComponent {
 
         // color
         const shadowMaterial = new B.StandardMaterial("shadowMat", this.scene.babylonScene);
-        shadowMaterial.diffuseColor = new B.Color3(0.2, 0.2, 0.2);
+        shadowMaterial.diffuseColor = new B.Color3(0, 0, 0);
+        shadowMaterial.alpha = 0.5;
         this._shadow.material = shadowMaterial;
         this._shadow.material.zOffset = -1;
     }

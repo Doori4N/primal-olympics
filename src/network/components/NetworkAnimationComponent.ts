@@ -13,7 +13,7 @@ export class NetworkAnimationComponent implements IComponent {
     private readonly _animations: {[key: string]: B.AnimationGroup} = {};
 
     // event listeners
-    private _startAnimationListener = this.startAnimation.bind(this);
+    private _startAnimationEvent = this.startAnimation.bind(this);
 
     constructor(entity: Entity, scene: Scene, props: {animations: {[key: string]: B.AnimationGroup}}) {
         this.entity = entity;
@@ -24,7 +24,7 @@ export class NetworkAnimationComponent implements IComponent {
     public onStart(): void {
         if (this.scene.game.networkInstance.isHost) return;
 
-        this.scene.game.networkInstance.addEventListener(`startAnimation${this.entity.id}`, this._startAnimationListener);
+        this.scene.game.networkInstance.addEventListener(`startAnimation${this.entity.id}`, this._startAnimationEvent);
     }
 
     public onUpdate(): void {}
@@ -34,7 +34,7 @@ export class NetworkAnimationComponent implements IComponent {
     public onDestroy(): void {
         if (this.scene.game.networkInstance.isHost) return;
 
-        this.scene.game.networkInstance.removeEventListener(`startAnimation${this.entity.id}`, this._startAnimationListener);
+        this.scene.game.networkInstance.removeEventListener(`startAnimation${this.entity.id}`, this._startAnimationEvent);
     }
 
     public startAnimation(name: string): void {
