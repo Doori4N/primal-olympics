@@ -65,7 +65,7 @@ export class MeteoriteController implements IComponent {
         clearInterval(this._intervalId);
 
         // destroy all meteorites
-        const meteorites: Entity[] = this.scene.entityManager.getEntitiesWithTag("meteorite");
+        const meteorites: Entity[] = this.scene.entityManager.getEntitiesByTag("meteorite");
         meteorites.forEach((meteorite: Entity): void => {
             const networkHost = this.scene.game.networkInstance as NetworkHost;
             networkHost.sendToAllClients("onDestroyMeteorite", {entityId: meteorite.id});
@@ -121,7 +121,7 @@ export class MeteoriteController implements IComponent {
                 playerBehaviourComponent.kill();
 
                 // update player score
-                const gameController: Entity = this.scene.entityManager.getFirstEntityWithTag("gameController");
+                const gameController: Entity = this.scene.entityManager.getFirstEntityByTag("gameController");
                 const gameScoresComponent = gameController.getComponent("GameScores") as GameScores;
                 gameScoresComponent.setPlayerScore(playerEntity);
             }

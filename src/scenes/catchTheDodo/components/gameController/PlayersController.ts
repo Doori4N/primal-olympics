@@ -28,7 +28,7 @@ export class PlayersController implements IComponent {
     public onDestroy(): void {}
 
     private checkSlowPlayers(): void {
-        const players: Entity[] = this.scene.entityManager.getEntitiesWithTag("player");
+        const players: Entity[] = this.scene.entityManager.getEntitiesByTag("player");
         if (players.length <= 1) return;
 
         const playerPositions: {player: Entity, position: number}[] = [];

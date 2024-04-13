@@ -6,6 +6,7 @@ import {MeteoritesScene} from "../scenes/meteoriteGame/MeteoritesScene";
 import {MenuScene} from "../scenes/menu/MenuScene";
 import {LobbyScene} from "../scenes/lobby/LobbyScene";
 import {JoinLobbyScene} from "../scenes/joinLobby/JoinLobbyScene";
+import {FootballScene} from "../scenes/footballGame/FootballScene";
 
 export class SceneManager {
     private static _instance: SceneManager;
@@ -28,12 +29,15 @@ export class SceneManager {
     public initializeScenes(): void {
         // add all scenes
         this._scenes.push(new MenuScene());
-        this._scenes.push(new CatchTheDodoScene());
-        this._scenes.push(new MeteoritesScene());
         this._scenes.push(new GameSelectionScene());
         this._scenes.push(new LobbyScene());
         this._scenes.push(new JoinLobbyScene());
         this._scenes.push(new GameOverScene());
+
+        // mini games
+        this._scenes.push(new CatchTheDodoScene());
+        this._scenes.push(new MeteoritesScene());
+        this._scenes.push(new FootballScene());
 
         // start the first scene
         this._loadAndStartScene(this._scenes[0]);

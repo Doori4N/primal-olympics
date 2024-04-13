@@ -38,7 +38,7 @@ export class NetworkRigidBodyComponent implements IComponent {
             physicsShape: B.PhysicsShapeType | B.PhysicsShape,
             physicsProps: B.PhysicsAggregateParameters,
             isTrigger?: boolean,
-            isCallbackEnabled?: boolean,
+            isCollisionCallbackEnabled?: boolean,
             massProps?: B.PhysicsMassProperties,
             clientPrediction?: boolean
         })
@@ -59,7 +59,7 @@ export class NetworkRigidBodyComponent implements IComponent {
             this.physicsAggregate.shape.isTrigger = true;
         }
 
-        if (this._props.isCallbackEnabled) {
+        if (this._props.isCollisionCallbackEnabled) {
             const body: B.PhysicsBody = this.physicsAggregate.body;
             body.setCollisionCallbackEnabled(true);
             this.collisionObservable = body.getCollisionObservable();
@@ -88,6 +88,10 @@ export class NetworkRigidBodyComponent implements IComponent {
     }
 
     public onDestroy(): void {
+        if (this._props.isCollisionCallbackEnabled) {
+            this.collisionObservable.clear();
+        }
+
         this.physicsAggregate.dispose();
 
         if (!this.scene.game.networkInstance.isHost) {

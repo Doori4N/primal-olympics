@@ -25,7 +25,7 @@ export class CameraMovement implements IComponent {
     }
 
     public onUpdate(): void {
-        const players: Entity[] = this.scene.entityManager.getEntitiesWithTag("player");
+        const players: Entity[] = this.scene.entityManager.getEntitiesByTag("player");
         if (players.length < 1) return;
 
         const averagePosition: B.Vector3 = this.getAveragePosition(players);

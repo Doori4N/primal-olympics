@@ -31,7 +31,7 @@ export class DodoBehaviour implements IComponent {
     public onUpdate(): void {
         if (!this.isGameStarted || this.isGameFinished) return;
 
-        const players: Entity[] = this.scene.entityManager.getEntitiesWithTag("player");
+        const players: Entity[] = this.scene.entityManager.getEntitiesByTag("player");
 
         const isColliding: boolean = this.checkCollisionWithPlayers(players);
         if (isColliding) {

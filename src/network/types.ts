@@ -13,6 +13,12 @@ export type TransformUpdate = {
         x: number;
         y: number;
         z: number;
+        w: number;
+    };
+    velocity?: {
+        x: number;
+        y: number;
+        z: number;
     };
 }
 

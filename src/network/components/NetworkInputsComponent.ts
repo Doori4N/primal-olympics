@@ -1,7 +1,7 @@
 import {IComponent} from "../../core/IComponent";
 import {Entity} from "../../core/Entity";
 import {Scene} from "../../core/Scene";
-import {InputStates, InputType} from "../../core/types";
+import {InputStates} from "../../core/types";
 import {NetworkClient} from "../NetworkClient";
 import {NetworkHost} from "../NetworkHost";
 
@@ -59,15 +59,7 @@ export class NetworkInputsComponent implements IComponent {
      */
     public getInputs(): InputStates[] {
         if (this._inputBuffer.length === 0) {
-            return [{
-                type: InputType.KEYBOARD,
-                direction: {
-                    x: 0,
-                    y: 0
-                },
-                buttons: {},
-                tick: 0
-            } as InputStates];
+            return [];
         }
         else {
             if (this._inputBuffer.length > this._inputBufferSize) {

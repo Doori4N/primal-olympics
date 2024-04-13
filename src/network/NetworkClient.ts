@@ -100,8 +100,6 @@ export class NetworkClient implements INetworkInstance {
         this._eventManager.clear();
     }
 
-    public fixedUpdate(): void {}
-
     public sendToHost(event: string, ...args: any[]): void {
         const msg: NetworkMessage = {
             type: event,

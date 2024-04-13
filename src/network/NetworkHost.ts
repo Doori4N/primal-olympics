@@ -82,8 +82,6 @@ export class NetworkHost implements INetworkInstance {
         this._eventManager.clear();
     }
 
-    public fixedUpdate(): void {}
-
     public sendToAllClients(event: string, ...args: any[]): void {
         this.connections.forEach((connection: DataConnection): void => {
             connection.send({type: event, data: args});

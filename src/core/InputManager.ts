@@ -54,6 +54,9 @@ export class InputManager {
                 case "Space":
                     this.inputStates.buttons["jump"] = true;
                     break;
+                case "ShiftLeft":
+                    this.inputStates.buttons["sprint"] = true;
+                    break;
             }
 
             this._updateKeyboardDirections();
@@ -78,6 +81,9 @@ export class InputManager {
                     break;
                 case "Space":
                     this.inputStates.buttons["jump"] = false;
+                    break;
+                case "ShiftLeft":
+                    this.inputStates.buttons["sprint"] = false;
                     break;
             }
 
@@ -193,7 +199,7 @@ export class InputManager {
                     this.inputStates.direction.y = 0;
                 }
                 else {
-                    this.inputStates.direction.y = values.y;
+                    this.inputStates.direction.y = -values.y;
                 }
             });
         });

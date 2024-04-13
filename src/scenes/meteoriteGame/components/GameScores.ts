@@ -37,7 +37,7 @@ export class GameScores implements IComponent {
         this.scene.eventManager.subscribe("onGameStarted", this._initScores.bind(this));
         this.scene.eventManager.subscribe("onMessageFinished", this.displayEventScores.bind(this));
 
-        const gameController: Entity = this.scene.entityManager.getFirstEntityWithTag("gameManager");
+        const gameController: Entity = this.scene.entityManager.getFirstEntityByTag("gameManager");
         this._gameTimer = gameController.getComponent("GameTimer") as GameTimer;
     }
 

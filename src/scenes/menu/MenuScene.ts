@@ -3,6 +3,7 @@ import {NetworkHost} from "../../network/NetworkHost";
 import {NetworkClient} from "../../network/NetworkClient";
 import {v4 as uuid} from "uuid";
 import Peer from "peerjs";
+import {NetworkInputManager} from "../../network/NetworkInputManager";
 
 const CONNECTION_RETRY_INTERVAL: number = 500; // connection retry interval in ms
 
@@ -27,7 +28,7 @@ export class MenuScene extends Scene {
         this._menuDiv.appendChild(startBtn);
 
         const versionText: HTMLParagraphElement = document.createElement("p");
-        versionText.innerHTML = "Version: 0.2.1";
+        versionText.innerHTML = "Version: 0.3.0";
         this._menuDiv.appendChild(versionText);
 
         startBtn.onclick = this._tryToConnectToServer.bind(this);
@@ -79,6 +80,7 @@ export class MenuScene extends Scene {
 
         hostBtn.onclick = (): void => {
             this.game.networkInstance = new NetworkHost(peer);
+            this.game.networkInputManager = new NetworkInputManager();
             this.sceneManager.changeScene("lobby");
         }
 
@@ -88,6 +90,7 @@ export class MenuScene extends Scene {
 
         joinBtn.onclick = (): void => {
             this.game.networkInstance = new NetworkClient(peer);
+            this.game.networkInputManager = new NetworkInputManager();
             this.sceneManager.changeScene("joinLobby");
         }
     }

@@ -26,7 +26,7 @@ export class EntityManager {
      * Returns all entities with a given tag
      * @param tag
      */
-    public getEntitiesWithTag(tag: string): Entity[] {
+    public getEntitiesByTag(tag: string): Entity[] {
         const entitiesWithTag: Entity[] = [];
 
         this.entities.forEach((entity: Entity): void => {
@@ -42,7 +42,7 @@ export class EntityManager {
      * Returns the first entity with a given tag
      * @throws Error if entity is not found
      */
-    public getFirstEntityWithTag(tag: string): Entity {
+    public getFirstEntityByTag(tag: string): Entity {
         for (const entity of this.entities.values()) {
             if (entity.tag === tag) {
                 return entity;
@@ -88,7 +88,7 @@ export class EntityManager {
      * Destroys all entities with a given tag
      * @param tag
      */
-    public removeEntitiesWithTag(tag: string): void {
+    public removeEntitiesByTag(tag: string): void {
         this.entities.forEach((entity: Entity): void => {
             if (entity.tag === tag) {
                 entity.destroyComponents();

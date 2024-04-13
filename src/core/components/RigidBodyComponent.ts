@@ -13,6 +13,7 @@ export class RigidBodyComponent implements IComponent {
     private readonly mesh!: B.Mesh;
     public physicsAggregate!: B.PhysicsAggregate;
     public collisionObservable!: B.Observable<B.IPhysicsCollisionEvent>;
+    private _isCollisionCallbackEnabled: boolean = false;
 
     /**
      * @throws Error if entity does not have a MeshComponent
@@ -22,7 +23,7 @@ export class RigidBodyComponent implements IComponent {
             physicsShape: B.PhysicsShapeType | B.PhysicsShape,
             physicsProps: B.PhysicsAggregateParameters,
             isTrigger?: boolean,
-            isCallbackEnabled?: boolean,
+            isCollisionCallbackEnabled?: boolean,
             massProps?: B.PhysicsMassProperties
         })
     {
@@ -38,7 +39,8 @@ export class RigidBodyComponent implements IComponent {
             this.physicsAggregate.shape.isTrigger = true;
         }
 
-        if (props.isCallbackEnabled) {
+        if (props.isCollisionCallbackEnabled) {
+            this._isCollisionCallbackEnabled = true;
             const body: B.PhysicsBody = this.physicsAggregate.body;
             body.setCollisionCallbackEnabled(true);
             this.collisionObservable = body.getCollisionObservable();
@@ -52,14 +54,14 @@ export class RigidBodyComponent implements IComponent {
     public onFixedUpdate(): void {}
 
     public onDestroy(): void {
+        if (this._isCollisionCallbackEnabled) {
+            this.collisionObservable.clear();
+        }
+
         this.physicsAggregate.dispose();
     }
 
-    private createPhysicsAggregate(
-        physicsShape: B.PhysicsShapeType | B.PhysicsShape,
-        physicsProps: B.PhysicsAggregateParameters,
-        massProps: B.PhysicsMassProperties | undefined
-    ): void {
+    private createPhysicsAggregate(physicsShape: B.PhysicsShapeType | B.PhysicsShape, physicsProps: B.PhysicsAggregateParameters, massProps: B.PhysicsMassProperties | undefined): void {
         // disable collisions on the mesh and use physics engine for collisions
         this.mesh.checkCollisions = false;
 
@@ -68,5 +70,9 @@ export class RigidBodyComponent implements IComponent {
         if (massProps) {
             this.physicsAggregate.body.setMassProperties(massProps);
         }
+    }
+
+    public setBodyPreStep(value: boolean): void {
+        this.physicsAggregate.body.disablePreStep = value;
     }
 }

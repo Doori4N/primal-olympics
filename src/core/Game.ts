@@ -3,6 +3,7 @@ import HavokPhysics, {HavokPhysicsWithBindings} from "@babylonjs/havok"
 import {SceneManager} from "./SceneManager";
 import {InputManager} from "./InputManager";
 import {INetworkInstance} from "../network/INetworkInstance";
+import {NetworkInputManager} from "../network/NetworkInputManager";
 
 export class Game {
     private static instance: Game;
@@ -11,10 +12,11 @@ export class Game {
     public physicsPlugin!: B.HavokPlugin;
     public inputManager: InputManager = new InputManager();
     public networkInstance!: INetworkInstance;
+    public networkInputManager!: NetworkInputManager;
     public tick: number = 45; // Number of server updates per second
     public tickIndex: number = 0; // Index of the current tick
     private _timer: number = 0; // Timer to keep track of the time passed since the last tick
-    public miniGames: string[] = ["meteorites"];
+    public miniGames: string[] = ["football"];
 
     private constructor() {}
 
@@ -66,6 +68,7 @@ export class Game {
             this.tickIndex++;
             this.inputManager.updateInputTick(this.tickIndex);
             sceneManager.fixedUpdateCurrentScene();
+            if (this.networkInstance?.isConnected) this.networkInputManager.onFixedUpdate();
             this._timer -= tickRate;
         }
     }
