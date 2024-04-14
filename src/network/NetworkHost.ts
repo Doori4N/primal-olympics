@@ -14,17 +14,19 @@ export class NetworkHost implements INetworkInstance {
     public playerId: string = uuid();
     public ping: number = 0;
     private _isClientTickSynchronized: {[key: string]: boolean} = {};
+    public playerName: string;
 
     private _eventManager = new EventManager();
     private _game: Game = Game.getInstance();
 
-    constructor(peer: Peer) {
+    constructor(peer: Peer, name: string) {
         this.peer = peer;
+        this.playerName = name;
 
         // initialize the player list with the host
         this.players.push({
             id: this.playerId,
-            name: "player 1",
+            name: this.playerName,
             goldMedals: 0,
             silverMedals: 0,
             bronzeMedals: 0
@@ -42,10 +44,9 @@ export class NetworkHost implements INetworkInstance {
             });
 
             // set player list
-            const playerName: string = `player ${this.connections.length + 1}`;
             this.players.push({
                 id: connection.metadata.playerId,
-                name: playerName,
+                name: connection.metadata.playerName,
                 goldMedals: 0,
                 silverMedals: 0,
                 bronzeMedals: 0

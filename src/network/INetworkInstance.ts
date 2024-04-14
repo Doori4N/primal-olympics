@@ -23,6 +23,8 @@ export interface INetworkInstance {
 
     ping: number;
 
+    playerName: string;
+
     addEventListener(event: string, callback: Function): void;
 
     removeEventListener(event: string, callback: Function): void;

@@ -22,6 +22,7 @@ export class NetworkClient implements INetworkInstance {
     public players: PlayerData[] = [];
     public playerId: string = uuid();
     public ping: number = 0;
+    public playerName: string;
 
     private _eventManager = new EventManager();
     private _sceneManager = SceneManager.getInstance();
@@ -37,8 +38,9 @@ export class NetworkClient implements INetworkInstance {
      */
     public hostId!: string;
 
-    constructor(peer: Peer) {
+    constructor(peer: Peer, name: string) {
         this.peer = peer;
+        this.playerName = name;
 
         this.peer.on("error", (err: any): void => {
             console.error("Client error: ", err);
@@ -49,7 +51,7 @@ export class NetworkClient implements INetworkInstance {
 
     public connectToHost(roomId: string): void {
         const hostId: string = roomId + "-gamesonweb2024";
-        this.hostConnection = this.peer.connect(hostId, {metadata: {playerId: this.playerId}});
+        this.hostConnection = this.peer.connect(hostId, {metadata: {playerId: this.playerId, playerName: this.playerName}});
 
         this.hostConnection.on("open", this.onConnectedToHost.bind(this, hostId));
 

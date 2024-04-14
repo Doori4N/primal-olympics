@@ -74,22 +74,40 @@ export class MenuScene extends Scene {
 
         this._menuDiv.innerHTML = "";
 
+        // name input
+        const nameInput: HTMLInputElement = document.createElement("input");
+        nameInput.type = "text";
+        const savedName: string | null = localStorage.getItem("name");
+        if (savedName) {
+            nameInput.value = savedName;
+        }
+        else {
+            nameInput.placeholder = "Enter your name";
+        }
+        this._menuDiv.appendChild(nameInput);
+
+        // host button
         const hostBtn: HTMLButtonElement = document.createElement("button");
         hostBtn.innerHTML = "Host";
         this._menuDiv.appendChild(hostBtn);
 
         hostBtn.onclick = (): void => {
-            this.game.networkInstance = new NetworkHost(peer);
+            const name: string = nameInput.value;
+            localStorage.setItem("name", name);
+            this.game.networkInstance = new NetworkHost(peer, name);
             this.game.networkInputManager = new NetworkInputManager();
             this.sceneManager.changeScene("lobby");
         }
 
+        // join button
         const joinBtn: HTMLButtonElement = document.createElement("button");
         joinBtn.innerHTML = "Join";
         this._menuDiv.appendChild(joinBtn);
 
         joinBtn.onclick = (): void => {
-            this.game.networkInstance = new NetworkClient(peer);
+            const name: string = nameInput.value;
+            localStorage.setItem("name", name);
+            this.game.networkInstance = new NetworkClient(peer, name);
             this.game.networkInputManager = new NetworkInputManager();
             this.sceneManager.changeScene("joinLobby");
         }
