@@ -14,8 +14,8 @@ export class CameraMovement implements IComponent {
     // component properties
     private _camera!: B.FreeCamera;
     private _cameraSpeed: number = 0.03;
-    private _limitX: number = 6.5;
-    private _limitZ: number = 4;
+    private _limitX: number = 10;
+    private _limitZ: number = 6;
     private _offsetZ: number = 17;
 
     constructor(entity: Entity, scene: Scene) {
@@ -31,7 +31,9 @@ export class CameraMovement implements IComponent {
     public onUpdate(): void {}
 
     public onFixedUpdate(): void {
-        const ballEntity = this.scene.entityManager.getFirstEntityByTag("ball");
+        const ballEntity: Entity | null = this.scene.entityManager.getFirstEntityByTag("ball");
+        if (!ballEntity) return;
+
         const meshComponent = ballEntity.getComponent("Mesh") as MeshComponent;
         const ballMesh: B.Mesh = meshComponent.mesh;
 
@@ -41,7 +43,7 @@ export class CameraMovement implements IComponent {
         }
 
         const newPosZ: number = Utils.lerp(this._camera.position.z, ballMesh.position.z - this._offsetZ, this._cameraSpeed);
-        if (newPosZ > -this._offsetZ && newPosZ < this._limitZ - this._offsetZ) {
+        if (newPosZ > -this._offsetZ - this._limitZ + 2 && newPosZ < this._limitZ - this._offsetZ) {
             this._camera.position.z = newPosZ;
         }
     }

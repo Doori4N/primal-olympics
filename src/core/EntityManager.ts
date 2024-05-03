@@ -39,16 +39,15 @@ export class EntityManager {
     }
 
     /**
-     * Returns the first entity with a given tag
-     * @throws Error if entity is not found
+     * Returns the first entity with a given tag or null if not found
      */
-    public getFirstEntityByTag(tag: string): Entity {
+    public getFirstEntityByTag(tag: string): Entity | null {
         for (const entity of this.entities.values()) {
             if (entity.tag === tag) {
                 return entity;
             }
         }
-        throw new Error(`Entity with tag ${tag} not found!`);
+        return null;
     }
 
     /**

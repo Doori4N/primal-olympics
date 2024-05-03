@@ -121,7 +121,8 @@ export class MeteoriteController implements IComponent {
                 playerBehaviourComponent.kill();
 
                 // update player score
-                const gameController: Entity = this.scene.entityManager.getFirstEntityByTag("gameController");
+                const gameController: Entity | null = this.scene.entityManager.getFirstEntityByTag("gameController");
+                if (!gameController) throw new Error("Game controller not found");
                 const gameScoresComponent = gameController.getComponent("GameScores") as GameScores;
                 gameScoresComponent.setPlayerScore(playerEntity);
             }

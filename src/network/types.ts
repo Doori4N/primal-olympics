@@ -38,3 +38,12 @@ export type PlayerData = {
     silverMedals: number;
     bronzeMedals: number;
 }
+
+export type AnimationOptions = {
+    loop?: boolean,
+    from?: number,
+    to?: number,
+    speedRatio?: number,
+    smoothTransition?: boolean,
+    transitionSpeed?: number
+}

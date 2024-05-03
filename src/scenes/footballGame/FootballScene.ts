@@ -4,7 +4,7 @@ import {Entity} from "../../core/Entity";
 import {MeshComponent} from "../../core/components/MeshComponent";
 import {RigidBodyComponent} from "../../core/components/RigidBodyComponent";
 import {NetworkAnimationComponent} from "../../network/components/NetworkAnimationComponent";
-import {PlayerBehaviour} from "./components/PlayerBehaviour";
+import {PlayerBehaviour} from "./components/players/PlayerBehaviour";
 import {GameController} from "./components/GameController";
 import {GameMessages} from "../../core/components/GameMessages";
 import {NetworkHost} from "../../network/NetworkHost";
@@ -18,6 +18,11 @@ import {CameraAnimation} from "./components/CameraAnimation";
 import {GameTimer} from "../../core/components/GameTimer";
 import * as GUI from "@babylonjs/gui";
 import {CameraMovement} from "./components/CameraMovement";
+import {NetworkTransformComponent} from "../../network/components/NetworkTransformComponent";
+import {AIPlayerBehaviour} from "./components/players/AIPlayerBehaviour";
+
+const PITCH_WIDTH: number = 40;
+const PITCH_HEIGHT: number = 27;
 
 export class FootballScene extends Scene {
     private _ballMesh!: B.Mesh;
@@ -26,6 +31,12 @@ export class FootballScene extends Scene {
         new B.Vector3(5, 1, -5),
         new B.Vector3(10, 1, 5),
         new B.Vector3(10, 1, -5)
+    ];
+    private _wanderPositions: B.Vector2[] = [
+        new B.Vector2(-8.5, 4.5),
+        new B.Vector2(-8.5, -4.5),
+        new B.Vector2(12, 4.5),
+        new B.Vector2(12, -4.5)
     ];
     private _teams: Entity[][] = [[], []];
     private _teamColors = [
@@ -39,8 +50,6 @@ export class FootballScene extends Scene {
         }
     ];
     private _gui!: GUI.AdvancedDynamicTexture;
-    private _pitchWidth: number = 40;
-    private _pitchHeight: number = 20;
 
     constructor() {
         super("football");
@@ -51,8 +60,20 @@ export class FootballScene extends Scene {
 
         // load assets
         this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync(
-            "meshes/",
+            "meshes/models/",
             "caveman.glb",
+            this.babylonScene
+        );
+
+        this.loadedAssets["footballPitch"] = await B.SceneLoader.LoadAssetContainerAsync(
+            "meshes/scenes/",
+            "footballPitch.glb",
+            this.babylonScene
+        );
+
+        this.loadedAssets["ball"] = await B.SceneLoader.LoadAssetContainerAsync(
+            "meshes/models/",
+            "ball.glb",
             this.babylonScene
         );
 
@@ -84,38 +105,58 @@ export class FootballScene extends Scene {
         const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.babylonScene);
         light.intensity = 0.7;
 
-        // ground
-        const groundEntity = new Entity("ground");
-        const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: this._pitchWidth, height: this._pitchHeight}, this.babylonScene);
-        ground.metadata = {tag: groundEntity.tag};
-        groundEntity.addComponent(new MeshComponent(groundEntity, this, {mesh: ground}));
-        groundEntity.addComponent(new RigidBodyComponent(groundEntity, this, {
-            physicsShape: B.PhysicsShapeType.BOX,
-            physicsProps: {mass: 0}
-        }));
-        this.entityManager.addEntity(groundEntity);
-
-        // ball
+        this._createFootballPitch();
         this._initBall();
 
         // players
         this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.babylonScene);
         this._initPlayers();
 
+        // AI players
+        this._initAIPlayers();
+
         // goals
-        this._createGoal("leftGoal", new B.Vector3(-this._pitchWidth / 2, 1.5, 0));
-        this._createGoal("rightGoal", new B.Vector3(this._pitchWidth / 2, 1.5, 0));
+        this._createGoal("leftGoal", new B.Vector3(-PITCH_WIDTH / 2 - 1.25, 1.5, 0));
+        this._createGoal("rightGoal", new B.Vector3(PITCH_WIDTH / 2 + 1.25, 1.5, 0));
 
         // edges
-        this._createEdge(new B.Vector3(0, 1.5, (this._pitchHeight / 2) + 0.5), new B.Vector3(0, 0, 0), this._pitchWidth);
-        this._createEdge(new B.Vector3(0, 1.5, (-this._pitchHeight / 2) - 0.5), new B.Vector3(0, 0, 0), this._pitchWidth);
-        this._createEdge(new B.Vector3((this._pitchWidth / 2) + 0.5, 1.5, 0), new B.Vector3(0, Math.PI / 2, 0), this._pitchHeight);
-        this._createEdge(new B.Vector3((-this._pitchWidth / 2) - 0.5, 1.5, 0), new B.Vector3(0, Math.PI / 2, 0), this._pitchHeight);
+        this._createEdge(new B.Vector3(0, 1.5, (PITCH_HEIGHT / 2) + 0.5), new B.Vector3(0, 0, 0), PITCH_WIDTH);
+        this._createEdge(new B.Vector3(0, 1.5, (-PITCH_HEIGHT / 2) - 0.5), new B.Vector3(0, 0, 0), PITCH_WIDTH);
+        this._createEdge(new B.Vector3((PITCH_WIDTH / 2) + 0.5, 1.5, -8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
+        this._createEdge(new B.Vector3((PITCH_WIDTH / 2) + 0.5, 1.5, 8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
+        this._createEdge(new B.Vector3((-PITCH_WIDTH / 2) - 0.5, 1.5, -8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
+        this._createEdge(new B.Vector3((-PITCH_WIDTH / 2) - 0.5, 1.5, 8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
 
         // gameManager
         this._initGameManager();
 
         this.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
+    }
+
+    private _createFootballPitch(): void {
+        const groundEntity = new Entity("ground");
+
+        const mapContainer: B.AssetContainer = this.loadedAssets["footballPitch"];
+        mapContainer.addAllToScene();
+        const footballPitch: B.Mesh = mapContainer.meshes[0] as B.Mesh;
+        mapContainer.meshes.forEach((mesh: B.AbstractMesh): void => {
+            mesh.receiveShadows = true;
+        });
+        footballPitch.scaling.scaleInPlace(4);
+
+        const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: PITCH_WIDTH + 5, height: PITCH_HEIGHT}, this.babylonScene);
+        ground.metadata = {tag: groundEntity.tag};
+        ground.isVisible = false;
+        footballPitch.setParent(ground);
+        footballPitch.rotationQuaternion = B.Quaternion.RotationAxis(new B.Vector3(1, 0, 0), Math.PI);
+        footballPitch.position = new B.Vector3(0.928, 0.239, 0.082);
+
+        groundEntity.addComponent(new MeshComponent(groundEntity, this, {mesh: ground}));
+        groundEntity.addComponent(new RigidBodyComponent(groundEntity, this, {
+            physicsShape: B.PhysicsShapeType.BOX,
+            physicsProps: {mass: 0}
+        }));
+        this.entityManager.addEntity(groundEntity);
     }
 
     private _initBall(): void {
@@ -136,7 +177,6 @@ export class FootballScene extends Scene {
     }
 
     private _initPlayers(): void {
-        const playerContainer: B.AssetContainer = this.loadedAssets["player"];
         // HOST
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;
@@ -152,7 +192,7 @@ export class FootballScene extends Scene {
                 const spawnPosition: B.Vector3 = this._spawns[spawnIndex].clone();
                 spawnPosition.x *= teamIndex[i] === 0 ? -1 : 1;
 
-                const playerEntity: Entity = this._createPlayer(playerContainer, playerId, teamIndex[i], spawnPosition);
+                const playerEntity: Entity = this._createPlayer(playerId, teamIndex[i], spawnPosition);
                 this.entityManager.addEntity(playerEntity);
 
                 networkHost.sendToAllClients("onCreatePlayer", {
@@ -167,7 +207,48 @@ export class FootballScene extends Scene {
         // CLIENT
         else {
             this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerId: string, id: string, teamIndex: number}): void => {
-                const playerEntity: Entity = this._createPlayer(playerContainer, args.playerId, args.teamIndex, B.Vector3.Zero(), args.id);
+                const playerEntity: Entity = this._createPlayer(args.playerId, args.teamIndex, B.Vector3.Zero(), args.id);
+                this.entityManager.addEntity(playerEntity);
+            });
+        }
+    }
+
+    private _initAIPlayers(): void {
+        // HOST
+        if (this.game.networkInstance.isHost) {
+            const networkHost = this.game.networkInstance as NetworkHost;
+
+            for (let i: number = this._teams[0].length; i < 4; i++) {
+                const spawnPosition: B.Vector3 = this._spawns[i].clone();
+                spawnPosition.x *= -1;
+                const wanderPosition: B.Vector2 = this._wanderPositions[i].clone();
+                wanderPosition.x *= -1;
+
+                const playerEntity: Entity = this._createAIPlayer(0, spawnPosition, wanderPosition);
+                this.entityManager.addEntity(playerEntity);
+
+                networkHost.sendToAllClients("onCreateAIPlayer", {
+                    id: playerEntity.id,
+                    teamIndex: 0
+                });
+            }
+            for (let i: number = this._teams[1].length; i < 4; i++) {
+                const spawnPosition: B.Vector3 = this._spawns[i].clone();
+                const wanderPosition: B.Vector2 = this._wanderPositions[i].clone();
+
+                const playerEntity: Entity = this._createAIPlayer(1, spawnPosition, wanderPosition);
+                this.entityManager.addEntity(playerEntity);
+
+                networkHost.sendToAllClients("onCreateAIPlayer", {
+                    id: playerEntity.id,
+                    teamIndex: 1
+                });
+            }
+        }
+        // CLIENT
+        else {
+            this.game.networkInstance.addEventListener("onCreateAIPlayer", (args: {id: string, teamIndex: number}): void => {
+                const playerEntity: Entity = this._createAIPlayer(args.teamIndex, B.Vector3.Zero(), B.Vector2.Zero(), args.id);
                 this.entityManager.addEntity(playerEntity);
             });
         }
@@ -187,21 +268,21 @@ export class FootballScene extends Scene {
         `;
         gameManager.addComponent(new GamePresentation(gameManager, this, {htmlTemplate}));
         gameManager.addComponent(new GameMessages(gameManager, this));
-        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 120}));
+        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 240}));
         gameManager.addComponent(new GameController(gameManager, this));
         this.entityManager.addEntity(gameManager);
     }
 
-    private _createEdge(edgePosition: B.Vector3, edgeRotation: B.Vector3, width: number): void {
+    private _createEdge(edgePosition: B.Vector3, edgeRotation: B.Vector3, length: number): void {
         const edgeEntity = new Entity("edge");
-        const edgeMesh: B.Mesh = B.MeshBuilder.CreateBox("edge", {width: width, height: 3, depth: 1}, this.babylonScene);
+        const edgeMesh: B.Mesh = B.MeshBuilder.CreateBox("edge", {width: length, height: 3, depth: 1}, this.babylonScene);
         edgeMesh.isVisible = false;
         edgeMesh.position = edgePosition;
         edgeMesh.rotation = edgeRotation;
         edgeEntity.addComponent(new MeshComponent(edgeEntity, this, {mesh: edgeMesh}));
         edgeEntity.addComponent(new RigidBodyComponent(edgeEntity, this, {
             physicsShape: B.PhysicsShapeType.BOX,
-            physicsProps: {mass: 0, restitution: 0.9},
+            physicsProps: {mass: 0},
         }));
         this.entityManager.addEntity(edgeEntity);
     }
@@ -211,6 +292,7 @@ export class FootballScene extends Scene {
         const goalMesh: B.Mesh = B.MeshBuilder.CreateBox(`${goalName}`, {width: 1, height: 3, depth: 6}, this.babylonScene);
         goalMesh.position = goalPosition;
         goalMesh.metadata = {tag: goalEntity.tag};
+        goalMesh.isVisible = false;
         goalEntity.addComponent(new MeshComponent(goalEntity, this, {mesh: goalMesh}));
         goalEntity.addComponent(new RigidBodyComponent(goalEntity, this, {
             physicsShape: B.PhysicsShapeType.BOX,
@@ -219,7 +301,8 @@ export class FootballScene extends Scene {
         }));
     }
 
-    private _createPlayer(playerContainer: B.AssetContainer, playerId: string, teamIndex: number, position: B.Vector3, entityId?: string): Entity {
+    private _createPlayer(playerId: string, teamIndex: number, position: B.Vector3, entityId?: string): Entity {
+        const playerContainer: B.AssetContainer = this.loadedAssets["player"];
         const playerEntity = new Entity("player", entityId);
 
         const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + playerEntity.id, true, {doNotInstantiate: true});
@@ -235,15 +318,26 @@ export class FootballScene extends Scene {
         hitbox.metadata = {tag: playerEntity.tag, id: playerEntity.id};
         player.setParent(hitbox);
         player.position = new B.Vector3(0, -1, 0);
+
+        const shadow = B.MeshBuilder.CreateDisc("shadow", {radius: 0.5}, this.babylonScene);
+        const shadowMaterial = new B.StandardMaterial("shadowMaterial", this.babylonScene);
+        shadowMaterial.diffuseColor = new B.Color3(0, 0, 0);
+        shadow.material = shadowMaterial;
+        shadow.material.alpha = 0.5;
+        shadow.setParent(hitbox);
+        shadow.rotate(B.Axis.X, Math.PI / 2, B.Space.WORLD);
+        shadow.position.y = -0.98;
+
         hitbox.position = position;
+        hitbox.rotate(B.Axis.Y, (-1 * teamIndex) * (Math.PI / 2), B.Space.WORLD);
 
         // player name text
         const playerNameText = new GUI.TextBlock();
         playerNameText.text = this.game.networkInstance.players.find((playerData) => playerData.id === playerId)!.name;
         playerNameText.color = (teamIndex === 0) ? "#0000ff" : "#ff0000"
-        playerNameText.fontSize = 14;
-        // playerNameText.outlineColor = "black";
-        // playerNameText.outlineWidth = 3;
+        playerNameText.fontSize = 15;
+        playerNameText.outlineColor = "black";
+        playerNameText.outlineWidth = 5;
         this._gui.addControl(playerNameText);
         playerNameText.linkWithMesh(hitbox);
         playerNameText.linkOffsetY = -60;
@@ -268,6 +362,7 @@ export class FootballScene extends Scene {
         animations["Running"] = entries.animationGroups[2];
         animations["Kicking"] = entries.animationGroups[3];
         animations["Tackling"] = entries.animationGroups[4];
+        animations["Tackle_Reaction"] = entries.animationGroups[5];
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
         playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
@@ -276,16 +371,92 @@ export class FootballScene extends Scene {
         return playerEntity;
     }
 
+    private _createAIPlayer(teamIndex: number, position: B.Vector3, wanderPosition: B.Vector2, entityId?: string): Entity {
+        const playerContainer: B.AssetContainer = this.loadedAssets["player"];
+        const aiPlayerEntity = new Entity("aiPlayer", entityId);
+
+        const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + aiPlayerEntity.id, true, {doNotInstantiate: true});
+        const aiPlayer = entries.rootNodes[0] as B.Mesh;
+
+        const outfitMaterial = aiPlayer.getChildMeshes()[1].material as B.PBRMaterial;
+        outfitMaterial.albedoColor = this._teamColors[teamIndex].albedoColor;
+        outfitMaterial.emissiveColor = this._teamColors[teamIndex].emissiveColor;
+
+        aiPlayer.scaling.scaleInPlace(0.25);
+
+        const hitbox = new B.Mesh(`hitbox${aiPlayerEntity.id}`, this.babylonScene);
+        hitbox.metadata = {tag: aiPlayerEntity.tag, id: aiPlayerEntity.id};
+        aiPlayer.setParent(hitbox);
+        aiPlayer.position = new B.Vector3(0, -1, 0);
+
+        const shadow = B.MeshBuilder.CreateDisc("shadow", {radius: 0.5}, this.babylonScene);
+        const shadowMaterial = new B.StandardMaterial("shadowMaterial", this.babylonScene);
+        shadowMaterial.diffuseColor = new B.Color3(0, 0, 0);
+        shadow.material = shadowMaterial;
+        shadow.material.alpha = 0.5;
+        shadow.setParent(hitbox);
+        shadow.rotate(B.Axis.X, Math.PI / 2, B.Space.WORLD);
+        shadow.position.y = -0.98;
+
+        hitbox.position = position;
+        const rotationOrientation: number = teamIndex === 0 ? 1 : -1;
+        hitbox.rotate(B.Axis.Y, rotationOrientation * (Math.PI / 2), B.Space.WORLD);
+
+        aiPlayerEntity.addComponent(new MeshComponent(aiPlayerEntity, this, {mesh: hitbox}));
+
+        const playerPhysicsShape = new B.PhysicsShapeBox(
+            new B.Vector3(0, 0, 0),
+            new B.Quaternion(0, 0, 0, 1),
+            new B.Vector3(1, 2, 1),
+            this.babylonScene
+        );
+        aiPlayerEntity.addComponent(new RigidBodyComponent(aiPlayerEntity, this, {
+            physicsShape: playerPhysicsShape,
+            physicsProps: {mass: 1},
+            massProps: {inertia: new B.Vector3(0, 0, 0)},
+            isCollisionCallbackEnabled: true
+        }));
+
+        const animations: {[key: string]: B.AnimationGroup} = {};
+        animations["Idle"] = entries.animationGroups[0];
+        animations["Running"] = entries.animationGroups[2];
+        animations["Kicking"] = entries.animationGroups[3];
+        animations["Tackling"] = entries.animationGroups[4];
+        animations["Tackle_Reaction"] = entries.animationGroups[5];
+        aiPlayerEntity.addComponent(new NetworkAnimationComponent(aiPlayerEntity, this, {animations: animations}));
+
+        aiPlayerEntity.addComponent(new NetworkTransformComponent(aiPlayerEntity, this, {usePhysics: true}));
+        aiPlayerEntity.addComponent(new AIPlayerBehaviour(aiPlayerEntity, this, {
+            teamIndex: teamIndex,
+            wanderArea: {
+                position: wanderPosition,
+                size: 8
+            }
+        }));
+
+        return aiPlayerEntity;
+    }
+
     private _createBall(entityId?: string): Entity {
+        const ballContainer: B.AssetContainer = this.loadedAssets["ball"];
         const ballEntity = new Entity("ball", entityId);
 
-        this._ballMesh = B.MeshBuilder.CreateSphere("ball", {diameter: 1}, this.babylonScene);
-        this._ballMesh.position = new B.Vector3(0, 0.5, 0);
+        ballContainer.addAllToScene();
+        ballContainer.meshes[1].position = B.Vector3.Zero();
+        this._ballMesh = ballContainer.meshes[0] as B.Mesh;
+        this._ballMesh.position = new B.Vector3(0, 0.35, 0);
+        this._ballMesh.scaling.scaleInPlace(0.35);
         this._ballMesh.metadata = {tag: ballEntity.tag, id: ballEntity.id};
 
         ballEntity.addComponent(new MeshComponent(ballEntity, this, {mesh: this._ballMesh}));
+
+        const ballPhysicsShape = new B.PhysicsShapeSphere(
+            new B.Vector3(0, 0, 0),
+            0.35,
+            this.babylonScene
+        );
         ballEntity.addComponent(new RigidBodyComponent(ballEntity, this, {
-            physicsShape: B.PhysicsShapeType.SPHERE,
+            physicsShape: ballPhysicsShape,
             physicsProps: {mass: 1},
             massProps: {inertia: new B.Vector3(0, 0, 0)}
         }));

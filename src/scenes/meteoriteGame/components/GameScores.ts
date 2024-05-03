@@ -37,7 +37,8 @@ export class GameScores implements IComponent {
         this.scene.eventManager.subscribe("onGameStarted", this._initScores.bind(this));
         this.scene.eventManager.subscribe("onMessageFinished", this.displayEventScores.bind(this));
 
-        const gameController: Entity = this.scene.entityManager.getFirstEntityByTag("gameManager");
+        const gameController: Entity | null = this.scene.entityManager.getFirstEntityByTag("gameManager");
+        if (!gameController) throw new Error("Game controller not found");
         this._gameTimer = gameController.getComponent("GameTimer") as GameTimer;
     }
 

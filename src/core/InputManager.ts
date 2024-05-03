@@ -137,6 +137,9 @@ export class InputManager {
                         case B.DualShockButton.Cross:
                             this.inputStates.buttons["jump"] = true;
                             break;
+                        case B.DualShockButton.Circle:
+                            this.inputStates.buttons["sprint"] = true;
+                            break;
                     }
                 });
 
@@ -144,6 +147,9 @@ export class InputManager {
                     switch (button) {
                         case B.DualShockButton.Cross:
                             this.inputStates.buttons["jump"] = false;
+                            break;
+                        case B.DualShockButton.Circle:
+                            this.inputStates.buttons["sprint"] = false;
                             break;
                     }
                 });
@@ -156,6 +162,9 @@ export class InputManager {
                         case 0:
                             this.inputStates.buttons["jump"] = true;
                             break;
+                        case 1:
+                            this.inputStates.buttons["sprint"] = true;
+                            break;
                     }
                 });
 
@@ -163,6 +172,9 @@ export class InputManager {
                     switch (button) {
                         case 0:
                             this.inputStates.buttons["jump"] = false;
+                            break;
+                        case 1:
+                            this.inputStates.buttons["sprint"] = false;
                             break;
                     }
                 });
@@ -175,6 +187,9 @@ export class InputManager {
                         case B.Xbox360Button.A:
                             this.inputStates.buttons["jump"] = true;
                             break;
+                        case B.Xbox360Button.X:
+                            this.inputStates.buttons["sprint"] = true;
+                            break;
                     }
                 });
 
@@ -182,6 +197,9 @@ export class InputManager {
                     switch (button) {
                         case B.Xbox360Button.A:
                             this.inputStates.buttons["jump"] = false;
+                            break;
+                        case B.Xbox360Button.X:
+                            this.inputStates.buttons["sprint"] = false;
                             break;
                     }
                 });
