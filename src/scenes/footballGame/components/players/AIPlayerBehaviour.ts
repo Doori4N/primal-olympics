@@ -24,9 +24,6 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
     public state: AIPlayerState = AIPlayerState.WANDER;
     private _playerCollisionObserver!: B.Observer<B.IPhysicsCollisionEvent>;
 
-    // debug
-    private _range!: B.Mesh;
-
     // wander
     private _wanderArea!: {position: B.Vector2, size: number};
     private _actionTime: number = 0;
@@ -55,16 +52,11 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         if (this.scene.game.networkInstance.isHost) {
             this._playerCollisionObserver = this._rigidBodyComponent.collisionObservable.add(this._onCollision.bind(this));
         }
-
-        this._debug();
     }
 
     public onUpdate(): void {}
 
     public onFixedUpdate(): void {
-        this._range.position.x = this._mesh.position.x;
-        this._range.position.z = this._mesh.position.z;
-
         const ball: Entity | null = this.scene.entityManager.getFirstEntityByTag("ball");
         if (!ball) return;
         this._ball = ball;
@@ -92,6 +84,10 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
                 // transitions
                 if (this._isInWanderArea()) {
                     this.state = AIPlayerState.WANDER;
+                    this._actionTime = 0;
+                }
+                else if (this.ballEntity) {
+                    this.state = AIPlayerState.ATTACK;
                     this._actionTime = 0;
                 }
 
@@ -469,31 +465,5 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
             return target;
         }
         else return [];
-    }
-
-    private _debug(): void {
-        const plane: B.Mesh = B.MeshBuilder.CreatePlane("wanderArea", {size: this._wanderArea.size}, this.scene.babylonScene);
-        plane.isVisible = false;
-        plane.position.y = 0.1;
-        plane.position.x = this._wanderArea.position.x;
-        plane.position.z = this._wanderArea.position.y;
-        plane.rotate(B.Axis.X, Math.PI / 2, B.Space.WORLD);
-
-        const material = new B.StandardMaterial("material", this.scene.babylonScene);
-        material.diffuseColor = new B.Color3(0, 0, 1);
-        material.alpha = 0.5;
-        plane.material = material;
-
-        this._range = B.MeshBuilder.CreateDisc("range", {radius: this._visionRange}, this.scene.babylonScene);
-        this._range.isVisible = false;
-        this._range.position.y = 0.1;
-        this._range.position.x = this._mesh.position.x;
-        this._range.position.z = this._mesh.position.z;
-        this._range.rotate(B.Axis.X, Math.PI / 2, B.Space.WORLD);
-
-        const rangeMaterial = new B.StandardMaterial("material", this.scene.babylonScene);
-        rangeMaterial.diffuseColor = new B.Color3(1, 0, 0);
-        rangeMaterial.alpha = 0.2;
-        this._range.material = rangeMaterial;
     }
 }

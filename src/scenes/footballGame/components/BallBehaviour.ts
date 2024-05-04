@@ -113,16 +113,14 @@ export class BallBehaviour implements IComponent {
     }
 
     /**
-     * Rotate the ball based on the owner's rotation
+     * Rotate the ball with the given rotation
      */
-    public rotateBall(velocity: B.Vector3): void {
-        if (!this._ballOwner || velocity.equals(B.Vector3.Zero())) return;
+    public rotateBall(rotation: B.Quaternion): void {
+        if (!this._mesh.rotationQuaternion) return;
 
-        if (this._ballOwner.mesh.rotationQuaternion && this._mesh.rotationQuaternion) {
-            const ownerRotation: B.Vector3 = this._ballOwner.mesh.rotationQuaternion.toEulerAngles();
-            this._ballRotationX += this._rotationSpeed;
-            this._mesh.rotationQuaternion = B.Quaternion.RotationYawPitchRoll(ownerRotation.y, this._ballRotationX, ownerRotation.z)
-        }
+        const eulerAngles: B.Vector3 = rotation.toEulerAngles();
+        this._ballRotationX += this._rotationSpeed;
+        this._mesh.rotationQuaternion = B.Quaternion.RotationYawPitchRoll(eulerAngles.y, this._ballRotationX, eulerAngles.z)
     }
 
     /**
@@ -190,5 +188,13 @@ export class BallBehaviour implements IComponent {
 
     public getOwner(): B.Nullable<{playerId?: string, entityId: string, mesh: B.Mesh, teamIndex: number}> {
         return this._ballOwner;
+    }
+
+    public getVelocity(): B.Vector3 {
+        return this._velocity;
+    }
+
+    public setVelocity(velocity: B.Vector3): void {
+        this._velocity = velocity;
     }
 }

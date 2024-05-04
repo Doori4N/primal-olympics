@@ -167,7 +167,7 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
 
         this._networkAnimationComponent.startAnimation("Kicking", {from: 27, to: 60, smoothTransition: true});
         this._networkAudioComponent.playSound("Kick", {offset: 0.3, duration: 1, volume: 0.5});
-        this._freezePlayer(100);
+        this._freezePlayer(500);
 
         const direction: B.Vector3 = closestPlayer.position.subtract(this._mesh.position).normalize();
         const ballBehaviourComponent = ballEntity.getComponent("BallBehaviour") as BallBehaviour;

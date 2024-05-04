@@ -21,6 +21,7 @@ import {CameraMovement} from "./components/CameraMovement";
 import {NetworkTransformComponent} from "../../network/components/NetworkTransformComponent";
 import {AIPlayerBehaviour} from "./components/players/AIPlayerBehaviour";
 import {NetworkAudioComponent} from "../../network/components/NetworkAudioComponent";
+import {EdgeCollision} from "./components/EdgeCollision";
 
 const PITCH_WIDTH: number = 40;
 const PITCH_HEIGHT: number = 27;
@@ -121,10 +122,10 @@ export class FootballScene extends Scene {
         this._createGoal("rightGoal", new B.Vector3(PITCH_WIDTH / 2 + 1.25, 1.5, 0));
 
         // edges
-        this._createEdge(new B.Vector3(0, 1.5, (PITCH_HEIGHT / 2) + 0.5), new B.Vector3(0, 0, 0), PITCH_WIDTH);
+        this._createEdge(new B.Vector3(0, 1.5, (PITCH_HEIGHT / 2) + 0.5), new B.Vector3(0, Math.PI, 0), PITCH_WIDTH);
         this._createEdge(new B.Vector3(0, 1.5, (-PITCH_HEIGHT / 2) - 0.5), new B.Vector3(0, 0, 0), PITCH_WIDTH);
-        this._createEdge(new B.Vector3((PITCH_WIDTH / 2) + 0.5, 1.5, -8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
-        this._createEdge(new B.Vector3((PITCH_WIDTH / 2) + 0.5, 1.5, 8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
+        this._createEdge(new B.Vector3((PITCH_WIDTH / 2) + 0.5, 1.5, -8.5), new B.Vector3(0, -Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
+        this._createEdge(new B.Vector3((PITCH_WIDTH / 2) + 0.5, 1.5, 8.5), new B.Vector3(0, -Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
         this._createEdge(new B.Vector3((-PITCH_WIDTH / 2) - 0.5, 1.5, -8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
         this._createEdge(new B.Vector3((-PITCH_WIDTH / 2) - 0.5, 1.5, 8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
 
@@ -290,7 +291,9 @@ export class FootballScene extends Scene {
         edgeEntity.addComponent(new RigidBodyComponent(edgeEntity, this, {
             physicsShape: B.PhysicsShapeType.BOX,
             physicsProps: {mass: 0},
+            isCollisionCallbackEnabled: true
         }));
+        edgeEntity.addComponent(new EdgeCollision(edgeEntity, this));
         this.entityManager.addEntity(edgeEntity);
     }
 

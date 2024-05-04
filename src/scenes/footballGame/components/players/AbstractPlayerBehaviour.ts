@@ -87,10 +87,10 @@ export abstract class AbstractPlayerBehaviour implements IComponent {
             this._mesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, rotationY, 0);
         }
 
-        // update the ball rotation if the player has the ball
-        if (this.ballEntity) {
+        // update the ball rotation if the player has the ball and is moving
+        if (this.ballEntity && this._mesh.rotationQuaternion && !this._velocity.equals(B.Vector3.Zero())) {
             const ballBehaviourComponent = this.ballEntity.getComponent("BallBehaviour") as BallBehaviour;
-            ballBehaviourComponent.rotateBall(this._velocity);
+            ballBehaviourComponent.rotateBall(this._mesh.rotationQuaternion);
         }
     }
 
