@@ -4,6 +4,7 @@ import {Scene} from "../../../core/Scene";
 import * as B from "@babylonjs/core";
 import {GameMessages} from "../../../core/components/GameMessages";
 import {NetworkHost} from "../../../network/NetworkHost";
+import {NetworkAudioComponent} from "../../../network/components/NetworkAudioComponent";
 
 export class GameController implements IComponent {
     public name: string = "GameController";
@@ -16,6 +17,7 @@ export class GameController implements IComponent {
     private _uiContainer!: Element;
     private _gameMessagesComponent!: GameMessages;
     private _score: {left: number, right: number} = {left: 0, right: 0};
+    private _networkAudioComponent!: NetworkAudioComponent;
 
     // event listeners
     private _onGoalScoredEvent = this._onGoalScoredClientRpc.bind(this);
@@ -36,6 +38,7 @@ export class GameController implements IComponent {
             this.scene.game.networkInstance.addEventListener("onGoalScored", this._onGoalScoredEvent);
         }
 
+        this._networkAudioComponent = this.entity.getComponent("NetworkAudio") as NetworkAudioComponent;
         this._gameMessagesComponent = this.entity.getComponent("GameMessages") as GameMessages;
 
         this._uiContainer = document.querySelector("#ui")!;
@@ -70,23 +73,37 @@ export class GameController implements IComponent {
 
         const networkHost = this.scene.game.networkInstance as NetworkHost;
 
-        if (collider?.metadata?.tag === "ball" && (collidedAgainst?.metadata?.tag === "rightGoal")) {
-            networkHost.sendToAllClients("onGoalScored", true);
-            this._score.left++;
+        // check if the ball collided with a goal (left scores if the ball collided with the rightGoal)
+        const isLeftScore: boolean = collidedAgainst?.metadata?.tag === "rightGoal";
+        const isRightScore: boolean = collidedAgainst?.metadata?.tag === "leftGoal";
+
+        if (collider?.metadata?.tag === "ball" && (isRightScore || isLeftScore)) {
+            if (isLeftScore) {
+                networkHost.sendToAllClients("onGoalScored", true);
+                this._score.left++;
+            }
+            else {
+                networkHost.sendToAllClients("onGoalScored", false);
+                this._score.right++;
+            }
+
             this._updateScoreUI();
             this._displayGoalMessage(this.scene.eventManager.notify.bind(this.scene.eventManager, "onGoalScored"));
-        }
-        else if (collider?.metadata?.tag === "ball" && (collidedAgainst?.metadata?.tag === "leftGoal")) {
-            networkHost.sendToAllClients("onGoalScored", false);
-            this._score.right++;
-            this._updateScoreUI();
-            this._displayGoalMessage(this.scene.eventManager.notify.bind(this.scene.eventManager, "onGoalScored"));
+
+            // audio
+            this._networkAudioComponent.playSound("Crowd", {
+                volume: 0.4,
+                offset: 4,
+                duration: 5,
+                fadeOut: {fadeOutDelay: 3, fadeOutDuration: 2}
+            });
+            this._networkAudioComponent.playSound("Whistle", {volume: 0.5, offset: 9, duration: 1});
         }
     }
 
-    private _onGoalScoredClientRpc(isLeftGoal: boolean): void {
+    private _onGoalScoredClientRpc(isLeftScore: boolean): void {
         // update score
-        if (isLeftGoal) this._score.left++;
+        if (isLeftScore) this._score.left++;
         else this._score.right++;
         this._updateScoreUI();
 

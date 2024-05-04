@@ -274,6 +274,7 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         const ballBehaviourComponent = ballEntity.getComponent("BallBehaviour") as BallBehaviour;
         const direction: B.Vector3 = this._mesh.forward.clone();
         this._networkAnimationComponent.startAnimation("Kicking", {to: 75});
+        this._networkAudioComponent.playSound("Kick", {offset: 0, duration: 1, volume: 0.5});
         this._freezePlayer(this._shootDuration);
 
         setTimeout((): void => {
@@ -305,6 +306,7 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
 
             // pass the ball
             this._networkAnimationComponent.startAnimation("Kicking", {from: 27, to: 60, smoothTransition: true});
+            this._networkAudioComponent.playSound("Kick", {offset: 0.3, duration: 1, volume: 0.5});
             const ballBehaviourComponent = this.ballEntity.getComponent("BallBehaviour") as BallBehaviour;
             ballBehaviourComponent.kickBall(direction, this._shootForce);
             this.ballEntity = null;

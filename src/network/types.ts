@@ -47,3 +47,13 @@ export type AnimationOptions = {
     smoothTransition?: boolean,
     transitionSpeed?: number
 }
+
+export type AudioOptions = {
+    offset?: number,
+    duration?: number,
+    volume?: number,
+    fadeOut?: {
+        fadeOutDuration: number,
+        fadeOutDelay: number,
+    },
+}

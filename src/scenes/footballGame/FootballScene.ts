@@ -20,6 +20,7 @@ import * as GUI from "@babylonjs/gui";
 import {CameraMovement} from "./components/CameraMovement";
 import {NetworkTransformComponent} from "../../network/components/NetworkTransformComponent";
 import {AIPlayerBehaviour} from "./components/players/AIPlayerBehaviour";
+import {NetworkAudioComponent} from "../../network/components/NetworkAudioComponent";
 
 const PITCH_WIDTH: number = 40;
 const PITCH_HEIGHT: number = 27;
@@ -270,6 +271,12 @@ export class FootballScene extends Scene {
         gameManager.addComponent(new GameMessages(gameManager, this));
         gameManager.addComponent(new GameTimer(gameManager, this, {duration: 240}));
         gameManager.addComponent(new GameController(gameManager, this));
+
+        // audio
+        const sounds: {[key: string]: B.Sound} = {};
+        sounds["Crowd"] = new B.Sound("crowd_reaction", "sounds/crowd_reaction.wav", this.babylonScene, null, {loop: false, autoplay: false});
+        sounds["Whistle"] = new B.Sound("whistle", "sounds/whistle.wav", this.babylonScene, null, {loop: false, autoplay: false});
+        gameManager.addComponent(new NetworkAudioComponent(gameManager, this, {sounds}));
         this.entityManager.addEntity(gameManager);
     }
 
@@ -357,6 +364,7 @@ export class FootballScene extends Scene {
             isCollisionCallbackEnabled: true
         }));
 
+        // animations
         const animations: {[key: string]: B.AnimationGroup} = {};
         animations["Idle"] = entries.animationGroups[0];
         animations["Running"] = entries.animationGroups[2];
@@ -364,6 +372,11 @@ export class FootballScene extends Scene {
         animations["Tackling"] = entries.animationGroups[4];
         animations["Tackle_Reaction"] = entries.animationGroups[5];
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
+
+        // audio
+        const sounds: {[key: string]: B.Sound} = {};
+        sounds["Kick"] = new B.Sound("soccer_ball_kick", "sounds/soccer_ball_kick.wav", this.babylonScene, null, {loop: false, autoplay: false});
+        playerEntity.addComponent(new NetworkAudioComponent(playerEntity, this, {sounds}));
 
         playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
         playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerId: playerId, teamIndex: teamIndex}));
@@ -424,6 +437,11 @@ export class FootballScene extends Scene {
         animations["Tackling"] = entries.animationGroups[4];
         animations["Tackle_Reaction"] = entries.animationGroups[5];
         aiPlayerEntity.addComponent(new NetworkAnimationComponent(aiPlayerEntity, this, {animations: animations}));
+
+        // audio
+        const sounds: {[key: string]: B.Sound} = {};
+        sounds["Kick"] = new B.Sound("soccer_ball_kick", "sounds/soccer_ball_kick.wav", this.babylonScene, null, {loop: false, autoplay: false});
+        aiPlayerEntity.addComponent(new NetworkAudioComponent(aiPlayerEntity, this, {sounds}));
 
         aiPlayerEntity.addComponent(new NetworkTransformComponent(aiPlayerEntity, this, {usePhysics: true}));
         aiPlayerEntity.addComponent(new AIPlayerBehaviour(aiPlayerEntity, this, {

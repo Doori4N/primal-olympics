@@ -150,6 +150,7 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
         const ballBehaviourComponent = ballEntity.getComponent("BallBehaviour") as BallBehaviour;
         const direction: B.Vector3 = this._mesh.forward.clone();
         this._networkAnimationComponent.startAnimation("Kicking", {to: 75});
+        this._networkAudioComponent.playSound("Kick", {offset: 0, duration: 1, volume: 0.5});
         this._freezePlayer(this._shootDuration);
 
         setTimeout((): void => {
@@ -165,6 +166,7 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
         if (!closestPlayer) return;
 
         this._networkAnimationComponent.startAnimation("Kicking", {from: 27, to: 60, smoothTransition: true});
+        this._networkAudioComponent.playSound("Kick", {offset: 0.3, duration: 1, volume: 0.5});
         this._freezePlayer(100);
 
         const direction: B.Vector3 = closestPlayer.position.subtract(this._mesh.position).normalize();
