@@ -132,7 +132,10 @@ export class FootballScene extends Scene {
         // gameManager
         this._initGameManager();
 
-        this.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
+        // HOST
+        if (this.game.networkInstance.isHost) {
+            this.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
+        }
     }
 
     private _createFootballPitch(): void {
@@ -233,6 +236,8 @@ export class FootballScene extends Scene {
                     id: playerEntity.id,
                     teamIndex: 0
                 });
+
+                this._teams[0].push(playerEntity);
             }
             for (let i: number = this._teams[1].length; i < 4; i++) {
                 const spawnPosition: B.Vector3 = this._spawns[i].clone();
@@ -245,6 +250,8 @@ export class FootballScene extends Scene {
                     id: playerEntity.id,
                     teamIndex: 1
                 });
+
+                this._teams[1].push(playerEntity);
             }
         }
         // CLIENT
@@ -489,17 +496,29 @@ export class FootballScene extends Scene {
     }
 
     private _onGoalScored(): void {
-        this._ballMesh.position = new B.Vector3(0, 0.5, 0);
+        setTimeout((): void => {
+            this.game.fadeIn();
+        }, 1000);
 
-        // reset players position
-        this._teams[0].forEach((player: Entity, index: number): void => {
-            const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
-            playerMeshComponent.mesh.position = this._spawns[index].clone();
-            playerMeshComponent.mesh.position.x *= -1;
-        });
-        this._teams[1].forEach((player: Entity, index: number): void => {
-            const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
-            playerMeshComponent.mesh.position = this._spawns[index].clone();
-        });
+        setTimeout((): void => {
+            this._ballMesh.position = new B.Vector3(0, 0.5, 0);
+
+            // reset players position
+            this._teams[0].forEach((player: Entity, index: number): void => {
+                const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
+                playerMeshComponent.mesh.position = this._spawns[index].clone();
+                playerMeshComponent.mesh.position.x *= -1;
+            });
+            this._teams[1].forEach((player: Entity, index: number): void => {
+                const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
+                playerMeshComponent.mesh.position = this._spawns[index].clone();
+            });
+
+            this.game.fadeOut();
+        }, 2000);
+
+        setTimeout((): void => {
+            this.eventManager.notify("onGoalReset");
+        }, 4000);
     }
 }

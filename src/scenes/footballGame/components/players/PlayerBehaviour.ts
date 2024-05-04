@@ -45,7 +45,7 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
     public onUpdate(): void {}
 
     public onFixedUpdate(): void {
-        if (!this._isGameStarted || this._isGameFinished) return;
+        if (!this._isGameStarted || this._isGameFinished || this._isGamePaused) return;
         if (this.scene.game.networkInstance.isHost) this._handleServerUpdate();
         else this._handleClientUpdate();
     }
@@ -154,6 +154,9 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
         this._freezePlayer(this._shootDuration);
 
         setTimeout((): void => {
+            // if the player lost the ball, do nothing
+            if (!this.ballEntity) return;
+
             ballBehaviourComponent.kickBall(direction, this._shootForce);
             this.ballEntity = null;
             // delay the tackle to avoid the player to tackle right after shooting

@@ -61,7 +61,7 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         if (!ball) return;
         this._ball = ball;
 
-        if (!this._isGameStarted || this._isGameFinished) return;
+        if (!this._isGameStarted || this._isGameFinished || this._isGamePaused) return;
 
         if (!this._isFrozen) switch (this.state) {
             case AIPlayerState.WANDER:
@@ -135,7 +135,6 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
             // follow the shortest path to the random point
             const path: number[] = this._getShortestPath([this._wanderArea.position.x + this._randomPointOffset, this._wanderArea.position.y + this._randomPointOffset]);
             if (path.length > 0) {
-                this._networkAnimationComponent.startAnimation("Running", {smoothTransition: true, loop: true});
                 this._followTarget(new B.Vector3(path[0], 0, path[1]));
             } else {
                 this._velocity = B.Vector3.Zero();
@@ -151,6 +150,7 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
             return;
         }
 
+        // wander
         if (this._actionTime <= 0) {
             this._isWaiting = true;
             const waitingTime: number = Utils.randomFloat(0.5, 1.5) * 1000;
@@ -158,7 +158,7 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
 
             setTimeout((): void => {
                 this._isWaiting = false;
-                if (this.state !== AIPlayerState.WANDER) return;
+                if (this.state !== AIPlayerState.WANDER || this._isGamePaused) return;
                 this._actionTime = Utils.randomFloat(1, 1.5) * 1000;
                 const direction: B.Vector3 = new B.Vector3(Utils.randomFloat(-1, 1), 0, Utils.randomFloat(-1, 1)).normalize();
                 this._velocity = direction.scale(this._speed);
@@ -274,6 +274,8 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         this._freezePlayer(this._shootDuration);
 
         setTimeout((): void => {
+            if (!this.ballEntity) return;
+
             ballBehaviourComponent.kickBall(direction, this._shootForce);
             this.ballEntity = null;
             // delay the tackle to avoid the player to tackle right after shooting

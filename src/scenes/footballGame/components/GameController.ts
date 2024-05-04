@@ -32,6 +32,9 @@ export class GameController implements IComponent {
         if (this.scene.game.networkInstance.isHost) {
             const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.game.physicsPlugin.onTriggerCollisionObservable;
             this._goalTriggerObserver = observable.add(this._onTriggerCollision.bind(this));
+
+            this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
+            this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
         }
         // CLIENT
         else {
@@ -88,7 +91,8 @@ export class GameController implements IComponent {
             }
 
             this._updateScoreUI();
-            this._displayGoalMessage(this.scene.eventManager.notify.bind(this.scene.eventManager, "onGoalScored"));
+            this._gameMessagesComponent.displayMessage("GOAL!", 1500);
+            this.scene.eventManager.notify("onGoalScored");
 
             // audio
             this._networkAudioComponent.playSound("Crowd", {
@@ -98,6 +102,10 @@ export class GameController implements IComponent {
                 fadeOut: {fadeOutDelay: 3, fadeOutDuration: 2}
             });
             this._networkAudioComponent.playSound("Whistle", {volume: 0.5, offset: 9, duration: 1});
+
+            setTimeout((): void => {
+                this._networkAudioComponent.playSound("Whistle", {volume: 0.5, offset: 9, duration: 1});
+            }, 3500);
         }
     }
 
@@ -106,11 +114,14 @@ export class GameController implements IComponent {
         if (isLeftScore) this._score.left++;
         else this._score.right++;
         this._updateScoreUI();
-
-        this._displayGoalMessage();
+        this._gameMessagesComponent.displayMessage("GOAL!", 1500);
     }
 
-    private _displayGoalMessage(callback?: Function): void {
-        this._gameMessagesComponent.displayMessage("GOAL!", 1500, callback);
+    private _onGameStarted(): void {
+        this._networkAudioComponent.playSound("Whistle", {volume: 0.5, offset: 9, duration: 1});
+    }
+
+    private _onGameFinished(): void {
+        this._networkAudioComponent.playSound("Whistle", {volume: 0.5, offset: 3, duration: 1.5});
     }
 }

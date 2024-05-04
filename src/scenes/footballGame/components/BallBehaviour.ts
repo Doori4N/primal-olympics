@@ -148,7 +148,11 @@ export class BallBehaviour implements IComponent {
 
     private _onGoalScored(): void {
         this._ballOwner = null;
-        this._velocity = B.Vector3.Zero();
+
+        // let the ball roll before stopping it
+        setTimeout((): void => {
+            this._velocity = B.Vector3.Zero();
+        }, 1500);
     }
 
     private _applyPredictedInput(position: B.Vector3): void {

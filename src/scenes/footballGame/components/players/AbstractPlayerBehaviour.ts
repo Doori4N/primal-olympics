@@ -14,6 +14,7 @@ export abstract class AbstractPlayerBehaviour implements IComponent {
     public scene: Scene;
     protected _isGameStarted: boolean = false;
     protected _isGameFinished: boolean = false;
+    protected _isGamePaused: boolean = false;
     protected _networkAnimationComponent!: NetworkAnimationComponent;
     protected _networkAudioComponent!: NetworkAudioComponent;
     protected _rigidBodyComponent!: RigidBodyComponent;
@@ -65,6 +66,8 @@ export abstract class AbstractPlayerBehaviour implements IComponent {
         // subscribe to game events
         this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
         this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
+        this.scene.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
+        this.scene.eventManager.subscribe("onGoalReset", this._onGoalReset.bind(this));
     }
 
     public abstract onUpdate(): void;
@@ -233,5 +236,20 @@ export abstract class AbstractPlayerBehaviour implements IComponent {
 
     protected _onGameFinished(): void {
         this._isGameFinished = true;
+        this._networkAnimationComponent.stopAllAnimations();
+        this._networkAnimationComponent.startAnimation("Idle", {loop: true});
+    }
+
+    protected _onGoalScored(): void {
+        this._networkAnimationComponent.stopAllAnimations();
+        this._networkAnimationComponent.startAnimation("Idle", {loop: true});
+        this._isGamePaused = true;
+        this._velocity = B.Vector3.Zero();
+        this._physicsAggregate.body.setLinearVelocity(this._velocity);
+        this.ballEntity = null;
+    }
+
+    protected _onGoalReset(): void {
+        this._isGamePaused = false;
     }
 }

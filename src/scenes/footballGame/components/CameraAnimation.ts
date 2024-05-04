@@ -69,9 +69,13 @@ export class CameraAnimation implements IComponent {
             1,
             this.onEndAnimation.bind(this)
         );
+        setTimeout((): void => {
+            this.scene.game.fadeIn();
+        }, 7000);
     }
 
     private onEndAnimation(): void {
+        this.scene.game.fadeOut();
         this.scene.eventManager.notify("onCameraAnimationFinished");
         this.scene.entityManager.removeEntity(this.entity);
     }

@@ -7,7 +7,7 @@ import {EntityManager} from "./EntityManager";
 import {SceneManager} from "./SceneManager";
 import {IPhysicsEngine} from "@babylonjs/core/Physics/IPhysicsEngine";
 
-export class Scene {
+export abstract class Scene {
     public name: string;
     public babylonScene: B.Scene;
     public mainCamera: B.FreeCamera;
@@ -17,7 +17,7 @@ export class Scene {
     public sceneManager: SceneManager = SceneManager.getInstance();
     public loadedAssets: { [name: string]: B.AssetContainer } = {};
 
-    constructor(name: string) {
+    protected constructor(name: string) {
         this.name = name;
 
         // initialize the scene with a main camera
@@ -28,10 +28,9 @@ export class Scene {
     public async loadAssets(): Promise<void> {};
 
     /**
-     * Function to override
      * Initialize all entities
      */
-    public start(): void {}
+    public abstract start(): void;
 
     /**
      * Render the scene and update entities
@@ -66,7 +65,7 @@ export class Scene {
      * Execute one physics step and notify observers
      * @param delta - defines the timespan between frames
      */
-    private _executeStep(delta: number): void {
+    protected _executeStep(delta: number): void {
         const physicsEngine: B.Nullable<IPhysicsEngine> = this.babylonScene.getPhysicsEngine();
         if (!physicsEngine) return;
 

@@ -11,7 +11,7 @@ export class NetworkAudioComponent implements IComponent {
     public scene: Scene;
 
     // component properties
-    private _sounds: {[key: string]: B.Sound};
+    private readonly _sounds: {[key: string]: B.Sound};
 
     constructor(entity: Entity, scene: Scene, props: {sounds: {[key: string]: B.Sound}}) {
         this.entity = entity;

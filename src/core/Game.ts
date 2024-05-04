@@ -144,4 +144,24 @@ export class Game {
             }
         });
     }
+
+    public fadeIn(): void {
+        const fadeDiv: HTMLDivElement = document.createElement("div");
+        fadeDiv.className = "fade";
+        document.body.appendChild(fadeDiv);
+
+        // to trigger the fade-in transition
+        setTimeout((): void => {
+            fadeDiv.style.opacity = "1";
+        }, 100);
+    }
+
+    public fadeOut(): void {
+        const fadeInDiv: HTMLDivElement | null = document.querySelector(".fade");
+        if (!fadeInDiv) throw new Error("Fade in element not found");
+        fadeInDiv.style.opacity = "0";
+        setTimeout((): void => {
+            fadeInDiv.remove();
+        }, 2000);
+    }
 }
