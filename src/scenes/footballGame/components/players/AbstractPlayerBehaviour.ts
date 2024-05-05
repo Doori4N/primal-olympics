@@ -7,6 +7,7 @@ import {Scene} from "../../../../core/Scene";
 import {RigidBodyComponent} from "../../../../core/components/RigidBodyComponent";
 import {NetworkAnimationComponent} from "../../../../network/components/NetworkAnimationComponent";
 import {NetworkAudioComponent} from "../../../../network/components/NetworkAudioComponent";
+import {NetworkHost} from "../../../../network/NetworkHost";
 
 export abstract class AbstractPlayerBehaviour implements IComponent {
     public name: string = "AbstractPlayerBehaviour";
@@ -47,6 +48,9 @@ export abstract class AbstractPlayerBehaviour implements IComponent {
     // stun
     protected _stunDuration: number = 2000;
 
+    // event listeners
+    private _onStunEvent = this.stun.bind(this);
+
     protected constructor(entity: Entity, scene: Scene, teamIndex: number) {
         this.entity = entity;
         this.scene = scene;
@@ -58,6 +62,8 @@ export abstract class AbstractPlayerBehaviour implements IComponent {
         this._mesh = meshComponent.mesh;
 
         this._networkAnimationComponent = this.entity.getComponent("NetworkAnimation") as NetworkAnimationComponent;
+        this._networkAnimationComponent.startAnimation("Idle");
+
         this._networkAudioComponent = this.entity.getComponent("NetworkAudio") as NetworkAudioComponent;
 
         this._rigidBodyComponent = this.entity.getComponent("RigidBody") as RigidBodyComponent;
@@ -68,6 +74,11 @@ export abstract class AbstractPlayerBehaviour implements IComponent {
         this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
         this.scene.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
         this.scene.eventManager.subscribe("onGoalReset", this._onGoalReset.bind(this));
+
+        // CLIENT
+        if (!this.scene.game.networkInstance.isHost) {
+            this.scene.game.networkInstance.addEventListener(`onStun${this.entity.id}`, this._onStunEvent);
+        }
     }
 
     public abstract onUpdate(): void;
@@ -203,8 +214,15 @@ export abstract class AbstractPlayerBehaviour implements IComponent {
      * Stun the player for a certain amount of time
      */
     public stun(): void {
+        // if host send stun event to all clients so they can apply stun effect
+        if (this.scene.game.networkInstance.isHost) {
+            const networkHost = this.scene.game.networkInstance as NetworkHost;
+            networkHost.sendToAllClients(`onStun${this.entity.id}`);
+
+            this._networkAnimationComponent.startAnimation("Tackle_Reaction", {smoothTransition: true});
+        }
+
         this._freezePlayer(this._stunDuration);
-        this._networkAnimationComponent.startAnimation("Tackle_Reaction", {smoothTransition: true});
 
         const highlightLayer = new B.HighlightLayer("highlightLayer", this.scene.babylonScene);
         const skinMesh = this._mesh.getChildMeshes(false, (node: B.Node): boolean => {

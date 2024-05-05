@@ -134,11 +134,7 @@ export class FootballScene extends Scene {
         // gameManager
         this._initGameManager();
 
-        // HOST
-        if (this.game.networkInstance.isHost) {
-            this.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
-        }
-
+        this.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
         this.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
     }
 
@@ -191,33 +187,39 @@ export class FootballScene extends Scene {
             const networkHost = this.game.networkInstance as NetworkHost;
 
             // shuffle teams index
-            let teamIndex: number[] = new Array(networkHost.players.length).fill(0, 0, networkHost.players.length / 2).fill(1, networkHost.players.length / 2);
-            Utils.shuffle(teamIndex);
+            let teamIndexes: number[] = new Array(networkHost.players.length).fill(0, 0, networkHost.players.length / 2).fill(1, networkHost.players.length / 2);
+            Utils.shuffle(teamIndexes);
 
             for (let i: number = 0; i < networkHost.players.length; i++) {
                 const playerId: string = networkHost.players[i].id;
 
-                const spawnIndex: number = this._teams[teamIndex[i]].length;
+                const spawnIndex: number = this._teams[teamIndexes[i]].length;
                 const spawnPosition: B.Vector3 = this._spawns[spawnIndex].clone();
-                spawnPosition.x *= teamIndex[i] === 0 ? -1 : 1;
+                spawnPosition.x *= teamIndexes[i] === 0 ? -1 : 1;
 
-                const playerEntity: Entity = this._createPlayer(playerId, teamIndex[i], spawnPosition);
+                const playerEntity: Entity = this._createPlayer(playerId, teamIndexes[i], spawnPosition);
                 this.entityManager.addEntity(playerEntity);
 
                 networkHost.sendToAllClients("onCreatePlayer", {
                     playerId: playerId,
                     id: playerEntity.id,
-                    teamIndex: teamIndex[i]
+                    teamIndex: teamIndexes[i]
                 });
 
-                this._teams[teamIndex[i]].push(playerEntity);
+                this._teams[teamIndexes[i]].push(playerEntity);
             }
         }
         // CLIENT
         else {
             this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerId: string, id: string, teamIndex: number}): void => {
-                const playerEntity: Entity = this._createPlayer(args.playerId, args.teamIndex, B.Vector3.Zero(), args.id);
+                const spawnIndex: number = this._teams[args.teamIndex].length;
+                const spawnPosition: B.Vector3 = this._spawns[spawnIndex].clone();
+                spawnPosition.x *= args.teamIndex === 0 ? -1 : 1;
+
+                const playerEntity: Entity = this._createPlayer(args.playerId, args.teamIndex, spawnPosition, args.id);
                 this.entityManager.addEntity(playerEntity);
+
+                this._teams[args.teamIndex].push(playerEntity);
             });
         }
     }
@@ -227,6 +229,7 @@ export class FootballScene extends Scene {
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;
 
+            // create blue team AI players
             for (let i: number = this._teams[0].length; i < 4; i++) {
                 const spawnPosition: B.Vector3 = this._spawns[i].clone();
                 spawnPosition.x *= -1;
@@ -243,6 +246,8 @@ export class FootballScene extends Scene {
 
                 this._teams[0].push(playerEntity);
             }
+
+            // create orange team AI players
             for (let i: number = this._teams[1].length; i < 4; i++) {
                 const spawnPosition: B.Vector3 = this._spawns[i].clone();
                 const wanderPosition: B.Vector2 = this._wanderPositions[i].clone();
@@ -261,14 +266,35 @@ export class FootballScene extends Scene {
         // CLIENT
         else {
             this.game.networkInstance.addEventListener("onCreateAIPlayer", (args: {id: string, teamIndex: number}): void => {
-                const playerEntity: Entity = this._createAIPlayer(args.teamIndex, B.Vector3.Zero(), B.Vector2.Zero(), args.id);
+                const spawnIndex: number = this._teams[args.teamIndex].length;
+                const spawnPosition: B.Vector3 = this._spawns[spawnIndex].clone();
+                spawnPosition.x *= args.teamIndex === 0 ? -1 : 1;
+
+                const playerEntity: Entity = this._createAIPlayer(args.teamIndex, spawnPosition, B.Vector2.Zero(), args.id);
                 this.entityManager.addEntity(playerEntity);
+
+                this._teams[args.teamIndex].push(playerEntity);
             });
         }
     }
 
     private _initGameManager(): void {
-        const gameManager = new Entity("gameManager");
+        // HOST
+        if (this.game.networkInstance.isHost) {
+            const networkHost = this.game.networkInstance as NetworkHost;
+            const gameManagerEntity = this._createGameManager();
+            networkHost.sendToAllClients("onCreateGameManager", gameManagerEntity.id);
+        }
+        // CLIENT
+        else {
+            this.game.networkInstance.addEventListener("onCreateGameManager", (id: string): void => {
+                this._createGameManager(id);
+            });
+        }
+    }
+
+    private _createGameManager(entityId?: string): Entity {
+        const gameManager = new Entity("gameManager", entityId);
         const htmlTemplate: string = `
             <h1>Savage Soccer</h1>
             <p>PC : Z/Q/S/D to move</p>
@@ -281,7 +307,7 @@ export class FootballScene extends Scene {
         `;
         gameManager.addComponent(new GamePresentation(gameManager, this, {htmlTemplate}));
         gameManager.addComponent(new GameMessages(gameManager, this));
-        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 15}));
+        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 120}));
         gameManager.addComponent(new GameController(gameManager, this));
         gameManager.addComponent(new GameScores(gameManager, this));
         gameManager.addComponent(new Leaderboard(gameManager, this));
@@ -290,8 +316,11 @@ export class FootballScene extends Scene {
         const sounds: {[key: string]: B.Sound} = {};
         sounds["Crowd"] = new B.Sound("crowd_reaction", "sounds/crowd_reaction.wav", this.babylonScene, null, {loop: false, autoplay: false});
         sounds["Whistle"] = new B.Sound("whistle", "sounds/whistle.wav", this.babylonScene, null, {loop: false, autoplay: false});
+        sounds["CrowdAmbience"] = new B.Sound("crowd_ambience", "sounds/crowd_ambience.wav", this.babylonScene, null, {loop: true, autoplay: true, volume: 0});
         gameManager.addComponent(new NetworkAudioComponent(gameManager, this, {sounds}));
         this.entityManager.addEntity(gameManager);
+
+        return gameManager;
     }
 
     private _createEdge(edgePosition: B.Vector3, edgeRotation: B.Vector3, length: number): void {
@@ -352,7 +381,8 @@ export class FootballScene extends Scene {
         shadow.position.y = -0.98;
 
         hitbox.position = position;
-        hitbox.rotate(B.Axis.Y, (-1 * teamIndex) * (Math.PI / 2), B.Space.WORLD);
+        const rotationOrientation: number = teamIndex === 0 ? 1 : -1;
+        hitbox.rotate(B.Axis.Y, rotationOrientation * (Math.PI / 2), B.Space.WORLD);
 
         // player name text
         const playerNameText = new GUI.TextBlock();

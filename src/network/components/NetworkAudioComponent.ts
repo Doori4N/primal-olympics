@@ -22,6 +22,7 @@ export class NetworkAudioComponent implements IComponent {
     public onStart(): void {
         if (this.scene.game.networkInstance.isHost) return;
 
+        // CLIENT
         this.scene.game.networkInstance.addEventListener(`startAudio${this.entity.id}`, this.playSound.bind(this));
         this.scene.game.networkInstance.addEventListener(`stopAudio${this.entity.id}`, this.stopSound.bind(this));
     }
@@ -36,13 +37,14 @@ export class NetworkAudioComponent implements IComponent {
         const sound: B.Sound = this._sounds[name];
         if (sound.isPlaying) this.stopSound(name);
 
+        if (options?.volume) sound.setVolume(options.volume);
+
         sound.play(0, options?.offset, options?.duration);
 
-        if (options?.volume) sound.setVolume(options.volume);
-        if (options?.fadeOut) {
+        if (options?.fade) {
             setTimeout((): void => {
-                sound.setVolume(0, options.fadeOut?.fadeOutDuration);
-            }, options.fadeOut.fadeOutDelay * 1000);
+                if (options.fade) sound.setVolume(options.fade.fadeVolume, options.fade.fadeOutDuration);
+            }, options.fade.fadeOutDelay * 1000);
         }
 
         // tell all clients to play the sound

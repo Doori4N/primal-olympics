@@ -52,8 +52,9 @@ export type AudioOptions = {
     offset?: number,
     duration?: number,
     volume?: number,
-    fadeOut?: {
+    fade?: {
+        fadeVolume: number,
         fadeOutDuration: number,
         fadeOutDelay: number,
-    },
+    }
 }

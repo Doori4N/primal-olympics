@@ -36,10 +36,6 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
         this._networkPredictionComponent = this.entity.getComponent("NetworkPrediction") as NetworkPredictionComponent<InputStates>;
         this._networkPredictionComponent.onApplyInput.add(this._applyPredictedInput.bind(this));
 
-        if (this.scene.game.networkInstance.isHost) {
-            this._networkAnimationComponent.startAnimation("Idle");
-        }
-
         this._isOwner = this.scene.game.networkInstance.playerId === this.playerId;
     }
 
@@ -90,6 +86,8 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
      * Re-apply the predicted input and simulate physics
      */
     private _applyPredictedInput(inputs: InputStates): void {
+        // don't apply prediction the input if the player is frozen
+        if (this._isFrozen) return;
         this._movePlayer(inputs);
         this.scene.simulate([this._physicsAggregate.body]);
     }

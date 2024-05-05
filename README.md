@@ -8,3 +8,4 @@ Play the game [here](https://doori4n.itch.io/gamesonweb-2024)
 - Kicking: 
 - Whistle: *metal whistle.wav by strongbot -- https://freesound.org/s/568995/ -- License: Creative Commons 0*
 - Crowd reaction:
+- Crowd ambience: *Norwegian football match/soccer game ambience.WAV by habbis92 -- https://freesound.org/s/206003/ -- License: Creative Commons 0*

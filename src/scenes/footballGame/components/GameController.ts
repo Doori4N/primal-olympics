@@ -34,6 +34,7 @@ export class GameController implements IComponent {
 
             this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
             this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
+            this.scene.eventManager.subscribe("onPresentationFinished", this._onPresentationFinished.bind(this));
         }
         // CLIENT
         else {
@@ -95,9 +96,9 @@ export class GameController implements IComponent {
             // audio
             this._networkAudioComponent.playSound("Crowd", {
                 volume: 0.4,
-                offset: 4,
-                duration: 5,
-                fadeOut: {fadeOutDelay: 3, fadeOutDuration: 2}
+                offset: 3.5,
+                duration: 5.5,
+                fade: {fadeVolume: 0, fadeOutDelay: 3, fadeOutDuration: 2}
             });
             this._networkAudioComponent.playSound("Whistle", {volume: 0.5, offset: 9, duration: 1});
 
@@ -113,6 +114,7 @@ export class GameController implements IComponent {
         else this.score.right++;
         this._updateScoreUI();
         this._gameMessagesComponent.displayMessage("GOAL!", 1500);
+        this.scene.eventManager.notify("onGoalScored");
     }
 
     private _onGameStarted(): void {
@@ -121,5 +123,11 @@ export class GameController implements IComponent {
 
     private _onGameFinished(): void {
         this._networkAudioComponent.playSound("Whistle", {volume: 0.5, offset: 3, duration: 1.5});
+    }
+
+    private _onPresentationFinished(): void {
+        this._networkAudioComponent.playSound("CrowdAmbience", {
+            fade: {fadeVolume: 0.3, fadeOutDelay: 0, fadeOutDuration: 8}
+        });
     }
 }

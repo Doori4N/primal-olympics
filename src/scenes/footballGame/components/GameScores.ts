@@ -104,7 +104,9 @@ export class GameScores implements IComponent {
             playerScoreText.linkOffsetY = 140;
 
             // play reaction animation
-            playerBehaviour.playRandomReactionAnimation((playerBehaviour.teamIndex === 0) ? (leftResult === Result.WIN) : (rightResult === Result.WIN));
+            if (this.scene.game.networkInstance.isHost) {
+                playerBehaviour.playRandomReactionAnimation((playerBehaviour.teamIndex === 0) ? (leftResult === Result.WIN) : (rightResult === Result.WIN));
+            }
 
             // reset position and add medals
             if (playerBehaviour.teamIndex === 0) {

@@ -47,8 +47,6 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
     public onStart(): void {
         super.onStart();
 
-        this._networkAnimationComponent.startAnimation("Idle");
-
         if (this.scene.game.networkInstance.isHost) {
             this._playerCollisionObserver = this._rigidBodyComponent.collisionObservable.add(this._onCollision.bind(this));
         }
@@ -57,6 +55,9 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
     public onUpdate(): void {}
 
     public onFixedUpdate(): void {
+        if (!this.scene.game.networkInstance.isHost) return;
+
+        // HOST
         const ball: Entity | null = this.scene.entityManager.getFirstEntityByTag("ball");
         if (!ball) return;
         this._ball = ball;
@@ -122,6 +123,9 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         if (this.scene.game.networkInstance.isHost) this._playerCollisionObserver.remove();
     }
 
+    /**
+     * When the player goes back to the wander area
+     */
     private _back(): void {
         if (this._actionTime <= 0) {
             this._actionTime = 10000;
@@ -143,6 +147,9 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         }
     }
 
+    /**
+     * Wander around the wander area
+     */
     private _wander(): void {
         // wait for a random time before wandering
         if (this._isWaiting) {
@@ -170,6 +177,9 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         }
     }
 
+    /**
+     * Check if the player is in the wander area
+     */
     private _isInWanderArea(): boolean {
         const position: B.Vector2 = new B.Vector2(this._mesh.position.x, this._mesh.position.z);
         const area: B.Vector2 = new B.Vector2(this._wanderArea.position.x, this._wanderArea.position.y);
@@ -195,6 +205,13 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         }
     }
 
+    /**
+     * When the player is defending
+     * - if the player is in range to tackle, tackle the opponent
+     * - if the player is not in range to tackle, chase the opponent
+     * - if the ball is free, chase the ball
+     * @private
+     */
     private _defense(): void {
         const ballBehaviourComponent = this._ball.getComponent("BallBehaviour") as BallBehaviour;
         const ballOwner: B.Nullable<{playerId?: string, entityId: string, mesh: B.Mesh, teamIndex: number}> = ballBehaviourComponent.getOwner();
@@ -224,6 +241,12 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         }
     }
 
+    /**
+     * When the player is attacking
+     * - if the player is in range to shoot, shoot
+     * - if the player choose to pass, pass the ball
+     * - if the player choose to move randomly, move randomly
+     */
     private _attack(): void {
         if (this._actionTime <= 0) {
             const enemyGoal = new B.Vector3((this.teamIndex === 0) ? PITCH_WIDTH / 2 - 1 : -PITCH_WIDTH / 2, 0, 0);
@@ -271,6 +294,8 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         const direction: B.Vector3 = this._mesh.forward.clone();
         this._networkAnimationComponent.startAnimation("Kicking", {to: 75});
         this._networkAudioComponent.playSound("Kick", {offset: 0, duration: 1, volume: 0.5});
+
+        // freeze the player for a short duration so he can't move while shooting
         this._freezePlayer(this._shootDuration);
 
         setTimeout((): void => {
@@ -289,6 +314,7 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
             this._isKicking = false;
         }, 1000);
 
+        // freeze the player for a short duration so he can't move while passing
         this._freezePlayer(500);
 
         // rotate the player in the direction of the teammate
@@ -314,10 +340,16 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         }, 100);
     }
 
+    /**
+     * Check if the given target is in range of the player
+     */
     private _isInRange(target: B.Vector3, range: number): boolean {
         return B.Vector3.Distance(this._mesh.position, target) <= range;
     }
 
+    /**
+     * Get the nearest free player to pass the ball
+     */
     private _getFreePlayer(): B.Nullable<Entity> {
         let freePlayer: B.Nullable<Entity> = null;
         let smallestDistance: number = Number.MAX_VALUE;
@@ -358,6 +390,9 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         return freePlayer;
     }
 
+    /**
+     * Move the player to follow the given target
+     */
     private _followTarget(target: B.Vector3): void {
         const direction: B.Vector3 = new B.Vector3(target.x - this._mesh.position.x, 0, target.z - this._mesh.position.z).normalize();
         this._velocity = direction.scale(this._speed);
@@ -422,6 +457,7 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         const players: Entity[] = this.scene.entityManager.getEntitiesByTag("player");
         players.push(...this.scene.entityManager.getEntitiesByTag("aiPlayer"));
 
+        // offset to remove negative indexes
         const offsetX: number = PITCH_WIDTH / 2;
         const offsetY: number = PITCH_HEIGHT / 2;
 
@@ -432,35 +468,30 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
             [0, -1]
         ];
 
+        // fill the grid with players positions
         players.forEach((player: Entity): void => {
-            try {
-                if (player.id === this.entity.id) return;
-                const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
-                const playerPosition: B.Vector3 = playerMeshComponent.mesh.position;
-                grid[Math.round(playerPosition.x) + offsetX][Math.round(playerPosition.z) + offsetY] = 1;
+            if (player.id === this.entity.id) return;
+            const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
+            const playerPosition: B.Vector3 = playerMeshComponent.mesh.position;
+            grid[Math.round(playerPosition.x) + offsetX][Math.round(playerPosition.z) + offsetY] = 1;
 
-                // put obstacles around the player
-                for (let neighbor of neighbors) {
-                    if (Math.round(playerPosition.x) + offsetX + neighbor[0] >= 0 && Math.round(playerPosition.x) + offsetX + neighbor[0] < PITCH_WIDTH &&
-                        Math.round(playerPosition.z) + offsetY + neighbor[1] >= 0 && Math.round(playerPosition.z) + offsetY + neighbor[1] < PITCH_HEIGHT) {
-                        grid[Math.round(playerPosition.x) + offsetX + neighbor[0]][Math.round(playerPosition.z) + offsetY + neighbor[1]] = 1;
-                    }
+            // put obstacles around the player to avoid players to block each other
+            for (let neighbor of neighbors) {
+                if (Math.round(playerPosition.x) + offsetX + neighbor[0] >= 0 && Math.round(playerPosition.x) + offsetX + neighbor[0] < PITCH_WIDTH &&
+                    Math.round(playerPosition.z) + offsetY + neighbor[1] >= 0 && Math.round(playerPosition.z) + offsetY + neighbor[1] < PITCH_HEIGHT) {
+                    grid[Math.round(playerPosition.x) + offsetX + neighbor[0]][Math.round(playerPosition.z) + offsetY + neighbor[1]] = 1;
                 }
-            }
-            catch (e) {
-                const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
-                const playerPosition: B.Vector3 = playerMeshComponent.mesh.position;
-                grid[Math.round(playerPosition.x) + offsetX][Math.round(playerPosition.z) + offsetY] = 1;
             }
         });
 
         const start: number[] = [Math.round(this._mesh.position.x) + offsetX, Math.round(this._mesh.position.z) + offsetY];
-        grid[start[0]][start[1]] = 2;
+        grid[start[0]][start[1]] = 0;
         endPoint[0] = Math.round(endPoint[0]) + offsetX;
         endPoint[1] = Math.round(endPoint[1]) + offsetY;
 
         const path: number[][] | null = Utils.astar(grid, start, endPoint);
         if (path && path.length > 1) {
+            // remove the offset
             const target: number[] = path[1];
             target[0] -= offsetX;
             target[1] -= offsetY;
