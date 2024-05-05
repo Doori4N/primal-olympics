@@ -13,10 +13,11 @@ export class Game {
     public inputManager: InputManager = new InputManager();
     public networkInstance!: INetworkInstance;
     public networkInputManager!: NetworkInputManager;
-    public tick: number = 45; // Number of server updates per second
+    public readonly tick: number = 45; // Number of server updates per second
     public tickIndex: number = 0; // Index of the current tick
     private _timer: number = 0; // Timer to keep track of the time passed since the last tick
     public miniGames: string[] = ["football"];
+    public readonly uiContainer: Element = document.querySelector("#ui")!;
 
     private constructor() {}
 
@@ -119,12 +120,9 @@ export class Game {
     }
 
     private _createInfoUI(): void {
-        const uiContainer: Element | null = document.querySelector("#ui");
-        if (!uiContainer) throw new Error("UI element not found");
-
         const infoDiv: HTMLDivElement = document.createElement("div");
         infoDiv.id = "info";
-        uiContainer.appendChild(infoDiv);
+        this.uiContainer.appendChild(infoDiv);
 
         const fpsDiv: HTMLDivElement = document.createElement("div");
         fpsDiv.id = "fps";
@@ -145,7 +143,11 @@ export class Game {
         });
     }
 
-    public fadeIn(): void {
+    /**
+     * Fade in and fade out effect
+     * @param callback - Function to call after the fade out effect
+     */
+    public fadeIn(callback?: (() => void)): void {
         const fadeDiv: HTMLDivElement = document.createElement("div");
         fadeDiv.className = "fade";
         document.body.appendChild(fadeDiv);
@@ -154,14 +156,15 @@ export class Game {
         setTimeout((): void => {
             fadeDiv.style.opacity = "1";
         }, 100);
-    }
 
-    public fadeOut(): void {
-        const fadeInDiv: HTMLDivElement | null = document.querySelector(".fade");
-        if (!fadeInDiv) throw new Error("Fade in element not found");
-        fadeInDiv.style.opacity = "0";
+        // to trigger the fade-out transition
         setTimeout((): void => {
-            fadeInDiv.remove();
-        }, 2000);
+            fadeDiv.style.opacity = "0";
+            if (callback) callback();
+        }, 1000);
+
+        setTimeout((): void => {
+            fadeDiv.remove();
+        }, 3000);
     }
 }

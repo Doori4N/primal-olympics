@@ -2,7 +2,6 @@ import {Scene} from "../../core/Scene";
 import {NetworkClient} from "../../network/NetworkClient";
 
 export class JoinLobbyScene extends Scene {
-    private _uiContainer!: Element;
     private _joinLobbyDiv!: HTMLDivElement;
 
     constructor() {
@@ -13,11 +12,9 @@ export class JoinLobbyScene extends Scene {
         if (this.game.networkInstance.isHost) return;
         const networkClient = this.game.networkInstance as NetworkClient;
 
-        this._uiContainer = document.querySelector("#ui")!;
-
         this._joinLobbyDiv = document.createElement("div");
         this._joinLobbyDiv.id = "join-lobby";
-        this._uiContainer.appendChild(this._joinLobbyDiv);
+        this.game.uiContainer.appendChild(this._joinLobbyDiv);
 
         this._joinLobbyDiv.innerHTML = `<h2>Join a Room</h2>`;
 
@@ -43,7 +40,7 @@ export class JoinLobbyScene extends Scene {
 
     public destroy(): void {
         super.destroy();
-        this._uiContainer.removeChild(this._joinLobbyDiv);
+        this.game.uiContainer.removeChild(this._joinLobbyDiv);
     }
 
     private _onClientConnected(): void {

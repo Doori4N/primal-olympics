@@ -9,7 +9,6 @@ export class GameMessages implements IComponent {
     public scene: Scene;
 
     // component properties
-    private _uiContainer!: Element;
     private _msgDiv!: HTMLDivElement;
 
     constructor(entity: Entity, scene: Scene) {
@@ -18,8 +17,6 @@ export class GameMessages implements IComponent {
     }
 
     public onStart(): void {
-        this._uiContainer = document.querySelector("#ui")!;
-
         this.scene.eventManager.subscribe("onCameraAnimationFinished", this.startCountDown.bind(this, 3));
         this.scene.eventManager.subscribe("onGameFinished", this._displayGameOver.bind(this));
     }
@@ -34,7 +31,7 @@ export class GameMessages implements IComponent {
         this._msgDiv = document.createElement("div");
         this._msgDiv.id = "msg";
         this._msgDiv.innerHTML = `<h1>${duration}</h1>`;
-        this._uiContainer.appendChild(this._msgDiv);
+        this.scene.game.uiContainer.appendChild(this._msgDiv);
 
         let timer: number = duration;
         const interval: number = setInterval((): void => {
@@ -46,7 +43,7 @@ export class GameMessages implements IComponent {
                 this.scene.eventManager.notify("onGameStarted");
 
                 setTimeout((): void => {
-                    this._uiContainer.removeChild(this._msgDiv);
+                    this.scene.game.uiContainer.removeChild(this._msgDiv);
                 }, 1000);
             }
             else {
@@ -63,9 +60,9 @@ export class GameMessages implements IComponent {
         this._msgDiv = document.createElement("div");
         this._msgDiv.id = "msg";
         this._msgDiv.innerHTML = "<h1>Finished!</h1>";
-        this._uiContainer.appendChild(this._msgDiv);
+        this.scene.game.uiContainer.appendChild(this._msgDiv);
         setTimeout((): void => {
-            this._uiContainer.removeChild(this._msgDiv);
+            this.scene.game.uiContainer.removeChild(this._msgDiv);
             this.scene.eventManager.notify("onMessageFinished");
         }, 2000);
     }
@@ -74,9 +71,9 @@ export class GameMessages implements IComponent {
         this._msgDiv = document.createElement("div");
         this._msgDiv.id = "msg";
         this._msgDiv.innerHTML = `<h1>${msg}</h1>`;
-        this._uiContainer.appendChild(this._msgDiv);
+        this.scene.game.uiContainer.appendChild(this._msgDiv);
         setTimeout((): void => {
-            this._uiContainer.removeChild(this._msgDiv);
+            this.scene.game.uiContainer.removeChild(this._msgDiv);
             if (callback) callback();
         }, lifeTime);
     }

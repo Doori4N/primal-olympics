@@ -10,7 +10,6 @@ export class Leaderboard implements IComponent {
 
     // component properties
     private _timer: number = 10;
-    private _uiContainer!: Element;
     private _leaderboardDiv!: HTMLDivElement;
 
     constructor(entity: Entity, scene: Scene) {
@@ -27,7 +26,7 @@ export class Leaderboard implements IComponent {
     public onFixedUpdate(): void {}
 
     public onDestroy(): void {
-        this._uiContainer.removeChild(this._leaderboardDiv);
+        this.scene.game.uiContainer.removeChild(this._leaderboardDiv);
     }
 
     public displayLeaderboard(): void {
@@ -45,8 +44,6 @@ export class Leaderboard implements IComponent {
                             </li>`;
         }
 
-        this._uiContainer = document.querySelector("#ui")!;
-
         this._leaderboardDiv = document.createElement("div");
         this._leaderboardDiv.id = "presentation-ui";
         this._leaderboardDiv.innerHTML = `
@@ -57,7 +54,7 @@ export class Leaderboard implements IComponent {
             <p id="timer">Next game in ${this._timer} seconds</p>
         `;
 
-        this._uiContainer.appendChild(this._leaderboardDiv);
+        this.scene.game.uiContainer.appendChild(this._leaderboardDiv);
 
         // countdown interval
         const interval: number = setInterval((): void => {

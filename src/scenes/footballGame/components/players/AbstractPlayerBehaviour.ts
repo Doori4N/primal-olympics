@@ -238,6 +238,8 @@ export abstract class AbstractPlayerBehaviour implements IComponent {
         this._isGameFinished = true;
         this._networkAnimationComponent.stopAllAnimations();
         this._networkAnimationComponent.startAnimation("Idle", {loop: true});
+        this._velocity = B.Vector3.Zero();
+        this._physicsAggregate.body.setLinearVelocity(this._velocity);
     }
 
     protected _onGoalScored(): void {

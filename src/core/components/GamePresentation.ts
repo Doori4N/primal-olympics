@@ -13,7 +13,6 @@ export class GamePresentation implements IComponent {
     // component properties
     private _timer: number = 30;
     private _isPlayerSkipping!: boolean[];
-    private _uiContainer!: Element;
     private _presentationDiv!: HTMLDivElement;
     private readonly _htmlTemplate: string;
     private readonly _networkInstance: INetworkInstance;
@@ -39,7 +38,6 @@ export class GamePresentation implements IComponent {
 
         this._isPlayerSkipping = new Array(this._networkInstance.players.length).fill(false);
 
-        this._uiContainer = document.querySelector("#ui")!;
         this._displayGUI();
 
         // countdown interval
@@ -63,7 +61,7 @@ export class GamePresentation implements IComponent {
     }
 
     public onDestroy(): void {
-        this._uiContainer.removeChild(this._presentationDiv);
+        this.scene.game.uiContainer.removeChild(this._presentationDiv);
 
         if (this._networkInstance.isHost) {
             this._networkInstance.removeEventListener("onClientSkip", this._clientSkipEvent);
@@ -88,7 +86,7 @@ export class GamePresentation implements IComponent {
                 ${playerSkipUI}
                 <p id="timer">Game starts in ${this._timer} seconds</p>
         `;
-        this._uiContainer.appendChild(this._presentationDiv);
+        this.scene.game.uiContainer.appendChild(this._presentationDiv);
     }
 
     private _updateTimerUI(): void {

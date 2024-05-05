@@ -6,11 +6,11 @@ export class GameOverScene extends Scene {
     }
 
     public start(): void {
-        const uiContainer: Element | null = document.querySelector("#ui");
-        if (!uiContainer) throw new Error("UI element not found");
-
-        uiContainer.innerHTML = `
+        const gameOverDiv: Element = document.createElement("div");
+        gameOverDiv.id = "msg";
+        gameOverDiv.innerHTML = `
             <h1>Game Over</h1>
         `;
+        this.game.uiContainer.appendChild(gameOverDiv);
     }
 }

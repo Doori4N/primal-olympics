@@ -98,3 +98,12 @@
     opacity: 0;
     transition: opacity 1s ease;
 }
+
+#results {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+}

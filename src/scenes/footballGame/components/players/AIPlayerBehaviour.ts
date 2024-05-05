@@ -158,7 +158,7 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
 
             setTimeout((): void => {
                 this._isWaiting = false;
-                if (this.state !== AIPlayerState.WANDER || this._isGamePaused) return;
+                if (this.state !== AIPlayerState.WANDER || this._isGamePaused || this._isGameFinished) return;
                 this._actionTime = Utils.randomFloat(1, 1.5) * 1000;
                 const direction: B.Vector3 = new B.Vector3(Utils.randomFloat(-1, 1), 0, Utils.randomFloat(-1, 1)).normalize();
                 this._velocity = direction.scale(this._speed);
@@ -361,7 +361,7 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
     private _followTarget(target: B.Vector3): void {
         const direction: B.Vector3 = new B.Vector3(target.x - this._mesh.position.x, 0, target.z - this._mesh.position.z).normalize();
         this._velocity = direction.scale(this._speed);
-        this._networkAnimationComponent.startAnimation("Running", {smoothTransition: true});
+        this._networkAnimationComponent.startAnimation("Running", {smoothTransition: true, loop: true});
     }
 
     private _onCollision(event: B.IPhysicsCollisionEvent): void {

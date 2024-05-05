@@ -22,6 +22,8 @@ import {NetworkTransformComponent} from "../../network/components/NetworkTransfo
 import {AIPlayerBehaviour} from "./components/players/AIPlayerBehaviour";
 import {NetworkAudioComponent} from "../../network/components/NetworkAudioComponent";
 import {EdgeCollision} from "./components/EdgeCollision";
+import {GameScores} from "./components/GameScores";
+import {Leaderboard} from "../../core/components/Leaderboard";
 
 const PITCH_WIDTH: number = 40;
 const PITCH_HEIGHT: number = 27;
@@ -136,6 +138,8 @@ export class FootballScene extends Scene {
         if (this.game.networkInstance.isHost) {
             this.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
         }
+
+        this.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
     }
 
     private _createFootballPitch(): void {
@@ -277,8 +281,10 @@ export class FootballScene extends Scene {
         `;
         gameManager.addComponent(new GamePresentation(gameManager, this, {htmlTemplate}));
         gameManager.addComponent(new GameMessages(gameManager, this));
-        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 240}));
+        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 5}));
         gameManager.addComponent(new GameController(gameManager, this));
+        gameManager.addComponent(new GameScores(gameManager, this));
+        gameManager.addComponent(new Leaderboard(gameManager, this));
 
         // audio
         const sounds: {[key: string]: B.Sound} = {};
@@ -497,28 +503,30 @@ export class FootballScene extends Scene {
 
     private _onGoalScored(): void {
         setTimeout((): void => {
-            this.game.fadeIn();
+            this.game.fadeIn(this._resetObjectsPosition.bind(this));
         }, 1000);
-
-        setTimeout((): void => {
-            this._ballMesh.position = new B.Vector3(0, 0.5, 0);
-
-            // reset players position
-            this._teams[0].forEach((player: Entity, index: number): void => {
-                const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
-                playerMeshComponent.mesh.position = this._spawns[index].clone();
-                playerMeshComponent.mesh.position.x *= -1;
-            });
-            this._teams[1].forEach((player: Entity, index: number): void => {
-                const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
-                playerMeshComponent.mesh.position = this._spawns[index].clone();
-            });
-
-            this.game.fadeOut();
-        }, 2000);
 
         setTimeout((): void => {
             this.eventManager.notify("onGoalReset");
         }, 4000);
+    }
+
+    private _onGameFinished(): void {
+        this._gui.dispose();
+    }
+
+    private _resetObjectsPosition(): void {
+        this._ballMesh.position = new B.Vector3(0, 0.5, 0);
+
+        // reset players position
+        this._teams[0].forEach((player: Entity, index: number): void => {
+            const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
+            playerMeshComponent.mesh.position = this._spawns[index].clone();
+            playerMeshComponent.mesh.position.x *= -1;
+        });
+        this._teams[1].forEach((player: Entity, index: number): void => {
+            const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
+            playerMeshComponent.mesh.position = this._spawns[index].clone();
+        });
     }
 }

@@ -14,9 +14,8 @@ export class GameController implements IComponent {
     // component properties
     private _goalTriggerObserver!: B.Observer<B.IBasePhysicsCollisionEvent>;
     private _scoreDiv!: HTMLDivElement;
-    private _uiContainer!: Element;
     private _gameMessagesComponent!: GameMessages;
-    private _score: {left: number, right: number} = {left: 0, right: 0};
+    public score: {left: number, right: number} = {left: 0, right: 0};
     private _networkAudioComponent!: NetworkAudioComponent;
 
     // event listeners
@@ -44,11 +43,10 @@ export class GameController implements IComponent {
         this._networkAudioComponent = this.entity.getComponent("NetworkAudio") as NetworkAudioComponent;
         this._gameMessagesComponent = this.entity.getComponent("GameMessages") as GameMessages;
 
-        this._uiContainer = document.querySelector("#ui")!;
         this._scoreDiv = document.createElement("div");
         this._scoreDiv.id = "score";
         this._scoreDiv.innerHTML = "0 - 0";
-        this._uiContainer.appendChild(this._scoreDiv);
+        this.scene.game.uiContainer.appendChild(this._scoreDiv);
     }
 
     public onUpdate(): void {}
@@ -65,7 +63,7 @@ export class GameController implements IComponent {
     }
 
     private _updateScoreUI(): void {
-        this._scoreDiv.innerHTML = `${this._score.left} - ${this._score.right}`;
+        this._scoreDiv.innerHTML = `${this.score.left} - ${this.score.right}`;
     }
 
     private _onTriggerCollision(collisionEvent: B.IBasePhysicsCollisionEvent): void {
@@ -83,11 +81,11 @@ export class GameController implements IComponent {
         if (collider?.metadata?.tag === "ball" && (isRightScore || isLeftScore)) {
             if (isLeftScore) {
                 networkHost.sendToAllClients("onGoalScored", true);
-                this._score.left++;
+                this.score.left++;
             }
             else {
                 networkHost.sendToAllClients("onGoalScored", false);
-                this._score.right++;
+                this.score.right++;
             }
 
             this._updateScoreUI();
@@ -111,8 +109,8 @@ export class GameController implements IComponent {
 
     private _onGoalScoredClientRpc(isLeftScore: boolean): void {
         // update score
-        if (isLeftScore) this._score.left++;
-        else this._score.right++;
+        if (isLeftScore) this.score.left++;
+        else this.score.right++;
         this._updateScoreUI();
         this._gameMessagesComponent.displayMessage("GOAL!", 1500);
     }

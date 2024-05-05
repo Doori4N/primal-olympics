@@ -8,7 +8,6 @@ export class GameTimer implements IComponent {
     public scene: Scene;
 
     // component properties
-    private _uiContainer!: Element;
     public timer: number = 0;
     public readonly duration: number;
     private _interval!: number;
@@ -30,14 +29,10 @@ export class GameTimer implements IComponent {
     public onDestroy(): void {}
 
     private _startTimer(): void {
-        let uiContainer: Element | null = document.querySelector("#ui");
-        if (!uiContainer) throw new Error("UI element not found");
-        this._uiContainer = uiContainer;
-
         const timerElement: Element = document.createElement("p");
         timerElement.id = "gameTimer";
         timerElement.textContent = `${this.duration} seconds left`;
-        this._uiContainer.appendChild(timerElement);
+        this.scene.game.uiContainer.appendChild(timerElement);
 
         this.timer = this.duration;
 
@@ -62,7 +57,7 @@ export class GameTimer implements IComponent {
 
     public stopTimer(): void {
         clearInterval(this._interval);
-        this._uiContainer.removeChild(document.querySelector("#gameTimer")!);
+        this.scene.game.uiContainer.removeChild(document.querySelector("#gameTimer")!);
         this.scene.eventManager.notify("onGameFinished");
     }
 }
