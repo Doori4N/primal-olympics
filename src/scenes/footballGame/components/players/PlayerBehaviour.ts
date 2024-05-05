@@ -7,6 +7,7 @@ import {MeshComponent} from "../../../../core/components/MeshComponent";
 import {RigidBodyComponent} from "../../../../core/components/RigidBodyComponent";
 import {NetworkPredictionComponent} from "../../../../network/components/NetworkPredictionComponent";
 import {AbstractPlayerBehaviour} from "./AbstractPlayerBehaviour";
+import {Utils} from "../../../../utils/Utils";
 
 export class PlayerBehaviour extends AbstractPlayerBehaviour {
     public name: string = "PlayerBehaviour";
@@ -266,5 +267,19 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
             entityId: this.entity.id
         });
         this.ballEntity = ballEntity;
+    }
+
+    public playRandomReactionAnimation(isWin: boolean): void {
+        const randomDelay: number = Utils.randomInt(0, 1000);
+        setTimeout((): void => {
+            if (isWin) {
+                const random: number = Utils.randomInt(0, 1);
+                if (random === 0) this._networkAnimationComponent.startAnimation("Celebration", {loop: true, smoothTransition: true});
+                else this._networkAnimationComponent.startAnimation("TakeTheL", {loop: true, smoothTransition: true});
+            }
+            else {
+                this._networkAnimationComponent.startAnimation("Defeat", {loop: true, smoothTransition: true});
+            }
+        }, randomDelay);
     }
 }

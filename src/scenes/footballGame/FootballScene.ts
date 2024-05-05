@@ -281,7 +281,7 @@ export class FootballScene extends Scene {
         `;
         gameManager.addComponent(new GamePresentation(gameManager, this, {htmlTemplate}));
         gameManager.addComponent(new GameMessages(gameManager, this));
-        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 5}));
+        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 15}));
         gameManager.addComponent(new GameController(gameManager, this));
         gameManager.addComponent(new GameScores(gameManager, this));
         gameManager.addComponent(new Leaderboard(gameManager, this));
@@ -382,11 +382,14 @@ export class FootballScene extends Scene {
 
         // animations
         const animations: {[key: string]: B.AnimationGroup} = {};
-        animations["Idle"] = entries.animationGroups[0];
-        animations["Running"] = entries.animationGroups[2];
-        animations["Kicking"] = entries.animationGroups[3];
-        animations["Tackling"] = entries.animationGroups[4];
-        animations["Tackle_Reaction"] = entries.animationGroups[5];
+        animations["Idle"] = this._getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
+        animations["Running"] = this._getAnimationGroupByName(`Running${playerEntity.id}`, entries.animationGroups);
+        animations["Kicking"] = this._getAnimationGroupByName(`Soccer_Pass${playerEntity.id}`, entries.animationGroups);
+        animations["Tackling"] = this._getAnimationGroupByName(`Soccer_Tackle${playerEntity.id}`, entries.animationGroups);
+        animations["Tackle_Reaction"] = this._getAnimationGroupByName(`Soccer_Tackle_React${playerEntity.id}`, entries.animationGroups);
+        animations["Celebration"] = this._getAnimationGroupByName(`Victory${playerEntity.id}`, entries.animationGroups);
+        animations["Defeat"] = this._getAnimationGroupByName(`Defeat${playerEntity.id}`, entries.animationGroups);
+        animations["TakeTheL"] = this._getAnimationGroupByName(`Loser${playerEntity.id}`, entries.animationGroups);
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
         // audio
@@ -447,11 +450,11 @@ export class FootballScene extends Scene {
         }));
 
         const animations: {[key: string]: B.AnimationGroup} = {};
-        animations["Idle"] = entries.animationGroups[0];
-        animations["Running"] = entries.animationGroups[2];
-        animations["Kicking"] = entries.animationGroups[3];
-        animations["Tackling"] = entries.animationGroups[4];
-        animations["Tackle_Reaction"] = entries.animationGroups[5];
+        animations["Idle"] = this._getAnimationGroupByName(`Idle${aiPlayerEntity.id}`, entries.animationGroups);
+        animations["Running"] = this._getAnimationGroupByName(`Running${aiPlayerEntity.id}`, entries.animationGroups);
+        animations["Kicking"] = this._getAnimationGroupByName(`Soccer_Pass${aiPlayerEntity.id}`, entries.animationGroups);
+        animations["Tackling"] = this._getAnimationGroupByName(`Soccer_Tackle${aiPlayerEntity.id}`, entries.animationGroups);
+        animations["Tackle_Reaction"] = this._getAnimationGroupByName(`Soccer_Tackle_React${aiPlayerEntity.id}`, entries.animationGroups);
         aiPlayerEntity.addComponent(new NetworkAnimationComponent(aiPlayerEntity, this, {animations: animations}));
 
         // audio
@@ -528,5 +531,9 @@ export class FootballScene extends Scene {
             const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
             playerMeshComponent.mesh.position = this._spawns[index].clone();
         });
+    }
+
+    private _getAnimationGroupByName(name: string, animationGroups: B.AnimationGroup[]): B.AnimationGroup {
+        return animationGroups.find((animationGroup: B.AnimationGroup): boolean => animationGroup.name === name)!;
     }
 }

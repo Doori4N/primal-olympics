@@ -103,6 +103,9 @@ export class GameScores implements IComponent {
             playerScoreText.linkWithMesh(playerMeshComponent.mesh);
             playerScoreText.linkOffsetY = 140;
 
+            // play reaction animation
+            playerBehaviour.playRandomReactionAnimation((playerBehaviour.teamIndex === 0) ? (leftResult === Result.WIN) : (rightResult === Result.WIN));
+
             // reset position and add medals
             if (playerBehaviour.teamIndex === 0) {
                 playerMeshComponent.mesh.position = new B.Vector3(-this._leftPositionIndex, 1, 0);
