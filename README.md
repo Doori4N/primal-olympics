@@ -35,6 +35,6 @@ The team is made up of 3 students from the Master 1 Computer Science program at 
   
 ### Sounds
 - Kicking: 
-- **Whistle:** *metal whistle.wav by strongbot -- https://freesound.org/s/568995/ -- License: Creative Commons 0*
+- **Whistle:** [freesound](https://freesound.org/s/568995/)
 - Crowd reaction:
-- **Crowd ambience:** *Norwegian football match/soccer game ambience.WAV by habbis92 -- https://freesound.org/s/206003/ -- License: Creative Commons 0*
+- **Crowd ambience:** [freesound](https://freesound.org/s/206003/)
