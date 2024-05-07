@@ -16,7 +16,7 @@ The team is made up of 3 students from the Master 1 Computer Science program at 
 - **[Dorian Girard](https://github.com/Doori4N/):** Development of the game engine and mini-games 
 - **[Hugo Savasta](https://github.com/HugoSavasta):** Development of mini-games
 
-## Software Used
+## Softwares used
 - [![WebStorm](https://img.shields.io/badge/WebStorm-0099FF?style=for-the-badge&logo=webstorm&logoColor=white)](https://www.jetbrains.com/fr-fr/webstorm/)
 - [![VSCode](https://img.shields.io/badge/Visual%20Studio%20Code-0696EA?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://code.visualstudio.com/)
 - [![Blender](https://img.shields.io/badge/Blender-FE8200?style=for-the-badge&logo=blender&logoColor=white)](https://www.blender.org)
