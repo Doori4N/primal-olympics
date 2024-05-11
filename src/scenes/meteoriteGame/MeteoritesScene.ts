@@ -20,10 +20,10 @@ import {NetworkInputsComponent} from "../../network/components/NetworkInputsComp
 
 export class MeteoritesScene extends Scene {
     constructor() {
-        super("meteorites");
+        super();
     }
 
-    public async loadAssets(): Promise<void> {
+    public async preload(): Promise<void> {
         this.game.engine.displayLoadingUI();
 
         // load assets

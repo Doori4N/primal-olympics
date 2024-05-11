@@ -1,0 +1,229 @@
+.menu-background {
+    width: 100vw;
+    height: 100vh;
+    background-position: center;
+    background-size: 100vw 100vh;
+    background-repeat: no-repeat;
+    background-image: url("/img/background-jungle.png");
+}
+
+.blur-background {
+    background-image: url("/img/blur-background-jungle.png");
+}
+
+#versionText {
+    position: absolute;
+    bottom: 1%;
+    left: 1%;
+    font-size: 1.5vw;
+}
+
+#big-icon {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 35vw;
+    height: 35vw;
+}
+
+#start-text {
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5vw;
+    color: #276e69;
+    font-weight: bolder;
+    white-space: pre-line;
+    text-shadow: black 1px 1px 1px;
+    text-align: center;
+}
+
+.top-title {
+    position: absolute;
+    top: 10%;
+    font-size: 6vh;
+    color: #fae69f;
+    text-shadow: #003733 2px 2px 1px;
+}
+
+.left-title {
+    left: 2%;
+}
+
+.right-title {
+    right: 2%;
+}
+
+.top-border {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.4);
+    height: 10vh;
+    width: 100vw;
+}
+
+.bottom-border {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.4);
+    height: 10vh;
+    width: 100vw;
+    bottom: 0;
+}
+
+.bottom-right-logo {
+    position: absolute;
+    bottom: 10vh;
+    right: 0;
+    width: 25vh;
+    height: 25vh;
+    opacity: 0.8;
+}
+
+#elements-div {
+    position: absolute;
+    top: 43%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 2vh;
+}
+
+#button-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    column-gap: 3vw;
+}
+
+#options-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    column-gap: 3vw;
+    margin-top: 3vh;
+}
+
+.stone-button {
+    width: 20vw;
+    height: 40vh;
+    border: none;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("/img/stone-container.svg");
+    cursor: pointer;
+    transition: transform .15s ease;
+    outline: none;
+    padding-bottom: 5vh;
+    font-size: 2.5vw;
+    color: #fae69f;
+    text-shadow: #000 1px 1px 1px;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column-reverse;
+    align-items: center;
+}
+
+.stone-button:hover {
+    transform: scale(0.97);
+}
+
+.stone-button:active {
+    transform: scale(0.95);
+}
+
+.left-button {
+    left: 1vw;
+}
+
+.right-button {
+    right: 1vw;
+}
+
+.small-stone-button {
+    position: absolute;
+    top: 12vh;
+    width: 8vw;
+    height: 8vh;
+    border: none;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("/img/stone-button.svg");
+    cursor: pointer;
+    transition: transform .15s ease;
+    outline: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+}
+
+.small-stone-button:hover {
+    transform: scale(0.96);
+}
+
+.small-stone-button:active {
+    transform: scale(0.94);
+}
+
+#name-input {
+    width: 23vw;
+    height: 18vh;
+    border: none;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    padding-top: 1vh;
+    font-size: 1.7vw;
+    text-align: center;
+    outline: none;
+    color: #fae69f;
+    text-shadow: #000 1px 1px 1px;
+}
+
+#name-input::placeholder {
+    color: #276e69;
+    opacity: 0.6;
+    text-shadow: none;
+}
+
+#host-img {
+    margin-bottom: 3vh;
+    width: 14vw;
+    height: 11vw;
+    opacity: 0.8;
+}
+
+#join-img {
+    margin-bottom: 2vh;
+    width: 16vw;
+    height: 14vw;
+    opacity: 0.8;
+}
+
+#character-img {
+    margin-bottom: 2vh;
+    width: 8vw;
+    height: 12vw;
+    opacity: 0.8;
+}
+
+#settings-img {
+    width: 3vw;
+    height: 3vw;
+}
+
+#help-img {
+    width: 3.5vw;
+    height: 3.5vw;
+}

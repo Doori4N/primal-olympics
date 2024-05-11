@@ -3,7 +3,7 @@ import {NetworkHost} from "../../network/NetworkHost";
 
 export class GameSelectionScene extends Scene {
     constructor() {
-        super("gameSelection");
+        super();
     }
 
     public start(): void {

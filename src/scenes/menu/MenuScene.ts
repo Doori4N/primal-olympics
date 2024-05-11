@@ -1,34 +1,65 @@
 import {Scene} from "../../core/Scene";
 import {NetworkHost} from "../../network/NetworkHost";
 import {NetworkClient} from "../../network/NetworkClient";
-import {v4 as uuid} from "uuid";
-import Peer from "peerjs";
 import {NetworkInputManager} from "../../network/NetworkInputManager";
-
-const CONNECTION_RETRY_INTERVAL: number = 500; // connection retry interval in ms
 
 export class MenuScene extends Scene {
     private _menuDiv!: HTMLDivElement;
+    private _nameInput!: HTMLInputElement;
 
     constructor() {
-        super("menu");
+        super();
     }
 
     public start(): void {
         this._menuDiv = document.createElement("div");
-        this._menuDiv.id = "menu";
+        this._menuDiv.className = "menu-background blur-background";
+        this._menuDiv.innerHTML = `
+            <div class="top-border">
+               <p class="top-title left-title">Main menu</p>
+            </div>
+            <img src="img/primal-olympics-logo.png" class="bottom-right-logo">
+            <div class="bottom-border"></div>
+        `;
         this.game.uiContainer.appendChild(this._menuDiv);
 
-        const startBtn: HTMLButtonElement = document.createElement("button");
-        startBtn.id = "startBtn";
-        startBtn.innerHTML = "Start";
-        this._menuDiv.appendChild(startBtn);
+        const elementsDiv: HTMLDivElement = document.createElement("div");
+        elementsDiv.id = "elements-div";
+        this._menuDiv.appendChild(elementsDiv);
 
-        const versionText: HTMLParagraphElement = document.createElement("p");
-        versionText.innerHTML = "Version: 0.3.0";
-        this._menuDiv.appendChild(versionText);
+        // name input
+        this._nameInput = document.createElement("input");
+        this._nameInput.type = "text";
+        this._nameInput.id = "name-input";
+        this._nameInput.style.backgroundImage = "url('img/leaf-stone-container.svg')";
+        this._nameInput.placeholder = "Enter your name...";
+        elementsDiv.appendChild(this._nameInput);
 
-        startBtn.onclick = this._tryToConnectToServer.bind(this);
+        // get saved name from local storage
+        const savedName: string | null = localStorage.getItem("name");
+        if (savedName) this._nameInput.value = savedName;
+
+        // button container
+        const buttonContainer: HTMLDivElement = document.createElement("div");
+        buttonContainer.id = "button-container";
+        elementsDiv.appendChild(buttonContainer);
+
+        this._createHostButton(buttonContainer);
+        this._createJoinButton(buttonContainer);
+
+        // character button
+        const characterBtn: HTMLButtonElement = document.createElement("button");
+        characterBtn.innerHTML = "Character";
+        characterBtn.className = "stone-button";
+        buttonContainer.appendChild(characterBtn);
+
+        // character image
+        const characterImg: HTMLImageElement = document.createElement("img");
+        characterImg.src = "img/cavewoman.png";
+        characterImg.id = "character-img";
+        characterBtn.appendChild(characterImg);
+
+        this._createOptionsButton();
     }
 
     public destroy(): void {
@@ -36,77 +67,71 @@ export class MenuScene extends Scene {
         this.game.uiContainer.removeChild(this._menuDiv);
     }
 
-    private _tryToConnectToServer(): void {
-        const id: string = uuid().slice(0, 6) + "-gamesonweb2024";
-        const peer = new Peer(id);
+    private _createOptionsButton(): void {
+        // settings button
+        const settingsBtn: HTMLButtonElement = document.createElement("button");
+        settingsBtn.className = "small-stone-button left-button";
+        this._menuDiv.appendChild(settingsBtn);
 
-        peer.on("open", (): void => {
-            this._menuDiv.innerHTML = "Connected to server !";
-            setTimeout(this._onConnectedToServer.bind(this, peer), 500);
-        });
+        // settings image
+        const settingsImg: HTMLImageElement = document.createElement("img");
+        settingsImg.src = "img/settings.png";
+        settingsImg.id = "settings-img";
+        settingsBtn.appendChild(settingsImg);
 
-        peer.on("error", (err: any): void => {
-            peer.destroy();
+        // help button
+        const helpBtn: HTMLButtonElement = document.createElement("button");
+        helpBtn.className = "small-stone-button right-button";
+        this._menuDiv.appendChild(helpBtn);
 
-            console.log("Error connecting to server: ", err);
-
-            let timer: number = CONNECTION_RETRY_INTERVAL / 1000;
-            this._menuDiv.innerHTML = `Error connecting to server... Trying again in ${timer} seconds...`;
-
-            const interval: number = setInterval((): void => {
-                timer--;
-                if (timer <= 0) {
-                    clearInterval(interval);
-                    this._tryToConnectToServer();
-                }
-                else {
-                    this._menuDiv.innerHTML = `Error connecting to server... Trying again in ${timer} seconds...`;
-                }
-            }, 1000);
-        });
+        // help image
+        const helpImg: HTMLImageElement = document.createElement("img");
+        helpImg.src = "img/help.png";
+        helpImg.id = "help-img";
+        helpBtn.appendChild(helpImg);
     }
 
-    private _onConnectedToServer(peer: Peer): void {
-        peer.removeAllListeners();
-
-        this._menuDiv.innerHTML = "";
-
-        // name input
-        const nameInput: HTMLInputElement = document.createElement("input");
-        nameInput.type = "text";
-        const savedName: string | null = localStorage.getItem("name");
-        if (savedName) {
-            nameInput.value = savedName;
-        }
-        else {
-            nameInput.placeholder = "Enter your name";
-        }
-        this._menuDiv.appendChild(nameInput);
-
+    private _createHostButton(buttonContainer: HTMLDivElement): void {
         // host button
         const hostBtn: HTMLButtonElement = document.createElement("button");
         hostBtn.innerHTML = "Host";
-        this._menuDiv.appendChild(hostBtn);
+        hostBtn.className = "stone-button";
+        buttonContainer.appendChild(hostBtn);
+
+        // host image
+        const hostImg: HTMLImageElement = document.createElement("img");
+        hostImg.src = "/img/cave.png";
+        hostImg.id = "host-img";
+        hostBtn.appendChild(hostImg);
 
         hostBtn.onclick = (): void => {
-            const name: string = nameInput.value;
+            const name: string = this._nameInput.value;
             localStorage.setItem("name", name);
-            this.game.networkInstance = new NetworkHost(peer, name);
+            this.game.networkInstance = new NetworkHost(this.game.peer, name);
             this.game.networkInputManager = new NetworkInputManager();
             this.sceneManager.changeScene("lobby");
         }
+    }
 
+    private _createJoinButton(buttonContainer: HTMLDivElement): void {
         // join button
         const joinBtn: HTMLButtonElement = document.createElement("button");
         joinBtn.innerHTML = "Join";
-        this._menuDiv.appendChild(joinBtn);
+        joinBtn.className = "stone-button";
+        buttonContainer.appendChild(joinBtn);
+
+        // join image
+        const joinImg: HTMLImageElement = document.createElement("img");
+        joinImg.src = "img/cavemen-drawing.png";
+        joinImg.id = "join-img";
+        joinBtn.appendChild(joinImg);
 
         joinBtn.onclick = (): void => {
-            const name: string = nameInput.value;
+            const name: string = this._nameInput.value;
             localStorage.setItem("name", name);
-            this.game.networkInstance = new NetworkClient(peer, name);
+            this.game.networkInstance = new NetworkClient(this.game.peer, name);
             this.game.networkInputManager = new NetworkInputManager();
-            this.sceneManager.changeScene("joinLobby");
+            this.sceneManager.changeScene("join-lobby");
         }
     }
 }

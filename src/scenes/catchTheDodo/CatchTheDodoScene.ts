@@ -18,7 +18,7 @@ export class CatchTheDodoScene extends Scene {
         super("catchTheDodo");
     }
 
-    public async loadAssets(): Promise<void> {
+    public async preload(): Promise<void> {
         this.game.engine.displayLoadingUI();
 
         // load assets

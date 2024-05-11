@@ -56,10 +56,10 @@ export class FootballScene extends Scene {
     private _gui!: GUI.AdvancedDynamicTexture;
 
     constructor() {
-        super("football");
+        super();
     }
 
-    public async loadAssets(): Promise<void> {
+    public async preload(): Promise<void> {
         this.game.engine.displayLoadingUI();
 
         // load assets

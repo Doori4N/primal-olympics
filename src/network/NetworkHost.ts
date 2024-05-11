@@ -1,27 +1,15 @@
-import {INetworkInstance} from "./INetworkInstance";
+import {NetworkInstance} from "./NetworkInstance";
 import Peer, {DataConnection} from "peerjs";
-import {v4 as uuid} from "uuid";
-import {EventManager} from "../core/EventManager";
 import {NetworkMessage, PlayerData} from "./types";
-import {Game} from "../core/Game";
 
-export class NetworkHost implements INetworkInstance {
+export class NetworkHost extends NetworkInstance {
     public isHost: boolean = true;
     public isConnected: boolean = true;
-    public peer: Peer;
     public connections: DataConnection[] = [];
-    public players: PlayerData[] = [];
-    public playerId: string = uuid();
-    public ping: number = 0;
     private _isClientTickSynchronized: {[key: string]: boolean} = {};
-    public playerName: string;
-
-    private _eventManager = new EventManager();
-    private _game: Game = Game.getInstance();
 
     constructor(peer: Peer, name: string) {
-        this.peer = peer;
-        this.playerName = name;
+        super(peer, name);
 
         // initialize the player list with the host
         this.players.push({
@@ -33,8 +21,6 @@ export class NetworkHost implements INetworkInstance {
         });
 
         this.peer.on("connection", (connection: DataConnection): void => {
-            console.log(`${connection.peer} is connected !`);
-            console.log(connection.provider);
             this.connections.push(connection);
 
             // listen for messages from the client
@@ -43,17 +29,34 @@ export class NetworkHost implements INetworkInstance {
                 this.notify(msg.type, ...msg.data);
             });
 
+            // listen for the client closing the connection
+            connection.on("close", (): void => {
+                // remove the player from the list
+                this.players = this.players.filter((player: PlayerData): boolean => {
+                    return player.id !== connection.metadata.playerId;
+                });
+
+                // remove the connection from the list
+                this.connections = this.connections.filter((conn: DataConnection): boolean => {
+                    return conn.peer !== connection.peer;
+                });
+
+                // tell the host that a player has left
+                this.notify("player-left", connection.metadata.playerId);
+            });
+
             // set player list
-            this.players.push({
+            const newPlayer = {
                 id: connection.metadata.playerId,
                 name: connection.metadata.playerName,
                 goldMedals: 0,
                 silverMedals: 0,
                 bronzeMedals: 0
-            });
+            }
+            this.players.push(newPlayer);
 
             // tell the host that a new player has joined
-            this.notify("player-joined", this.players);
+            this.notify("player-joined", newPlayer);
         });
 
         this.peer.on("error", (err: any): void => {
@@ -63,24 +66,19 @@ export class NetworkHost implements INetworkInstance {
         this._initEventListeners();
     }
 
+    /**
+     * Close all connections
+     */
+    public disconnect(): void {
+        this.isConnected = false;
+        this.connections.forEach((connection: DataConnection): void => {
+            connection.close();
+        });
+        this.clearEventListeners();
+    }
+
     private _initEventListeners(): void {
         this._listenToPing();
-    }
-
-    public addEventListener(event: string, callback: Function): void {
-        this._eventManager.subscribe(event, callback);
-    }
-
-    public removeEventListener(event: string, callback: Function): void {
-        this._eventManager.unsubscribe(event, callback);
-    }
-
-    public notify(event: string, ...args: any[]): void {
-        this._eventManager.notify(event, ...args);
-    }
-
-    public clearEventListeners(): void {
-        this._eventManager.clear();
     }
 
     public sendToAllClients(event: string, ...args: any[]): void {

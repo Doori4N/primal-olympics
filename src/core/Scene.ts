@@ -8,7 +8,6 @@ import {SceneManager} from "./SceneManager";
 import {IPhysicsEngine} from "@babylonjs/core/Physics/IPhysicsEngine";
 
 export abstract class Scene {
-    public name: string;
     public babylonScene: B.Scene;
     public mainCamera: B.FreeCamera;
     public game: Game = Game.getInstance();
@@ -17,15 +16,13 @@ export abstract class Scene {
     public sceneManager: SceneManager = SceneManager.getInstance();
     public loadedAssets: { [name: string]: B.AssetContainer } = {};
 
-    protected constructor(name: string) {
-        this.name = name;
-
+    protected constructor() {
         // initialize the scene with a main camera
         this.babylonScene = new B.Scene(this.game.engine);
         this.mainCamera = new B.FreeCamera("mainCamera", new B.Vector3(0, 5, -10), this.babylonScene);
     }
 
-    public async loadAssets(): Promise<void> {};
+    public async preload(): Promise<void> {};
 
     /**
      * Initialize all entities

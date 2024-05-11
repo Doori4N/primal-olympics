@@ -5,7 +5,7 @@ export class JoinLobbyScene extends Scene {
     private _joinLobbyDiv!: HTMLDivElement;
 
     constructor() {
-        super("joinLobby");
+        super();
     }
 
     public start(): void {

@@ -2,7 +2,7 @@ import {Scene} from "../../core/Scene";
 
 export class GameOverScene extends Scene {
     constructor() {
-        super("gameOver");
+        super();
     }
 
     public start(): void {

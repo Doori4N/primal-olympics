@@ -7,10 +7,10 @@ import {MenuScene} from "../scenes/menu/MenuScene";
 import {LobbyScene} from "../scenes/lobby/LobbyScene";
 import {JoinLobbyScene} from "../scenes/joinLobby/JoinLobbyScene";
 import {FootballScene} from "../scenes/footballGame/FootballScene";
+import {StartScene} from "../scenes/start/StartScene";
 
 export class SceneManager {
     private static _instance: SceneManager;
-    private _scenes: Scene[] = [];
     private _currentScene!: Scene | null;
 
     private constructor() {}
@@ -27,20 +27,9 @@ export class SceneManager {
      * Import all scenes and initialize the current scene
      */
     public initializeScenes(): void {
-        // add all scenes
-        this._scenes.push(new MenuScene());
-        this._scenes.push(new GameSelectionScene());
-        this._scenes.push(new LobbyScene());
-        this._scenes.push(new JoinLobbyScene());
-        this._scenes.push(new GameOverScene());
-
-        // mini games
-        this._scenes.push(new CatchTheDodoScene());
-        this._scenes.push(new MeteoritesScene());
-        this._scenes.push(new FootballScene());
-
         // start the first scene
-        this._loadAndStartScene(this._scenes[0]);
+        const scene: Scene = this._createScene("start");
+        this._loadAndStartScene(scene);
     }
 
     /**
@@ -66,19 +55,40 @@ export class SceneManager {
             this._currentScene = null;
         }
 
-        const scene: Scene | undefined = this._scenes.find((scene: Scene): boolean => scene.name === sceneName);
-        if (!scene) {
-            throw new Error(`Scene ${sceneName} not found`);
-        }
-
-        this._loadAndStartScene(scene);
+        const newScene: Scene = this._createScene(sceneName);
+        this._loadAndStartScene(newScene);
     }
 
     private _loadAndStartScene(scene: Scene): void {
-        scene.loadAssets().then((): void => {
+        scene.preload().then((): void => {
             this._currentScene = scene;
             this._currentScene.start();
         });
+    }
+
+    private _createScene(sceneName: string): Scene {
+        switch (sceneName) {
+            case "start":
+                return new StartScene();
+            case "menu":
+                return new MenuScene();
+            case "game-selection":
+                return new GameSelectionScene();
+            case "lobby":
+                return new LobbyScene();
+            case "join-lobby":
+                return new JoinLobbyScene();
+            case "game-over":
+                return new GameOverScene();
+            case "catch-the-dodo":
+                return new CatchTheDodoScene();
+            case "meteorites":
+                return new MeteoritesScene();
+            case "football":
+                return new FootballScene();
+            default:
+                throw new Error("Scene not found");
+        }
     }
 
     public displayDebugLayer(): void {

@@ -1,0 +1,125 @@
+#back-img {
+    width: 3vw;
+    height: 3vw;
+}
+
+#lobby-button-container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 1vh;
+    bottom: 11vh;
+    left: 2vw;
+}
+
+.large-stone-button {
+    width: 15vw;
+    height: 10vh;
+    border: none;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("/img/large-stone-button.svg");
+    cursor: pointer;
+    transition: transform .15s ease;
+    outline: none;
+    font-size: 2.1vw;
+    color: #fae69f;
+    text-shadow: #000 1px 1px 1px;
+}
+
+.large-stone-button:hover {
+    transform: scale(0.97);
+}
+
+.large-stone-button:active {
+    transform: scale(0.95);
+}
+
+.inactive-button {
+    cursor: default;
+    transition: none;
+}
+
+.inactive-button:hover {
+    transform: none;
+}
+
+.inactive-button:active {
+    transform: none;
+}
+
+#round-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    column-gap: .5vw;
+}
+
+#round-btn:hover {
+    transform: none;
+    cursor: default;
+}
+
+.arrow-button {
+    width: 3vw;
+    height: 4.5vh;
+    border: none;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("/img/stone-arrow.svg");
+    cursor: pointer;
+    transition: scale .15s ease;
+    outline: none;
+}
+
+.left-arrow {
+    transform: rotate(90deg);
+}
+
+.left-arrow:hover {
+    transform: rotate(90deg) scale(.95);
+}
+
+.left-arrow:active {
+    transform: rotate(90deg) scale(.9);
+}
+
+.right-arrow {
+    transform: rotate(-90deg);
+}
+
+.right-arrow:hover {
+    transform: rotate(-90deg) scale(.95);
+}
+
+.right-arrow:active {
+    transform: rotate(-90deg) scale(.9);
+}
+
+.stone-circle {
+    position: absolute;
+    width: 8vw;
+    height: 8vw;
+    top: 10.5vh;
+    right: 1.25vw;
+    border: none;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("/img/stone-circle.svg");
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 1.5vw;
+    font-size: 2.7vw;
+    color: #fae69f;
+    text-shadow: #000 1px 1px 1px;
+}

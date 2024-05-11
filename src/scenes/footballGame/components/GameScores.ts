@@ -2,7 +2,7 @@ import {IComponent} from "../../../core/IComponent";
 import {Entity} from "../../../core/Entity";
 import {Scene} from "../../../core/Scene";
 import {PlayerData} from "../../../network/types";
-import {INetworkInstance} from "../../../network/INetworkInstance";
+import {NetworkInstance} from "../../../network/NetworkInstance";
 import * as B from "@babylonjs/core";
 import {GameController} from "./GameController";
 import {PlayerBehaviour} from "./players/PlayerBehaviour";
@@ -20,7 +20,7 @@ export class GameScores implements IComponent {
     public scene: Scene;
 
     // component properties
-    private readonly _networkInstance: INetworkInstance;
+    private readonly _networkInstance: NetworkInstance;
     private _resultsDiv!: HTMLDivElement;
     private _leftPositionIndex: number = 1;
     private _rightPositionIndex: number = 1;

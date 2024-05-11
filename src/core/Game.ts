@@ -2,8 +2,9 @@ import * as B from "@babylonjs/core";
 import HavokPhysics, {HavokPhysicsWithBindings} from "@babylonjs/havok"
 import {SceneManager} from "./SceneManager";
 import {InputManager} from "./InputManager";
-import {INetworkInstance} from "../network/INetworkInstance";
+import {NetworkInstance} from "../network/NetworkInstance";
 import {NetworkInputManager} from "../network/NetworkInputManager";
+import Peer from "peerjs";
 
 export class Game {
     private static instance: Game;
@@ -11,13 +12,16 @@ export class Game {
     public engine!: B.Engine;
     public physicsPlugin!: B.HavokPlugin;
     public inputManager: InputManager = new InputManager();
-    public networkInstance!: INetworkInstance;
+    public networkInstance!: NetworkInstance;
     public networkInputManager!: NetworkInputManager;
+    public peer!: Peer;
     public readonly tick: number = 45; // Number of server updates per second
     public tickIndex: number = 0; // Index of the current tick
     private _timer: number = 0; // Timer to keep track of the time passed since the last tick
     public miniGames: string[] = ["football"];
     public readonly uiContainer: Element = document.querySelector("#ui")!;
+    public viewportWidth!: number;
+    public viewportHeight!: number;
 
     private constructor() {}
 
@@ -34,6 +38,9 @@ export class Game {
     public async start(): Promise<void> {
         // canvas
         this.canvas = this._createCanvas();
+        this.viewportHeight = this.canvas.height / 100;
+        this.viewportWidth = this.canvas.width / 100;
+
         this.engine = new B.Engine(this.canvas, true);
         this._resize(this.engine);
 
@@ -119,6 +126,9 @@ export class Game {
         });
     }
 
+    /**
+     * Create the info UI to display fps and ping
+     */
     private _createInfoUI(): void {
         const infoDiv: HTMLDivElement = document.createElement("div");
         infoDiv.id = "info";
@@ -132,13 +142,54 @@ export class Game {
         pingDiv.id = "ping";
         infoDiv.appendChild(pingDiv);
 
+        // signal icon
+        const badSignalIcon: HTMLImageElement = document.createElement("img");
+        badSignalIcon.src = "/img/bad-signal.png";
+        badSignalIcon.alt = "signal icon";
+        badSignalIcon.className = "info-icon";
+        pingDiv.appendChild(badSignalIcon);
+
+        const goodSignalIcon: HTMLImageElement = document.createElement("img");
+        goodSignalIcon.src = "/img/good-signal.png";
+        goodSignalIcon.alt = "signal icon";
+        goodSignalIcon.className = "info-icon";
+
+        // ping text
+        const pingText: HTMLSpanElement = document.createElement("span");
+        pingText.innerText = "Not connected";
+        pingText.style.color = "red";
+        pingText.className = "info-text";
+        pingDiv.appendChild(pingText);
+
         this.engine.onEndFrameObservable.add((): void => {
-            fpsDiv.innerText = `FPS: ${this.engine.getFps().toFixed()}`;
+            fpsDiv.innerText = `Fps: ${this.engine.getFps().toFixed()}`;
+
+            // ping
             if (this.networkInstance?.isConnected) {
-                pingDiv.innerText = `Ping: ${this.networkInstance.ping}ms`;
+                pingText.innerText = `${this.networkInstance.ping}ms`;
+                // change color based on ping
+                if (this.networkInstance.ping < 125 && pingDiv.contains(badSignalIcon)) {
+                    pingText.style.color = "green";
+                    pingDiv.removeChild(badSignalIcon);
+                    pingDiv.removeChild(pingText);
+                    pingDiv.appendChild(goodSignalIcon);
+                    pingDiv.appendChild(pingText);
+                }
+                else if (this.networkInstance.ping >= 125 && pingDiv.contains(goodSignalIcon)) {
+                    pingText.style.color = "red";
+                    pingDiv.removeChild(goodSignalIcon);
+                    pingDiv.removeChild(pingText);
+                    pingDiv.appendChild(badSignalIcon);
+                    pingDiv.appendChild(pingText);
+                }
             }
-            else {
-                pingDiv.innerText = "Not connected";
+            else if (!this.networkInstance?.isConnected && pingDiv.contains(goodSignalIcon)) {
+                pingText.style.color = "red";
+                pingText.innerText = "Not connected";
+                pingDiv.removeChild(goodSignalIcon);
+                pingDiv.removeChild(pingText);
+                pingDiv.appendChild(badSignalIcon);
+                pingDiv.appendChild(pingText);
             }
         });
     }
@@ -165,6 +216,6 @@ export class Game {
 
         setTimeout((): void => {
             fadeDiv.remove();
-        }, 3000);
+        }, 2000);
     }
 }

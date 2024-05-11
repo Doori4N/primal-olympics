@@ -1,7 +1,7 @@
 import {IComponent} from "../IComponent";
 import {Entity} from "../Entity";
 import {Scene} from "../Scene";
-import {INetworkInstance} from "../../network/INetworkInstance";
+import {NetworkInstance} from "../../network/NetworkInstance";
 import {NetworkClient} from "../../network/NetworkClient";
 import {NetworkHost} from "../../network/NetworkHost";
 
@@ -15,7 +15,7 @@ export class GamePresentation implements IComponent {
     private _isPlayerSkipping!: boolean[];
     private _presentationDiv!: HTMLDivElement;
     private readonly _htmlTemplate: string;
-    private readonly _networkInstance: INetworkInstance;
+    private readonly _networkInstance: NetworkInstance;
 
     // event listeners
     private _playerSkipEvent = this._onPlayerSkipClientRpc.bind(this);

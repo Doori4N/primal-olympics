@@ -4,7 +4,7 @@ import {Scene} from "../../../core/Scene";
 import {PlayerBehaviour} from "./PlayerBehaviour";
 import {GameTimer} from "../../../core/components/GameTimer";
 import {PlayerData} from "../../../network/types";
-import {INetworkInstance} from "../../../network/INetworkInstance";
+import {NetworkInstance} from "../../../network/NetworkInstance";
 import {NetworkHost} from "../../../network/NetworkHost";
 
 export class GameScores implements IComponent {
@@ -16,7 +16,7 @@ export class GameScores implements IComponent {
     private _scores: {playerData: PlayerData, score: number}[] = [];
     private _deadPlayers: number = 0;
     private _gameTimer!: GameTimer;
-    private readonly _networkInstance: INetworkInstance;
+    private readonly _networkInstance: NetworkInstance;
 
     // event listeners
     private _setPlayerScoreEvent = this._setPlayerScoreClientRpc.bind(this);
