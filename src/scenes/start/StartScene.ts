@@ -32,11 +32,6 @@ export class StartScene extends Scene {
         icon.id = "big-icon";
         icon.src = "img/primal-olympics-logo.png";
         this._startDiv.appendChild(icon);
-
-        // const div: HTMLDivElement = document.createElement("div");
-        // div.innerHTML = "<object type=\"image/svg+xml\" data=\"/img/spinner.svg\"></object>"
-        // div.style.backgroundColor = "transparent";
-        // this._startDiv.appendChild(div);
     }
 
     public destroy(): void {

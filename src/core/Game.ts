@@ -5,6 +5,7 @@ import {InputManager} from "./InputManager";
 import {NetworkInstance} from "../network/NetworkInstance";
 import {NetworkInputManager} from "../network/NetworkInputManager";
 import Peer from "peerjs";
+import {LoadingScreen} from "./LoadingScreen";
 
 export class Game {
     private static instance: Game;
@@ -42,6 +43,7 @@ export class Game {
         this.viewportWidth = this.canvas.width / 100;
 
         this.engine = new B.Engine(this.canvas, true);
+        this.engine.loadingScreen = new LoadingScreen();
         this._resize(this.engine);
 
         // physics
