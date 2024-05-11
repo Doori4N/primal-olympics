@@ -135,7 +135,7 @@ export class LobbyScene extends Scene {
 
         // selection button
         const selectionBtn: HTMLButtonElement = document.createElement("button");
-        selectionBtn.innerHTML = "Select Games";
+        selectionBtn.innerHTML = "Mini games";
         selectionBtn.className = "large-stone-button";
         this._buttonContainer.appendChild(selectionBtn);
 

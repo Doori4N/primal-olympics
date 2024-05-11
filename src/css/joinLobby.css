@@ -1,0 +1,66 @@
+.big-container {
+    position: absolute;
+    width: 35vw;
+    height: 45vh;
+    border: none;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("/img/big-leaf-stone-container.svg");
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 1vh;
+    font-size: 2.8vw;
+    color: #fae69f;
+    text-shadow: #000 1px 1px 1px;
+}
+
+.small-red-stone-button {
+    width: 8vw;
+    height: 9vh;
+    border: none;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("/img/red-stone-button.svg");
+    margin-top: 4vh;
+    cursor: pointer;
+    transition: transform .15s ease;
+    outline: none;
+    font-size: 1.3vw;
+    color: #fae69f;
+    text-shadow: #000 1px 1px 1px;
+}
+
+.small-red-stone-button:hover {
+    transform: scale(0.97);
+}
+
+.small-red-stone-button:active {
+    transform: scale(0.95);
+}
+
+#room-id {
+    font-size: 2.5vw;
+    color: #836F27;
+    text-shadow: #000 1px 1px 1px;
+    background-color: rgba(250, 230, 159, 0.3);
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    text-align: center;
+    padding: 2vh 0;
+}
+
+#room-id::placeholder {
+    color: #836F27;
+    font-size: 2.5vw;
+    text-shadow: #000 1px 1px 1px;
+}

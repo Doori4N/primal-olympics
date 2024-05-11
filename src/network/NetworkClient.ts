@@ -17,23 +17,15 @@ export class NetworkClient extends NetworkInstance {
     public isConnected: boolean = false;
     private _sceneManager = SceneManager.getInstance();
     private _pingInterval!: number;
-
-    /**
-     * @description The connection to the host peer
-     */
+    // the connection to the host peer
     public hostConnection!: DataConnection;
-
-    /**
-     * @description The host peer id
-     */
+    // the host peer id
     public hostId!: string;
 
     constructor(peer: Peer, name: string) {
         super(peer, name);
 
-        this.peer.on("error", (err: any): void => {
-            console.error("Client error: ", err);
-        });
+        this.peer.on("error", this._onPeerError.bind(this));
 
         this._initEventListeners();
     }
@@ -55,7 +47,7 @@ export class NetworkClient extends NetworkInstance {
         });
 
         this.hostConnection.on("error", (err: any): void => {
-            console.error("Error connecting to host: ", err);
+            console.error("Connection error:", err);
         });
     }
 
@@ -67,6 +59,16 @@ export class NetworkClient extends NetworkInstance {
         this.isConnected = false;
         clearInterval(this._pingInterval);
         this.clearEventListeners();
+    }
+
+    private _onPeerError(err: {type: string}): void {
+        switch (err.type) {
+            case "peer-unavailable":
+                this.notify('room-not-found');
+                break;
+            default:
+                console.error(err);
+        }
     }
 
     private _onConnectedToHost(hostId: string): void {

@@ -218,4 +218,21 @@ export class Game {
             fadeDiv.remove();
         }, 2000);
     }
+
+    public displayMessage(message: string, type: string): void {
+        const messageDiv: HTMLDivElement = document.createElement("div");
+        messageDiv.className = `message ${type}-message`;
+        messageDiv.innerHTML = `<p>${message}</p>`;
+        document.body.appendChild(messageDiv);
+
+        messageDiv.addEventListener("animationend", (): void => {
+            setTimeout((): void => {
+                messageDiv.style.opacity = "0";
+            }, 1000);
+        });
+
+        messageDiv.addEventListener("transitionend", (): void => {
+            messageDiv.remove();
+        });
+    }
 }

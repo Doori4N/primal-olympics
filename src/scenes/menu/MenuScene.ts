@@ -131,7 +131,7 @@ export class MenuScene extends Scene {
             localStorage.setItem("name", name);
             this.game.networkInstance = new NetworkClient(this.game.peer, name);
             this.game.networkInputManager = new NetworkInputManager();
-            this.sceneManager.changeScene("join-lobby");
+            this.game.fadeIn(this.sceneManager.changeScene.bind(this.sceneManager, "join-lobby"));
         }
     }
 }

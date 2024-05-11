@@ -54,8 +54,59 @@
     width: 100%;
     height: 100%;
     opacity: 0;
-    transition: opacity .8s ease;
+    transition: opacity 1s ease;
 }
+
+@keyframes fade-out {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.message {
+    position: absolute;
+    width: 25vw;
+    height: 15vh;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("/img/message-container.svg");
+    z-index: 1002;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fae69f;
+    font-size: 2vw;
+    text-shadow: #000 1px 1px 1px;
+    animation: down .5s ease forwards;
+    transition: opacity 1s ease;
+}
+
+@keyframes down {
+    0% {
+        top: -5vh;
+    }
+    100% {
+        top: 10vh;
+    }
+}
+
+.error-message {
+    color: red;
+}
+
+.info-message {
+    color: #fae69f;
+}
+
+/* TODO: Delete this */
 
 #presentation-ui {
     position: absolute;
@@ -91,14 +142,6 @@
     background-color: rgba(0, 0, 0, 0.5);
     padding: 5px;
     color: white;
-}
-
-#join-lobby {
-    position: absolute;
-    background-color: white;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
 }
 
 #score {
