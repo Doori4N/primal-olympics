@@ -75,6 +75,7 @@ export class NetworkHost extends NetworkInstance {
             connection.close();
         });
         this.clearEventListeners();
+        this.peer.removeAllListeners();
     }
 
     private _initEventListeners(): void {

@@ -10,7 +10,7 @@ export class LoadingScreen implements B.ILoadingScreen {
 
     displayLoadingUI(): void {
         this._loadingDiv = document.createElement("div");
-        this._loadingDiv.className = "menu-background loading-background";
+        this._loadingDiv.className = "menu-background blur-background";
         this._game.uiContainer.appendChild(this._loadingDiv);
 
         const loadingText: HTMLParagraphElement = document.createElement("p");
@@ -31,9 +31,5 @@ export class LoadingScreen implements B.ILoadingScreen {
 
     hideLoadingUI(): void {
         this._game.uiContainer.removeChild(this._loadingDiv);
-        // this._loadingDiv.style.opacity = "0";
-        // this._loadingDiv.addEventListener("transitionend", (): void => {
-        //     this._game.uiContainer.removeChild(this._loadingDiv);
-        // });
     }
 }

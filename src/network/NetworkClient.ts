@@ -59,6 +59,7 @@ export class NetworkClient extends NetworkInstance {
         this.isConnected = false;
         clearInterval(this._pingInterval);
         this.clearEventListeners();
+        this.peer.removeAllListeners();
     }
 
     private _onPeerError(err: {type: string}): void {

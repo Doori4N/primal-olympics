@@ -81,16 +81,24 @@
     color: #fae69f;
     font-size: 2vw;
     text-shadow: #000 1px 1px 1px;
-    animation: down .5s ease forwards;
-    transition: opacity 1s ease;
+    text-align: center;
+    animation: down 3.5s ease forwards;
+    padding-left: 3vw;
+    padding-right: 3vw;
 }
 
 @keyframes down {
     0% {
-        top: -5vh;
+        top: -10vh;
+    }
+    25% {
+        top: 10vh;
+    }
+    75% {
+        top: 10vh;
     }
     100% {
-        top: 10vh;
+        top: -10vh;
     }
 }
 
@@ -100,6 +108,10 @@
 
 .info-message {
     color: #fae69f;
+}
+
+.success-message {
+    color: green;
 }
 
 .spinner {

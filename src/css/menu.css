@@ -37,7 +37,9 @@
     font-weight: bolder;
     white-space: pre-line;
     text-shadow: black 1px 1px 1px;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .top-title {

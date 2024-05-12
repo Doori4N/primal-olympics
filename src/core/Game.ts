@@ -6,12 +6,12 @@ import {NetworkInstance} from "../network/NetworkInstance";
 import {NetworkInputManager} from "../network/NetworkInputManager";
 import Peer from "peerjs";
 import {LoadingScreen} from "./LoadingScreen";
+import {MessageType, MiniGame} from "./types";
 
 export class Game {
     private static instance: Game;
     public canvas!: HTMLCanvasElement;
     public engine!: B.Engine;
-    public physicsPlugin!: B.HavokPlugin;
     public inputManager: InputManager = new InputManager();
     public networkInstance!: NetworkInstance;
     public networkInputManager!: NetworkInputManager;
@@ -19,10 +19,15 @@ export class Game {
     public readonly tick: number = 45; // Number of server updates per second
     public tickIndex: number = 0; // Index of the current tick
     private _timer: number = 0; // Timer to keep track of the time passed since the last tick
-    public miniGames: string[] = ["football"];
+    public miniGames: MiniGame[] = [
+        {name: "Savage Soccer", isSelected: true, scene: "football", toPlay: true},
+        {name: "Stellar Storm", isSelected: false, scene: "meteorites", toPlay: false}
+    ];
+    public rounds: number = 2;
     public readonly uiContainer: Element = document.querySelector("#ui")!;
     public viewportWidth!: number;
     public viewportHeight!: number;
+    public havokInstance!: HavokPhysicsWithBindings;
 
     private constructor() {}
 
@@ -47,8 +52,7 @@ export class Game {
         this._resize(this.engine);
 
         // physics
-        const havokInstance: HavokPhysicsWithBindings = await this._getHavokInstance();
-        this.physicsPlugin = new B.HavokPlugin(false, havokInstance);
+        this.havokInstance = await this._getHavokInstance();
 
         // scenes
         const sceneManager: SceneManager = SceneManager.getInstance();
@@ -221,19 +225,13 @@ export class Game {
         }, 2000);
     }
 
-    public displayMessage(message: string, type: string): void {
+    public displayMessage(message: string, type: MessageType): void {
         const messageDiv: HTMLDivElement = document.createElement("div");
         messageDiv.className = `message ${type}-message`;
         messageDiv.innerHTML = `<p>${message}</p>`;
         document.body.appendChild(messageDiv);
 
         messageDiv.addEventListener("animationend", (): void => {
-            setTimeout((): void => {
-                messageDiv.style.opacity = "0";
-            }, 1000);
-        });
-
-        messageDiv.addEventListener("transitionend", (): void => {
             messageDiv.remove();
         });
     }

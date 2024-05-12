@@ -15,6 +15,7 @@ export abstract class Scene {
     public entityManager = new EntityManager();
     public sceneManager: SceneManager = SceneManager.getInstance();
     public loadedAssets: { [name: string]: B.AssetContainer } = {};
+    public physicsPlugin: B.Nullable<B.HavokPlugin> = null;
 
     protected constructor() {
         // initialize the scene with a main camera
@@ -53,7 +54,8 @@ export abstract class Scene {
     }
 
     public enablePhysics(gravityVector?: B.Vector3): void {
-        this.babylonScene.enablePhysics(gravityVector, this.game.physicsPlugin);
+        this.physicsPlugin = new B.HavokPlugin(false, this.game.havokInstance);
+        this.babylonScene.enablePhysics(gravityVector, this.physicsPlugin);
         // set physics to disabled to update it manually in fixedUpdate
         this.babylonScene.physicsEnabled = false;
     }
@@ -72,6 +74,6 @@ export abstract class Scene {
     }
 
     public simulate(physicsBodies: B.PhysicsBody[]): void {
-        this.game.physicsPlugin.executeStep(1 / 60, physicsBodies);
+        this.physicsPlugin!.executeStep(1 / 60, physicsBodies);
     }
 }

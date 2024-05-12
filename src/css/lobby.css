@@ -123,3 +123,67 @@
     color: #fae69f;
     text-shadow: #000 1px 1px 1px;
 }
+
+#mini-games-button-container {
+    position: absolute;
+    top: 15vh;
+    left: 50%;
+    transform: translateX(-50%);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 0;
+    row-gap: 0;
+    justify-content: center;
+    align-items: center;
+}
+
+.mini-game-button {
+    position: relative;
+    width: 22vw;
+    height: 18vw;
+    border: none;
+    background-color: transparent;
+    background-size: 90% 90%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("/img/big-leaf-stone-container.svg");
+    transition: transform .25s ease;
+    outline: none;
+}
+
+.mini-game-button.active-button {   
+    cursor: pointer;
+}
+
+.mini-game-button:hover.active-button {
+    transform: scale(0.97);
+}
+
+.mini-game-button:active.active-button {
+    transform: scale(0.95);
+}
+
+.top-right-img {
+    position: absolute;
+    width: 4vw;
+    height: 4vw;
+    top: 1vh;
+    right: 1vw;
+}
+
+.mini-game-text {
+    position: absolute;
+    bottom: 6vh;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.9vw;
+    color: #fae69f;
+    text-shadow: #000 1px 1px 1px;
+}
+
+.mini-game-img {
+    border-radius: 10%;
+    border: black 1px solid;
+    width: 15vw;
+    height: 12vw;
+}

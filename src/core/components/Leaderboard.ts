@@ -61,7 +61,7 @@ export class Leaderboard implements IComponent {
             this._timer--;
             if (this._timer < 0) {
                 clearInterval(interval);
-                this.scene.sceneManager.changeScene("gameSelection");
+                this.scene.sceneManager.changeScene("game-selection");
             }
             else {
                 this.updateTimerUI();

@@ -29,7 +29,7 @@ export class GameController implements IComponent {
     public onStart(): void {
         // HOST
         if (this.scene.game.networkInstance.isHost) {
-            const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.game.physicsPlugin.onTriggerCollisionObservable;
+            const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.physicsPlugin!.onTriggerCollisionObservable;
             this._goalTriggerObserver = observable.add(this._onTriggerCollision.bind(this));
 
             this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));

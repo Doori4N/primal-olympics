@@ -77,7 +77,7 @@ export class PlayerBehaviour implements IComponent {
         this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
 
         if (this.scene.game.networkInstance.isHost) {
-            const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.game.physicsPlugin.onTriggerCollisionObservable;
+            const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.physicsPlugin!.onTriggerCollisionObservable;
             this._observer = observable.add(this._onTriggerCollision.bind(this));
         }
     }
