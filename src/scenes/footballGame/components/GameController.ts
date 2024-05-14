@@ -43,11 +43,6 @@ export class GameController implements IComponent {
 
         this._networkAudioComponent = this.entity.getComponent("NetworkAudio") as NetworkAudioComponent;
         this._gameMessagesComponent = this.entity.getComponent("GameMessages") as GameMessages;
-
-        this._scoreDiv = document.createElement("div");
-        this._scoreDiv.id = "score";
-        this._scoreDiv.innerHTML = "0 - 0";
-        this.scene.game.uiContainer.appendChild(this._scoreDiv);
     }
 
     public onUpdate(): void {}
@@ -126,6 +121,11 @@ export class GameController implements IComponent {
     }
 
     private _onPresentationFinished(): void {
+        this._scoreDiv = document.createElement("div");
+        this._scoreDiv.id = "score";
+        this._scoreDiv.innerHTML = "0 - 0";
+        this.scene.game.uiContainer.appendChild(this._scoreDiv);
+
         this._networkAudioComponent.playSound("CrowdAmbience", {
             fade: {fadeVolume: 0.3, fadeOutDelay: 0, fadeOutDuration: 8}
         });

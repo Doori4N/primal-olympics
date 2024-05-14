@@ -8,7 +8,7 @@ export class MenuScene extends Scene {
     private _nameInput!: HTMLInputElement;
 
     constructor() {
-        super();
+        super("menu");
     }
 
     public start(): void {
@@ -105,6 +105,7 @@ export class MenuScene extends Scene {
         hostBtn.appendChild(hostImg);
 
         hostBtn.onclick = (): void => {
+            if (!this._checkName()) return;
             const name: string = this._nameInput.value;
             localStorage.setItem("name", name);
             this.game.networkInstance = new NetworkHost(this.game.peer, name);
@@ -127,11 +128,25 @@ export class MenuScene extends Scene {
         joinBtn.appendChild(joinImg);
 
         joinBtn.onclick = (): void => {
+            if (!this._checkName()) return;
             const name: string = this._nameInput.value;
             localStorage.setItem("name", name);
             this.game.networkInstance = new NetworkClient(this.game.peer, name);
             this.game.networkInputManager = new NetworkInputManager();
             this.game.fadeIn(this.sceneManager.changeScene.bind(this.sceneManager, "join-lobby"));
         }
+    }
+
+    private _checkName(): boolean {
+        if (this._nameInput.value.length < 3) {
+            this.game.displayMessage("Name must be at least 3 characters long!", "error");
+            return false;
+        }
+        else if (this._nameInput.value.length > 12) {
+            this.game.displayMessage("Name must be at most 12 characters long!", "error");
+            return false;
+        }
+
+        return true;
     }
 }

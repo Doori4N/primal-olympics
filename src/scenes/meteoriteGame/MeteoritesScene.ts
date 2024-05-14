@@ -20,7 +20,7 @@ import {NetworkInputsComponent} from "../../network/components/NetworkInputsComp
 
 export class MeteoritesScene extends Scene {
     constructor() {
-        super();
+        super("Stellar Storm");
     }
 
     public async preload(): Promise<void> {

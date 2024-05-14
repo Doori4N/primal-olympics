@@ -5,7 +5,7 @@ import {Utils} from "../../utils/Utils";
 
 export class GameSelectionScene extends Scene {
     constructor() {
-        super();
+        super("game-selection");
     }
 
     public start(): void {
@@ -16,6 +16,7 @@ export class GameSelectionScene extends Scene {
         if (this.game.rounds <= 0) {
             networkHost.sendToAllClients("changeScene", "game-over");
             this.sceneManager.changeScene("game-over");
+            this.game.rounds = 2;
             return;
         }
 
@@ -32,15 +33,10 @@ export class GameSelectionScene extends Scene {
             });
         }
 
-        console.log(miniGamesToPlay);
-
         // randomly select a mini-game
         const randomIndex: number = Utils.randomInt(0, miniGamesToPlay.length - 1);
         const randomGame: string = miniGamesToPlay[randomIndex].scene;
         miniGamesToPlay[randomIndex].toPlay = false;
-
-        console.log(this.game.miniGames);
-        console.log(randomGame);
 
         networkHost.sendToAllClients("changeScene", randomGame);
         this.sceneManager.changeScene(randomGame);

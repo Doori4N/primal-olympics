@@ -34,7 +34,7 @@ export class LobbyScene extends Scene {
     private _hostDisconnectedEvent = this._onHostDisconnected.bind(this);
 
     constructor() {
-        super();
+        super("lobby");
     }
 
     public async preload(): Promise<void> {

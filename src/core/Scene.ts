@@ -16,8 +16,11 @@ export abstract class Scene {
     public sceneManager: SceneManager = SceneManager.getInstance();
     public loadedAssets: { [name: string]: B.AssetContainer } = {};
     public physicsPlugin: B.Nullable<B.HavokPlugin> = null;
+    public name: string;
 
-    protected constructor() {
+    protected constructor(name: string) {
+        this.name = name;
+
         // initialize the scene with a main camera
         this.babylonScene = new B.Scene(this.game.engine);
         this.mainCamera = new B.FreeCamera("mainCamera", new B.Vector3(0, 5, -10), this.babylonScene);

@@ -10,7 +10,7 @@ export class StartScene extends Scene {
     private _canClick: boolean = true;
 
     constructor() {
-        super();
+        super("start");
     }
 
     public start(): void {

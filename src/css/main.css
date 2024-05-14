@@ -127,19 +127,116 @@
     background-position: center;
 }
 
-/* TODO: Delete this */
-
-#presentation-ui {
+.presentation-img {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    width: 60vw;
+    height: 55vh;
+    top: 14vh;
+    left: 4vw;
+    border-radius: 20px;
+}
+
+#description-container {
+    position: absolute;
+    width: 60vw;
+    height: 12vw;
+    padding: 2vw;
+    bottom: 4vh;
+    left: 4vw;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    row-gap: 1vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 20px;
+    color: #fae69f;
+    text-shadow: #000 1px 1px 1px;
+    font-size: 1.3vw;
+}
+
+.description-title {
+    font-size: 2vw;
+}
+
+#commands-container {
+    width: 27vw;
+    height: 32vw;
+    background-image: url("/img/stone-container.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: absolute;
+    top: 14vh;
+    right: 4vw;
+    display: flex;
+    flex-direction: column;
+    row-gap: 8vh;
+    padding: 3vw;
+    font-size: 2.2vw;
+    color: #fae69f;
+    text-shadow: #000 2px 2px 1px;
+}
+
+.command {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    column-gap: 1vw;
+}
+
+.key-img {
+    width: 3.2vw;
+    height: 3.2vw;
+}
+
+.large-key-img {
+    width: 6vw;
+    height: 3.5vw;
+}
+
+#checkbox-container {
+    width: 30vw;
+    height: 21vh;
+    max-width: 30vw;
+    position: absolute;
+    bottom: 2vh;
+    right: 2.5vw;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    grid-template-columns: repeat(4, 1fr);
+    column-gap: 1vw;
+    row-gap: 1vh;
+}
+
+.player-checkbox {
+    position: relative;
+    height: 10vh;
+    font-size: 1.25vw;
+    color: #fae69f;
+    text-shadow: #000 1px 1px 1px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    transform: translate(-50%, -50%);
-    background-color: #f0f0f0;
 }
+
+.checkbox-img {
+    width: 4vw;
+    height: 4vw;
+}
+
+#checkbox-info-text {
+    position: absolute;
+    bottom: 24vh;
+    right: 4vw;
+    transform: translateX(-50%);
+    font-size: 1.6vw;
+    color: #276e69;
+    text-shadow: #000 1px 1px 1px;
+}
+
+/* TODO: Delete this */
 
 #msg {
     position: absolute;

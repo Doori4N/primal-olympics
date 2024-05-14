@@ -6,7 +6,7 @@ export class JoinLobbyScene extends Scene {
     private _joinBtn!: HTMLButtonElement;
 
     constructor() {
-        super();
+        super("join-lobby");
     }
 
     public start(): void {

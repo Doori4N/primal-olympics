@@ -10,7 +10,7 @@ import {GameMessages} from "../../core/components/GameMessages";
 import {NetworkHost} from "../../network/NetworkHost";
 import {BallBehaviour} from "./components/BallBehaviour";
 import {NetworkPredictionComponent} from "../../network/components/NetworkPredictionComponent";
-import {InputStates} from "../../core/types";
+import {Commands, InputStates} from "../../core/types";
 import {GamePresentation} from "../../core/components/GamePresentation";
 import {Utils} from "../../utils/Utils";
 import {CameraComponent} from "../../core/components/CameraComponent";
@@ -56,7 +56,7 @@ export class FootballScene extends Scene {
     private _gui!: GUI.AdvancedDynamicTexture;
 
     constructor() {
-        super();
+        super("Savage Soccer");
     }
 
     public async preload(): Promise<void> {
@@ -295,17 +295,19 @@ export class FootballScene extends Scene {
 
     private _createGameManager(entityId?: string): Entity {
         const gameManager = new Entity("gameManager", entityId);
-        const htmlTemplate: string = `
-            <h1>Savage Soccer</h1>
-            <p>PC : Z/Q/S/D to move</p>
-            <p>PC : Space to shoot/tackle</p>
-            <p>PC : Shift to pass</p>
-            <p>Gamepads : Left joystick to move</p>
-            <p>Gamepads : A to shoot/tackle</p>
-            <p>Gamepads : B to pass</p>
-            <p>Put the ball in the opponent's net!</p>
+
+        const description: string = `
+            <span class='description-title'>Put the ball in the opponent's net!</span></span><br><br>
+            The team with the most goals wins! (todo: a better description)
         `;
-        gameManager.addComponent(new GamePresentation(gameManager, this, {htmlTemplate}));
+        const imgSrc: string = "football-presentation.png";
+        const commands: Commands = [
+            {keys: ["z", "q", "s", "d"], description: "Move"},
+            {keys: ["space"], description: "Shoot / Tackle"},
+            {keys: ["shift"], description: "Pass"},
+        ];
+        gameManager.addComponent(new GamePresentation(gameManager, this, {description, imgSrc, commands}));
+
         gameManager.addComponent(new GameMessages(gameManager, this));
         gameManager.addComponent(new GameTimer(gameManager, this, {duration: 120}));
         gameManager.addComponent(new GameController(gameManager, this));
