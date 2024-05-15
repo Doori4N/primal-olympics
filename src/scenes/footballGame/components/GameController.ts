@@ -14,6 +14,7 @@ export class GameController implements IComponent {
     // component properties
     private _goalTriggerObserver!: B.Observer<B.IBasePhysicsCollisionEvent>;
     private _scoreDiv!: HTMLDivElement;
+    private _scoreText!: HTMLParagraphElement;
     private _gameMessagesComponent!: GameMessages;
     public score: {left: number, right: number} = {left: 0, right: 0};
     private _networkAudioComponent!: NetworkAudioComponent;
@@ -55,11 +56,11 @@ export class GameController implements IComponent {
         // CLIENT
         else this.scene.game.networkInstance.removeEventListener("onGoalScored", this._onGoalScoredEvent);
 
-        this._scoreDiv.remove();
+        this.scene.game.uiContainer.removeChild(this._scoreDiv);
     }
 
     private _updateScoreUI(): void {
-        this._scoreDiv.innerHTML = `${this.score.left} - ${this.score.right}`;
+        this._scoreText.innerHTML = `${this.score.left} - ${this.score.right}`;
     }
 
     private _onTriggerCollision(collisionEvent: B.IBasePhysicsCollisionEvent): void {
@@ -118,13 +119,18 @@ export class GameController implements IComponent {
 
     private _onGameFinished(): void {
         this._networkAudioComponent.playSound("Whistle", {volume: 0.5, offset: 3, duration: 1.5});
+        this._networkAudioComponent.stopSound("CrowdAmbience");
     }
 
     private _onPresentationFinished(): void {
         this._scoreDiv = document.createElement("div");
-        this._scoreDiv.id = "score";
-        this._scoreDiv.innerHTML = "0 - 0";
+        this._scoreDiv.id = "score-container";
         this.scene.game.uiContainer.appendChild(this._scoreDiv);
+
+        this._scoreText = document.createElement("p");
+        this._scoreText.id = "score-text";
+        this._scoreText.innerHTML = "0 - 0";
+        this._scoreDiv.appendChild(this._scoreText);
 
         this._networkAudioComponent.playSound("CrowdAmbience", {
             fade: {fadeVolume: 0.3, fadeOutDelay: 0, fadeOutDuration: 8}

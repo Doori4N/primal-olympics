@@ -176,7 +176,6 @@ export class GamePresentation implements IComponent {
 
     private _getKeyImage(key: string): HTMLImageElement {
         const keyImg: HTMLImageElement = document.createElement("img");
-        console.log(key, key.length);
         if (key.length > 1) keyImg.className = "large-key-img";
         else keyImg.className = "key-img";
         keyImg.src = `/img/${key}.png`;

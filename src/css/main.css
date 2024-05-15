@@ -170,7 +170,7 @@
     right: 4vw;
     display: flex;
     flex-direction: column;
-    row-gap: 8vh;
+    row-gap: 4vh;
     padding: 3vw;
     font-size: 2.2vw;
     color: #fae69f;
@@ -236,47 +236,141 @@
     text-shadow: #000 1px 1px 1px;
 }
 
-/* TODO: Delete this */
-
 #msg {
     position: absolute;
     top: 50%;
     left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 3vw;
+    text-shadow: #000 3px 3px 1px;
+}
+
+#game-timer {
+    position: absolute;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 0.25vw;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    text-shadow: #000 1px 1px 1px;
+    font-size: 2.5vw;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 0.5vw;
+    border-radius: 20px;
+}
+
+#stopwatch-img {
+    width: 2.7vw;
+    height: 2.7vw;
+}
+
+#score-container {
+    position: absolute;
+    font-size: 3vw;
+    color: #fae69f;
+    background-image: url("/img/stone-circle.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    text-shadow: #000 1px 1px 1px;
+    top: .4vh;
+    left: .2vw;
+    width: 10vw;
+    height: 9vw;
+    display: flex;
     justify-content: center;
     align-items: center;
-    transform: translate(-50%, -50%);
-    background-color: #f0f0f0;
+    padding-left: 1.7vw;
 }
 
-#gameTimer {
-    position: absolute;
-    top: 0;
-    right: 50%;
-    font-size: 20px;
-    transform: translate(50%, 0);
-    border-radius: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 5px;
-    color: white;
-}
-
-#score {
-    position: absolute;
-    border-radius: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
-    font-size: 50px;
-    color: white;
-    top: 0;
-    right: 0;
-}
-
-#results {
+#results-div {
     position: absolute;
     top: 25%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 20px;
+    color: #fff;
+    font-size: 3vw;
+    text-shadow: #000 3px 3px 1px;
+}
+
+#player-scores-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    background-image: url("/img/big-leaf-stone-container.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.player-score {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.medals {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    /*border: white 1px solid;*/
+    padding: .7vw;
+    font-size: 1.7vw;
+    color: white;
+    text-shadow: #000 1px 1px 1px;
+    min-width: 55vw;
+}
+
+.medal-img {
+    width: 3vw;
+    height: 3vw;
+}
+
+.vertical-div {
+    width: .25vw;
+    height: 5vh;
+    background-color: #d7955c;
+    margin-left: 2vw;
+    margin-right: 2vw;
+}
+
+.medal-name {
+    font-size: 2.3vw;
+    padding-left: 2vw;
+    color: #fae69f;
+    min-width: 12vw;
+}
+
+.medal-result {
+    font-size: 2.3vw;
+    padding-right: 3vw;
+    color: #d7955c;
+}
+
+.position {
+    width: 6.5vw;
+    height: 5.5vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3.5vw;
+    color: #276e69;
+    text-shadow: #000 2px 2px 1px;
+}
+
+.first-position {
+    font-size: 4vw;
 }

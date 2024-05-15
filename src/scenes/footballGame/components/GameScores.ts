@@ -68,9 +68,12 @@ export class GameScores implements IComponent {
         this._setPlayerScores(leftResult, rightResult);
 
         setTimeout((): void => {
-            this.scene.eventManager.notify("onDisplayLeaderboard");
-            this.entity.removeComponent("GameScores");
-        }, 15000);
+            this.scene.game.fadeIn((): void => {
+                this.scene.eventManager.notify("onDisplayLeaderboard");
+                this.entity.removeComponent("GameScores");
+                this.entity.removeComponent("GameController");
+            });
+        }, 2000);
     }
 
     private _setPlayerScores(leftResult: Result, rightResult: Result): void {
@@ -126,7 +129,7 @@ export class GameScores implements IComponent {
 
     private _displayResults(blueResult: Result, orangeResult: Result): void {
         this._resultsDiv = document.createElement("div");
-        this._resultsDiv.id = "results";
+        this._resultsDiv.id = "results-div";
         this._resultsDiv.innerHTML = `
             <h1>${(orangeResult === Result.WIN) ? "Orange wins!" : (blueResult === Result.WIN) ? "Blue wins!" : "Draw!"}</h1>
         `;
