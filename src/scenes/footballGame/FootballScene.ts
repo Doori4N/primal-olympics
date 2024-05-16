@@ -1,5 +1,6 @@
-import {Scene} from "../../core/Scene";
 import * as B from '@babylonjs/core';
+import * as GUI from "@babylonjs/gui";
+import {Scene} from "../../core/Scene";
 import {Entity} from "../../core/Entity";
 import {MeshComponent} from "../../core/components/MeshComponent";
 import {RigidBodyComponent} from "../../core/components/RigidBodyComponent";
@@ -16,7 +17,6 @@ import {Utils} from "../../utils/Utils";
 import {CameraComponent} from "../../core/components/CameraComponent";
 import {CameraAnimation} from "./components/CameraAnimation";
 import {GameTimer} from "../../core/components/GameTimer";
-import * as GUI from "@babylonjs/gui";
 import {CameraMovement} from "./components/CameraMovement";
 import {NetworkTransformComponent} from "../../network/components/NetworkTransformComponent";
 import {AIPlayerBehaviour} from "./components/players/AIPlayerBehaviour";
@@ -362,6 +362,7 @@ export class FootballScene extends Scene {
         const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + playerEntity.id, true, {doNotInstantiate: true});
         const player = entries.rootNodes[0] as B.Mesh;
 
+        // color of the outfit
         const outfitMaterial = player.getChildMeshes()[1].material as B.PBRMaterial;
         outfitMaterial.albedoColor = this._teamColors[teamIndex].albedoColor;
         outfitMaterial.emissiveColor = this._teamColors[teamIndex].emissiveColor;

@@ -26,8 +26,6 @@ export class GameScores implements IComponent {
     private _rightPositionIndex: number = 1;
     private _gui!: GUI.AdvancedDynamicTexture;
 
-    // event listeners
-
     constructor(entity: Entity, scene: Scene) {
         this.entity = entity;
         this.scene = scene;

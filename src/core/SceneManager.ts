@@ -8,6 +8,7 @@ import {LobbyScene} from "../scenes/lobby/LobbyScene";
 import {JoinLobbyScene} from "../scenes/joinLobby/JoinLobbyScene";
 import {FootballScene} from "../scenes/footballGame/FootballScene";
 import {StartScene} from "../scenes/start/StartScene";
+import {SlopeScene} from "../scenes/slopeGame/SlopeScene";
 
 export class SceneManager {
     private static _instance: SceneManager;
@@ -86,6 +87,8 @@ export class SceneManager {
                 return new MeteoritesScene();
             case "football":
                 return new FootballScene();
+            case "slope":
+                return new SlopeScene();
             default:
                 throw new Error("Scene not found");
         }
