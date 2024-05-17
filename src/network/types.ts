@@ -1,3 +1,5 @@
+import {SkinOptions} from "../core/types";
+
 export type NetworkMessage = {
     type: string;
     data: any;
@@ -34,6 +36,7 @@ export type PhysicsUpdate = {
 export type PlayerData = {
     id: string;
     name: string;
+    skinOptions: SkinOptions;
     goldMedals: number;
     silverMedals: number;
     bronzeMedals: number;

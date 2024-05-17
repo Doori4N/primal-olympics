@@ -9,6 +9,7 @@ import {JoinLobbyScene} from "../scenes/joinLobby/JoinLobbyScene";
 import {FootballScene} from "../scenes/footballGame/FootballScene";
 import {StartScene} from "../scenes/start/StartScene";
 import {SlopeScene} from "../scenes/slopeGame/SlopeScene";
+import {CharacterCustomizationScene} from "../scenes/characterCustomization/CharacterCustomizationScene";
 
 export class SceneManager {
     private static _instance: SceneManager;
@@ -81,6 +82,8 @@ export class SceneManager {
                 return new JoinLobbyScene();
             case "game-over":
                 return new GameOverScene();
+            case "character-customization":
+                return new CharacterCustomizationScene();
             case "catch-the-dodo":
                 return new CatchTheDodoScene();
             case "meteorites":

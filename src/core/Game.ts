@@ -6,7 +6,7 @@ import {NetworkInstance} from "../network/NetworkInstance";
 import {NetworkInputManager} from "../network/NetworkInputManager";
 import Peer from "peerjs";
 import {LoadingScreen} from "./LoadingScreen";
-import {MessageType, MiniGame} from "./types";
+import {MessageType, MiniGame, SkinOptions} from "./types";
 
 export class Game {
     private static instance: Game;
@@ -29,6 +29,7 @@ export class Game {
     public viewportWidth!: number;
     public viewportHeight!: number;
     public havokInstance!: HavokPhysicsWithBindings;
+    public skinOptions!: SkinOptions;
 
     private constructor() {}
 
@@ -64,6 +65,8 @@ export class Game {
 
         // info ui
         this._createInfoUI();
+
+        this.skinOptions = this._loadSkinOptions();
 
         // game loop
         this.engine.runRenderLoop((): void => {
@@ -235,5 +238,20 @@ export class Game {
         messageDiv.addEventListener("animationend", (): void => {
             messageDiv.remove();
         });
+    }
+
+    private _loadSkinOptions(): SkinOptions {
+        const skinOptionsString: string | null = localStorage.getItem("skinOptions");
+
+        if (!skinOptionsString) {
+            return {
+                modelIndex: 0,
+                skinColorIndex: 0,
+                hairColorIndex: 11,
+                outfitColorIndex: 1
+            }
+        }
+
+        return JSON.parse(skinOptionsString);
     }
 }

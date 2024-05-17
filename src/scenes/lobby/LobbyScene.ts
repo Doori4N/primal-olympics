@@ -9,6 +9,7 @@ import {NetworkAnimationComponent} from "../../network/components/NetworkAnimati
 import * as GUI from "@babylonjs/gui";
 import {GameSelectionUI} from "./components/GameSelectionUI";
 import {GameLobbyUI} from "./components/GameLobbyUI";
+import {Utils} from "../../utils/Utils";
 
 export class LobbyScene extends Scene {
     private _gui!: GUI.AdvancedDynamicTexture;
@@ -170,10 +171,6 @@ export class LobbyScene extends Scene {
         this.eventManager.notify("update-number", this._players.size);
     }
 
-    private _getAnimationGroupByName(name: string, animationGroups: B.AnimationGroup[]): B.AnimationGroup {
-        return animationGroups.find((animationGroup: B.AnimationGroup): boolean => animationGroup.name === name)!;
-    }
-
     private _createPlayer(playerData: PlayerData, transform: {position: B.Vector3, rotation: B.Vector3}): void {
         const playerContainer: B.AssetContainer = this.loadedAssets["player"];
         const playerEntity = new Entity("player");
@@ -185,9 +182,12 @@ export class LobbyScene extends Scene {
 
         playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: player}));
 
+        // apply colors
+        Utils.applyColorsToMesh(player, playerData.skinOptions);
+
         // animations
         const animations: {[key: string]: B.AnimationGroup} = {};
-        animations["Idle"] = this._getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
+        animations["Idle"] = Utils.getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
         const networkAnimationComponent = new NetworkAnimationComponent(playerEntity, this, {animations});
         playerEntity.addComponent(networkAnimationComponent);
         networkAnimationComponent.startAnimation("Idle");

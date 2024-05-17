@@ -15,6 +15,7 @@ export class NetworkHost extends NetworkInstance {
         this.players.push({
             id: this.playerId,
             name: this.playerName,
+            skinOptions: this._game.skinOptions,
             goldMedals: 0,
             silverMedals: 0,
             bronzeMedals: 0
@@ -49,6 +50,7 @@ export class NetworkHost extends NetworkInstance {
             const newPlayer = {
                 id: connection.metadata.playerId,
                 name: connection.metadata.playerName,
+                skinOptions: connection.metadata.playerSkin,
                 goldMedals: 0,
                 silverMedals: 0,
                 bronzeMedals: 0

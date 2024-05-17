@@ -46,18 +46,7 @@ export class MenuScene extends Scene {
 
         this._createHostButton(buttonContainer);
         this._createJoinButton(buttonContainer);
-
-        // character button
-        const characterBtn: HTMLButtonElement = document.createElement("button");
-        characterBtn.innerHTML = "Character";
-        characterBtn.className = "stone-button";
-        buttonContainer.appendChild(characterBtn);
-
-        // character image
-        const characterImg: HTMLImageElement = document.createElement("img");
-        characterImg.src = "img/cavewoman.png";
-        characterImg.id = "character-img";
-        characterBtn.appendChild(characterImg);
+        this._createCharacterButton(buttonContainer);
 
         this._createOptionsButton();
     }
@@ -89,6 +78,24 @@ export class MenuScene extends Scene {
         helpImg.src = "img/help.png";
         helpImg.id = "help-img";
         helpBtn.appendChild(helpImg);
+    }
+
+    private _createCharacterButton(buttonContainer: HTMLDivElement): void {
+        // character button
+        const characterBtn: HTMLButtonElement = document.createElement("button");
+        characterBtn.innerHTML = "Character";
+        characterBtn.className = "stone-button";
+        buttonContainer.appendChild(characterBtn);
+
+        // character image
+        const characterImg: HTMLImageElement = document.createElement("img");
+        characterImg.src = "img/cavewoman.png";
+        characterImg.id = "character-img";
+        characterBtn.appendChild(characterImg);
+
+        characterBtn.onclick = (): void => {
+            this.sceneManager.changeScene("character-customization");
+        }
     }
 
     private _createHostButton(buttonContainer: HTMLDivElement): void {

@@ -23,7 +23,7 @@
     column-gap: 1vw;
 
     top: 2px;
-    right: 20%;
+    right: 25vw;
 }
 
 .info-icon {
@@ -304,14 +304,16 @@
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
+    align-content: flex-start;
     background-image: url("/img/big-leaf-stone-container.svg");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
     width: 60vw;
     height: 78vh;
+    padding-top: 13vh;
     padding-left: 6vw;
     row-gap: .1vh;
 }
@@ -376,4 +378,106 @@
     font-size: 3vw;
     color: #FEB941;
     text-shadow: #000 2px 2px 1px;
+}
+
+/* CHARACTER CUSTOMIZATION */
+
+.next-button {
+    position: absolute;
+    top: 45vh;
+    width: 3vw;
+    height: 4.5vh;
+    border: none;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("/img/stone-arrow.svg");
+    cursor: pointer;
+    transition: scale .15s ease;
+    outline: none;
+}
+
+.left-next-button {
+    right: 43vw;
+    transform: rotate(90deg);
+}
+
+.left-next-button:hover {
+    transform: rotate(90deg) scale(.95);
+}
+
+.left-next-button:active {
+    transform: rotate(90deg) scale(.9);
+}
+
+.right-next-button {
+    right: 23vw;
+    transform: rotate(-90deg);
+}
+
+.right-next-button:hover {
+    transform: rotate(-90deg) scale(.95);
+}
+
+.right-next-button:active {
+    transform: rotate(-90deg) scale(.9);
+}
+
+#customization-container {
+    position: absolute;
+    top: 20vh;
+    left: 20vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 4vh;
+}
+
+#categories-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    column-gap: 1vw;
+}
+
+#color-options-div {
+    background-image: url("/img/stone-container.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 21vw;
+    height: 26vw;
+    display: flex;
+    flex-flow: row wrap;
+    row-gap: 3vh;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: flex-start;
+    padding: 2vw;
+    column-gap: 2vw;
+}
+
+.color-button {
+    width: 4vw;
+    height: 4vw;
+    cursor: pointer;
+    transition: scale .15s ease;
+    outline: none;
+    border-radius: 100%;
+    border: .14vw solid black;
+}
+
+.color-button:hover {
+    transform: scale(1.1);
+}
+
+.color-button:active {
+    transform: scale(1);
+}
+
+.color-button-selected {
+    border: .14vw solid blue;
 }

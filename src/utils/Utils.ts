@@ -1,5 +1,11 @@
 import {MinPriorityQueue} from "priority-queue-typed";
 import {AstarNode} from "./types";
+import * as B from "@babylonjs/core";
+import {SkinOptions} from "../core/types";
+
+const _skinColors: string[] = ["#FFFFFF", "#DEDEDE", "#B9B9B9", "#8F8E8E", "#626262", "#454545"];
+const _hairColors: string[] = ["#FFFFFF", "#B62323", "#C24E14", "#D5AD14", "#51991D", "#197481", "#192C81", "#611981", "#81194A", "#482E2E", "#474747", "#252525"];
+const _outfitColors: string[] = ["#A23F3F", "#FFFFFF", "#C4FF00", "#4EDC3C"];
 
 export class Utils {
     /**
@@ -131,5 +137,34 @@ export class Utils {
      */
     public static manhattanDistance(a: number[], b: number[]): number {
         return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+    }
+
+    /**
+     * Get the animation group by name
+     * @param name The name of the animation group
+     * @param animationGroups The list of animation groups to search
+     */
+    public static getAnimationGroupByName(name: string, animationGroups: B.AnimationGroup[]): B.AnimationGroup {
+        return animationGroups.find((animationGroup: B.AnimationGroup): boolean => animationGroup.name === name)!;
+    }
+
+    /**
+     * Apply the selected colors to the player mesh
+     * @param playerMesh The player mesh to apply the colors to
+     * @param skinOptions The selected skin options
+     */
+    public static applyColorsToMesh(playerMesh: B.Mesh, skinOptions: SkinOptions): void {
+        // skin color
+        const skinMaterial = playerMesh.getChildMeshes()[2].material as B.PBRMaterial;
+        skinMaterial.albedoColor = B.Color3.FromHexString(_skinColors[skinOptions.skinColorIndex]).toLinearSpace();
+
+        // hair color
+        const hairMaterial = playerMesh.getChildMeshes()[3].material as B.PBRMaterial;
+        if (hairMaterial.albedoTexture) hairMaterial.albedoTexture = null;
+        hairMaterial.albedoColor = B.Color3.FromHexString(_hairColors[skinOptions.hairColorIndex]).toLinearSpace();
+
+        // outfit color
+        const outfitMaterial = playerMesh.getChildMeshes()[1].material as B.PBRMaterial;
+        outfitMaterial.albedoColor = B.Color3.FromHexString(_outfitColors[skinOptions.outfitColorIndex]).toLinearSpace();
     }
 }

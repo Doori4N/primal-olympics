@@ -9,7 +9,7 @@ export class Leaderboard implements IComponent {
     public scene: Scene;
 
     // component properties
-    private _timer: number = 15;
+    private _timer: number = 20;
     private _leaderboardDiv!: HTMLDivElement;
 
     constructor(entity: Entity, scene: Scene) {

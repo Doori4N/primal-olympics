@@ -32,7 +32,7 @@ export class NetworkClient extends NetworkInstance {
 
     public connectToHost(roomId: string): void {
         const hostId: string = roomId + "-gamesonweb2024";
-        this.hostConnection = this.peer.connect(hostId, {metadata: {playerId: this.playerId, playerName: this.playerName}});
+        this.hostConnection = this.peer.connect(hostId, {metadata: {playerId: this.playerId, playerName: this.playerName, playerSkin: this._game.skinOptions}});
 
         this.hostConnection.on("open", this._onConnectedToHost.bind(this, hostId));
 

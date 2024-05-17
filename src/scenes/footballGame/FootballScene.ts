@@ -24,6 +24,7 @@ import {NetworkAudioComponent} from "../../network/components/NetworkAudioCompon
 import {EdgeCollision} from "./components/EdgeCollision";
 import {GameScores} from "./components/GameScores";
 import {Leaderboard} from "../../core/components/Leaderboard";
+import {PlayerData} from "../../network/types";
 
 const PITCH_WIDTH: number = 40;
 const PITCH_HEIGHT: number = 27;
@@ -191,17 +192,17 @@ export class FootballScene extends Scene {
             Utils.shuffle(teamIndexes);
 
             for (let i: number = 0; i < networkHost.players.length; i++) {
-                const playerId: string = networkHost.players[i].id;
+                const playerData: PlayerData = networkHost.players[i];
 
                 const spawnIndex: number = this._teams[teamIndexes[i]].length;
                 const spawnPosition: B.Vector3 = this._spawns[spawnIndex].clone();
                 spawnPosition.x *= teamIndexes[i] === 0 ? -1 : 1;
 
-                const playerEntity: Entity = this._createPlayer(playerId, teamIndexes[i], spawnPosition);
+                const playerEntity: Entity = this._createPlayer(playerData, teamIndexes[i], spawnPosition);
                 this.entityManager.addEntity(playerEntity);
 
                 networkHost.sendToAllClients("onCreatePlayer", {
-                    playerId: playerId,
+                    playerData: playerData,
                     id: playerEntity.id,
                     teamIndex: teamIndexes[i]
                 });
@@ -211,12 +212,12 @@ export class FootballScene extends Scene {
         }
         // CLIENT
         else {
-            this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerId: string, id: string, teamIndex: number}): void => {
+            this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerData: PlayerData, id: string, teamIndex: number}): void => {
                 const spawnIndex: number = this._teams[args.teamIndex].length;
                 const spawnPosition: B.Vector3 = this._spawns[spawnIndex].clone();
                 spawnPosition.x *= args.teamIndex === 0 ? -1 : 1;
 
-                const playerEntity: Entity = this._createPlayer(args.playerId, args.teamIndex, spawnPosition, args.id);
+                const playerEntity: Entity = this._createPlayer(args.playerData, args.teamIndex, spawnPosition, args.id);
                 this.entityManager.addEntity(playerEntity);
 
                 this._teams[args.teamIndex].push(playerEntity);
@@ -355,17 +356,12 @@ export class FootballScene extends Scene {
         }));
     }
 
-    private _createPlayer(playerId: string, teamIndex: number, position: B.Vector3, entityId?: string): Entity {
+    private _createPlayer(playerData: PlayerData, teamIndex: number, position: B.Vector3, entityId?: string): Entity {
         const playerContainer: B.AssetContainer = this.loadedAssets["player"];
         const playerEntity = new Entity("player", entityId);
 
         const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + playerEntity.id, true, {doNotInstantiate: true});
         const player = entries.rootNodes[0] as B.Mesh;
-
-        // color of the outfit
-        const outfitMaterial = player.getChildMeshes()[1].material as B.PBRMaterial;
-        outfitMaterial.albedoColor = this._teamColors[teamIndex].albedoColor;
-        outfitMaterial.emissiveColor = this._teamColors[teamIndex].emissiveColor;
 
         player.scaling.scaleInPlace(0.25);
 
@@ -387,9 +383,17 @@ export class FootballScene extends Scene {
         const rotationOrientation: number = teamIndex === 0 ? 1 : -1;
         hitbox.rotate(B.Axis.Y, rotationOrientation * (Math.PI / 2), B.Space.WORLD);
 
+        // player skin colors
+        Utils.applyColorsToMesh(player, playerData.skinOptions);
+
+        // change the outfit color
+        const outfitMaterial = player.getChildMeshes()[1].material as B.PBRMaterial;
+        outfitMaterial.albedoColor = this._teamColors[teamIndex].albedoColor;
+        outfitMaterial.emissiveColor = this._teamColors[teamIndex].emissiveColor;
+
         // player name text
         const playerNameText = new GUI.TextBlock();
-        playerNameText.text = this.game.networkInstance.players.find((playerData) => playerData.id === playerId)!.name;
+        playerNameText.text = this.game.networkInstance.players.find((playerData) => playerData.id === playerData.id)!.name;
         playerNameText.color = (teamIndex === 0) ? "#0000ff" : "#ff0000"
         playerNameText.fontSize = 15;
         playerNameText.outlineColor = "black";
@@ -431,7 +435,7 @@ export class FootballScene extends Scene {
         playerEntity.addComponent(new NetworkAudioComponent(playerEntity, this, {sounds}));
 
         playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
-        playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerId: playerId, teamIndex: teamIndex}));
+        playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerId: playerData.id, teamIndex: teamIndex}));
 
         return playerEntity;
     }
