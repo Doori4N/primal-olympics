@@ -71,7 +71,7 @@ export class GameScores implements IComponent {
                 this.entity.removeComponent("GameScores");
                 this.entity.removeComponent("GameController");
             });
-        }, 2000);
+        }, 10000);
     }
 
     private _setPlayerScores(leftResult: Result, rightResult: Result): void {

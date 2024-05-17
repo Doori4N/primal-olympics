@@ -9,7 +9,7 @@ export class Leaderboard implements IComponent {
     public scene: Scene;
 
     // component properties
-    private _timer: number = 10;
+    private _timer: number = 15;
     private _leaderboardDiv!: HTMLDivElement;
 
     constructor(entity: Entity, scene: Scene) {
@@ -61,10 +61,6 @@ export class Leaderboard implements IComponent {
         for (let i: number = 0; i < sortedPlayers.length; i++) {
             playerScores += this._getPlayerScoreUI(i + 1, sortedPlayers[i]);
         }
-        for (let i: number = 1; i < 8; i++) {
-            sortedPlayers[0].name = 'qqqqssssdddd';
-            playerScores += this._getPlayerScoreUI(i + 1, sortedPlayers[0]);
-        }
         playerScores += `</div>`;
         this._leaderboardDiv.innerHTML += playerScores;
 
@@ -88,7 +84,9 @@ export class Leaderboard implements IComponent {
             <div class="player-score">
                 <div class="position">${index}</div>
                 <div class="medals">
-                    <p class="medal-name">${playerData.name}</p>
+                    <div class="medal-name-container">
+                        <p class="medal-name">${playerData.name}</p>
+                    </div>
                     <div class="vertical-div"></div>
                     <p>${playerData.goldMedals}</p>
                     <img src="/img/gold-medal.png" alt="gold-medal" class="medal-img">

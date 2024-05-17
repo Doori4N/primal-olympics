@@ -223,7 +223,7 @@ export class Game {
 
         setTimeout((): void => {
             fadeDiv.remove();
-        }, 2000);
+        }, 1700);
     }
 
     public displayMessage(message: string, type: MessageType): void {

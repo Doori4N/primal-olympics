@@ -310,6 +310,10 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+    width: 60vw;
+    height: 78vh;
+    padding-left: 6vw;
+    row-gap: .1vh;
 }
 
 .player-score {
@@ -323,54 +327,53 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: flex-end;
-    background-color: rgba(0, 0, 0, 0.3);
+    justify-content: stretch;
+    background-color: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
-    /*border: white 1px solid;*/
-    padding: .7vw;
     font-size: 1.7vw;
-    color: white;
+    color: #fae69f;
     text-shadow: #000 1px 1px 1px;
-    min-width: 55vw;
+    min-width: 40vw;
+    padding-left: 1vw;
+    padding-right: 1vw;
 }
 
 .medal-img {
-    width: 3vw;
-    height: 3vw;
+    width: 3.2vw;
+    height: 3.2vw;
 }
 
 .vertical-div {
     width: .25vw;
     height: 5vh;
     background-color: #d7955c;
-    margin-left: 2vw;
-    margin-right: 2vw;
+    margin-left: 1.7vw;
+    margin-right: 1.7vw;
 }
 
-.medal-name {
-    font-size: 2.3vw;
-    padding-left: 2vw;
-    color: #fae69f;
-    min-width: 12vw;
-}
-
-.medal-result {
-    font-size: 2.3vw;
-    padding-right: 3vw;
-    color: #d7955c;
-}
-
-.position {
-    width: 6.5vw;
-    height: 5.5vw;
+.medal-name-container {
+    width: 10vw;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 3.5vw;
-    color: #276e69;
-    text-shadow: #000 2px 2px 1px;
 }
 
-.first-position {
-    font-size: 4vw;
+.medal-name {
+    font-size: 1.8vw;
+    color: #fae69f;
+}
+
+.medal-result {
+    font-size: 1.8vw;
+    color: #fae69f;
+}
+
+.position {
+    width: 3vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3vw;
+    color: #FEB941;
+    text-shadow: #000 2px 2px 1px;
 }
