@@ -47,11 +47,11 @@ export class SlopeScene extends Scene {
         this.mainCamera.speed = 0.3;
 
         // start animation
-        const cameraEntity = new Entity();
-        const camera = new B.FreeCamera("camera", new B.Vector3(-15, 0, -100), this.babylonScene);
-        cameraEntity.addComponent(new CameraComponent(cameraEntity, this, {camera: camera}));
-        cameraEntity.addComponent(new CameraAnimation(cameraEntity, this));
-        this.entityManager.addEntity(cameraEntity);
+        // const cameraEntity = new Entity();
+        // const camera = new B.FreeCamera("camera", new B.Vector3(-15, 0, -100), this.babylonScene);
+        // cameraEntity.addComponent(new CameraComponent(cameraEntity, this, {camera: camera}));
+        // cameraEntity.addComponent(new CameraAnimation(cameraEntity, this));
+        // this.entityManager.addEntity(cameraEntity);
 
         // light
         const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.babylonScene);
@@ -183,6 +183,16 @@ export class SlopeScene extends Scene {
 
         playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
         playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerId: playerId}));
+
+        // Create camera for the player
+        const cameraEntity = new Entity(`camera_${playerId}`);
+        const camera = new B.FreeCamera(`camera_${playerId}`, new B.Vector3(0, 5, -10), this.babylonScene);
+        cameraEntity.addComponent(new CameraComponent(cameraEntity, this, {camera: camera}));
+        cameraEntity.addComponent(new CameraAnimation(cameraEntity, this));
+        this.entityManager.addEntity(cameraEntity);
+
+        // Link camera to player
+        camera.lockedTarget = player;
 
         return playerEntity;
     }
