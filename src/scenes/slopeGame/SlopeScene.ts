@@ -48,8 +48,7 @@ export class SlopeScene extends Scene {
 
         // start animation
         const cameraEntity = new Entity();
-        const camera = new B.FreeCamera("camera", new B.Vector3(-10, 20, -20), this.babylonScene);
-        camera.rotation.x = Math.PI / 4;
+        const camera = new B.FreeCamera("camera", new B.Vector3(-15, 0, -100), this.babylonScene);
         cameraEntity.addComponent(new CameraComponent(cameraEntity, this, {camera: camera}));
         cameraEntity.addComponent(new CameraAnimation(cameraEntity, this));
         this.entityManager.addEntity(cameraEntity);

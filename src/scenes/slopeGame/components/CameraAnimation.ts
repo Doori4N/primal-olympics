@@ -46,15 +46,15 @@ export class CameraAnimation implements IComponent {
         const positionAnimKeys: {frame: number, value: number}[] = [];
         positionAnimKeys.push({
             frame: 0,
-            value: this.camera.position.x
+            value: this.camera.position.y
         });
         positionAnimKeys.push({
             frame: 4 * this.frameRate,
-            value: this.camera.position.x + 10
+            value: this.camera.position.y + 20
         });
         positionAnimKeys.push({
             frame: 8 * this.frameRate,
-            value: this.camera.position.x + 20
+            value: this.camera.position.y + 30
         });
         positionAnim.setKeys(positionAnimKeys);
         this.camera.animations.push(positionAnim);
