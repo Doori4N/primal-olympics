@@ -25,6 +25,7 @@ import {EdgeCollision} from "./components/EdgeCollision";
 import {GameScores} from "./components/GameScores";
 import {Leaderboard} from "../../core/components/Leaderboard";
 import {PlayerData} from "../../network/types";
+import {NetworkClient} from "../../network/NetworkClient";
 
 const PITCH_WIDTH: number = 40;
 const PITCH_HEIGHT: number = 27;
@@ -64,23 +65,36 @@ export class FootballScene extends Scene {
         this.game.engine.displayLoadingUI();
 
         // load assets
-        this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync(
-            "meshes/models/",
-            "caveman.glb",
-            this.babylonScene
-        );
+        this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
+        this.loadedAssets["footballPitch"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "footballPitch.glb", this.babylonScene);
+        this.loadedAssets["ball"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "ball.glb", this.babylonScene);
 
-        this.loadedAssets["footballPitch"] = await B.SceneLoader.LoadAssetContainerAsync(
-            "meshes/scenes/",
-            "footballPitch.glb",
-            this.babylonScene
-        );
+        // HOST
+        // wait for all players to be ready
+        if (this.game.networkInstance.isHost) {
+            const playerReadyPromises: Promise<void>[] = this.game.networkInstance.players.map((): Promise<void> => {
+                return new Promise<void>((resolve): void => {
+                    this.game.networkInstance.addEventListener("onPlayerReady", resolve);
+                });
+            });
+            await Promise.all(playerReadyPromises);
+        }
+        // CLIENT
+        else {
+            // listen to onCreateEntity events
+            this.game.networkInstance.addEventListener("onCreateGameManager", this._createGameManager.bind(this));
+            this.game.networkInstance.addEventListener("onCreateBall", this._createBall.bind(this));
+            this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerData: PlayerData, id: string, teamIndex: number}): void => {
+                this._createPlayer(args.playerData, args.teamIndex, args.id);
+            });
+            this.game.networkInstance.addEventListener("onCreateAIPlayer", (args: {id: string, teamIndex: number}): void => {
+                this._createAIPlayer(args.teamIndex, B.Vector2.Zero(), args.id);
+            });
 
-        this.loadedAssets["ball"] = await B.SceneLoader.LoadAssetContainerAsync(
-            "meshes/models/",
-            "ball.glb",
-            this.babylonScene
-        );
+            // tell the host that the player is ready
+            const networkClient = this.game.networkInstance as NetworkClient;
+            networkClient.sendToHost("onPlayerReady");
+        }
 
         this.game.engine.hideLoadingUI();
     }
@@ -111,14 +125,8 @@ export class FootballScene extends Scene {
         light.intensity = 0.7;
 
         this._createFootballPitch();
-        this._initBall();
 
-        // players
         this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.babylonScene);
-        this._initPlayers();
-
-        // AI players
-        this._initAIPlayers();
 
         // goals
         this._createGoal("leftGoal", new B.Vector3(-PITCH_WIDTH / 2 - 1.25, 1.5, 0));
@@ -132,11 +140,16 @@ export class FootballScene extends Scene {
         this._createEdge(new B.Vector3((-PITCH_WIDTH / 2) - 0.5, 1.5, -8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
         this._createEdge(new B.Vector3((-PITCH_WIDTH / 2) - 0.5, 1.5, 8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
 
-        // gameManager
-        this._initGameManager();
-
         this.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
         this.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
+
+        if (!this.game.networkInstance.isHost) return;
+
+        // HOST
+        this._createGameManager();
+        this._createBall();
+        this._initPlayers();
+        this._initAIPlayers();
     }
 
     private _createFootballPitch(): void {
@@ -165,136 +178,97 @@ export class FootballScene extends Scene {
         this.entityManager.addEntity(groundEntity);
     }
 
-    private _initBall(): void {
-        // HOST
+    private _createBall(entityId?: string): void {
+        const ballEntity: Entity = this._createBallEntity(entityId);
+        this.entityManager.addEntity(ballEntity);
+
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;
-            const ballEntity: Entity = this._createBall();
-            this.entityManager.addEntity(ballEntity);
-            networkHost.sendToAllClients("onCreateBall", {id: ballEntity.id});
-        }
-        // CLIENT
-        else {
-            this.game.networkInstance.addEventListener("onCreateBall", (args: {id: string}): void => {
-                const ballEntity: Entity = this._createBall(args.id);
-                this.entityManager.addEntity(ballEntity);
-            });
+            networkHost.sendToAllClients("onCreateBall", ballEntity.id);
         }
     }
 
     private _initPlayers(): void {
+        const networkHost = this.game.networkInstance as NetworkHost;
+
+        // shuffle teams index
+        let teamIndexes: number[] = new Array(networkHost.players.length).fill(1, 0, networkHost.players.length / 2).fill(0, networkHost.players.length / 2);
+        // Utils.shuffle(teamIndexes);
+
+        for (let i: number = 0; i < networkHost.players.length; i++) {
+            const playerData: PlayerData = networkHost.players[i];
+            this._createPlayer(playerData, teamIndexes[i]);
+        }
+    }
+
+    private _createPlayer(playerData: PlayerData, teamIndex: number, entityId?: string): void {
+        const spawnIndex: number = this._teams[teamIndex].length;
+        const spawnPosition: B.Vector3 = this._spawns[spawnIndex].clone();
+        spawnPosition.x *= teamIndex === 0 ? -1 : 1;
+
+        const playerEntity: Entity = this._createPlayerEntity(playerData, teamIndex, spawnPosition, entityId);
+        this.entityManager.addEntity(playerEntity);
+
         // HOST
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;
-
-            // shuffle teams index
-            let teamIndexes: number[] = new Array(networkHost.players.length).fill(0, 0, networkHost.players.length / 2).fill(1, networkHost.players.length / 2);
-            Utils.shuffle(teamIndexes);
-
-            for (let i: number = 0; i < networkHost.players.length; i++) {
-                const playerData: PlayerData = networkHost.players[i];
-
-                const spawnIndex: number = this._teams[teamIndexes[i]].length;
-                const spawnPosition: B.Vector3 = this._spawns[spawnIndex].clone();
-                spawnPosition.x *= teamIndexes[i] === 0 ? -1 : 1;
-
-                const playerEntity: Entity = this._createPlayer(playerData, teamIndexes[i], spawnPosition);
-                this.entityManager.addEntity(playerEntity);
-
-                networkHost.sendToAllClients("onCreatePlayer", {
-                    playerData: playerData,
-                    id: playerEntity.id,
-                    teamIndex: teamIndexes[i]
-                });
-
-                this._teams[teamIndexes[i]].push(playerEntity);
-            }
-        }
-        // CLIENT
-        else {
-            this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerData: PlayerData, id: string, teamIndex: number}): void => {
-                const spawnIndex: number = this._teams[args.teamIndex].length;
-                const spawnPosition: B.Vector3 = this._spawns[spawnIndex].clone();
-                spawnPosition.x *= args.teamIndex === 0 ? -1 : 1;
-
-                const playerEntity: Entity = this._createPlayer(args.playerData, args.teamIndex, spawnPosition, args.id);
-                this.entityManager.addEntity(playerEntity);
-
-                this._teams[args.teamIndex].push(playerEntity);
+            networkHost.sendToAllClients("onCreatePlayer", {
+                playerData: playerData,
+                teamIndex: teamIndex,
+                id: playerEntity.id
             });
         }
+
+        this._teams[teamIndex].push(playerEntity);
     }
 
     private _initAIPlayers(): void {
+        // create blue team AI players
+        for (let i: number = this._teams[0].length; i < 4; i++) {
+            const wanderPosition: B.Vector2 = this._wanderPositions[i].clone();
+            wanderPosition.x *= -1;
+            this._createAIPlayer(0, wanderPosition)
+        }
+
+        // create orange team AI players
+        for (let i: number = this._teams[1].length; i < 4; i++) {
+            const wanderPosition: B.Vector2 = this._wanderPositions[i].clone();
+            this._createAIPlayer(1, wanderPosition);
+        }
+    }
+
+    private _createAIPlayer(teamIndex: number, wanderPosition: B.Vector2, entityId?: string): void {
+        const spawnIndex: number = this._teams[teamIndex].length;
+        const spawnPosition: B.Vector3 = this._spawns[spawnIndex].clone();
+        spawnPosition.x *= teamIndex === 0 ? -1 : 1;
+
+        const playerEntity: Entity = this._createAIPlayerEntity(teamIndex, spawnPosition, wanderPosition, entityId);
+        this.entityManager.addEntity(playerEntity);
+
+        this._teams[teamIndex].push(playerEntity);
+
         // HOST
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;
-
-            // create blue team AI players
-            for (let i: number = this._teams[0].length; i < 4; i++) {
-                const spawnPosition: B.Vector3 = this._spawns[i].clone();
-                spawnPosition.x *= -1;
-                const wanderPosition: B.Vector2 = this._wanderPositions[i].clone();
-                wanderPosition.x *= -1;
-
-                const playerEntity: Entity = this._createAIPlayer(0, spawnPosition, wanderPosition);
-                this.entityManager.addEntity(playerEntity);
-
-                networkHost.sendToAllClients("onCreateAIPlayer", {
-                    id: playerEntity.id,
-                    teamIndex: 0
-                });
-
-                this._teams[0].push(playerEntity);
-            }
-
-            // create orange team AI players
-            for (let i: number = this._teams[1].length; i < 4; i++) {
-                const spawnPosition: B.Vector3 = this._spawns[i].clone();
-                const wanderPosition: B.Vector2 = this._wanderPositions[i].clone();
-
-                const playerEntity: Entity = this._createAIPlayer(1, spawnPosition, wanderPosition);
-                this.entityManager.addEntity(playerEntity);
-
-                networkHost.sendToAllClients("onCreateAIPlayer", {
-                    id: playerEntity.id,
-                    teamIndex: 1
-                });
-
-                this._teams[1].push(playerEntity);
-            }
-        }
-        // CLIENT
-        else {
-            this.game.networkInstance.addEventListener("onCreateAIPlayer", (args: {id: string, teamIndex: number}): void => {
-                const spawnIndex: number = this._teams[args.teamIndex].length;
-                const spawnPosition: B.Vector3 = this._spawns[spawnIndex].clone();
-                spawnPosition.x *= args.teamIndex === 0 ? -1 : 1;
-
-                const playerEntity: Entity = this._createAIPlayer(args.teamIndex, spawnPosition, B.Vector2.Zero(), args.id);
-                this.entityManager.addEntity(playerEntity);
-
-                this._teams[args.teamIndex].push(playerEntity);
+            networkHost.sendToAllClients("onCreateAIPlayer", {
+                id: playerEntity.id,
+                teamIndex: teamIndex
             });
         }
     }
 
-    private _initGameManager(): void {
+    private _createGameManager(entityId?: string): void {
+        const gameManagerEntity: Entity = this._createGameManagerEntity(entityId);
+        this.entityManager.addEntity(gameManagerEntity);
+
         // HOST
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;
-            const gameManagerEntity = this._createGameManager();
             networkHost.sendToAllClients("onCreateGameManager", gameManagerEntity.id);
         }
-        // CLIENT
-        else {
-            this.game.networkInstance.addEventListener("onCreateGameManager", (id: string): void => {
-                this._createGameManager(id);
-            });
-        }
     }
 
-    private _createGameManager(entityId?: string): Entity {
+    private _createGameManagerEntity(entityId?: string): Entity {
         const gameManager = new Entity("gameManager", entityId);
 
         const description: string = `
@@ -321,7 +295,6 @@ export class FootballScene extends Scene {
         sounds["Whistle"] = new B.Sound("whistle", "sounds/whistle.wav", this.babylonScene, null, {loop: false, autoplay: false});
         sounds["CrowdAmbience"] = new B.Sound("crowd_ambience", "sounds/crowd_ambience.wav", this.babylonScene, null, {loop: true, autoplay: true, volume: 0});
         gameManager.addComponent(new NetworkAudioComponent(gameManager, this, {sounds}));
-        this.entityManager.addEntity(gameManager);
 
         return gameManager;
     }
@@ -356,7 +329,7 @@ export class FootballScene extends Scene {
         }));
     }
 
-    private _createPlayer(playerData: PlayerData, teamIndex: number, position: B.Vector3, entityId?: string): Entity {
+    private _createPlayerEntity(playerData: PlayerData, teamIndex: number, position: B.Vector3, entityId?: string): Entity {
         const playerContainer: B.AssetContainer = this.loadedAssets["player"];
         const playerEntity = new Entity("player", entityId);
 
@@ -386,7 +359,7 @@ export class FootballScene extends Scene {
         // player skin colors
         Utils.applyColorsToMesh(player, playerData.skinOptions);
 
-        // change the outfit color
+        // change the outfit color based on the team
         const outfitMaterial = player.getChildMeshes()[1].material as B.PBRMaterial;
         outfitMaterial.albedoColor = this._teamColors[teamIndex].albedoColor;
         outfitMaterial.emissiveColor = this._teamColors[teamIndex].emissiveColor;
@@ -440,7 +413,7 @@ export class FootballScene extends Scene {
         return playerEntity;
     }
 
-    private _createAIPlayer(teamIndex: number, position: B.Vector3, wanderPosition: B.Vector2, entityId?: string): Entity {
+    private _createAIPlayerEntity(teamIndex: number, position: B.Vector3, wanderPosition: B.Vector2, entityId?: string): Entity {
         const playerContainer: B.AssetContainer = this.loadedAssets["player"];
         const aiPlayerEntity = new Entity("aiPlayer", entityId);
 
@@ -511,7 +484,7 @@ export class FootballScene extends Scene {
         return aiPlayerEntity;
     }
 
-    private _createBall(entityId?: string): Entity {
+    private _createBallEntity(entityId?: string): Entity {
         const ballContainer: B.AssetContainer = this.loadedAssets["ball"];
         const ballEntity = new Entity("ball", entityId);
 

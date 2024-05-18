@@ -28,6 +28,8 @@ export class GameController implements IComponent {
     }
 
     public onStart(): void {
+        this.scene.eventManager.subscribe("onPresentationFinished", this._onPresentationFinished.bind(this));
+
         // HOST
         if (this.scene.game.networkInstance.isHost) {
             const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.physicsPlugin!.onTriggerCollisionObservable;
@@ -35,7 +37,6 @@ export class GameController implements IComponent {
 
             this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
             this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
-            this.scene.eventManager.subscribe("onPresentationFinished", this._onPresentationFinished.bind(this));
         }
         // CLIENT
         else {
@@ -132,8 +133,10 @@ export class GameController implements IComponent {
         this._scoreText.innerHTML = "0 - 0";
         this._scoreDiv.appendChild(this._scoreText);
 
-        this._networkAudioComponent.playSound("CrowdAmbience", {
-            fade: {fadeVolume: 0.3, fadeOutDelay: 0, fadeOutDuration: 8}
-        });
+        if (this.scene.game.networkInstance.isHost) {
+            this._networkAudioComponent.playSound("CrowdAmbience", {
+                fade: {fadeVolume: 0.3, fadeOutDelay: 0, fadeOutDuration: 8}
+            });
+        }
     }
 }

@@ -11,6 +11,7 @@ import * as GUI from "@babylonjs/gui";
 
 enum Result {
     WIN,
+    DRAW,
     LOSE,
 }
 
@@ -59,11 +60,10 @@ export class GameScores implements IComponent {
         this.scene.babylonScene.switchActiveCamera(camera);
 
         const gameController = this.entity.getComponent("GameController") as GameController;
-        const leftResult: Result = (gameController.score.left > gameController.score.right) ? Result.WIN : Result.LOSE;
-        const rightResult: Result = (gameController.score.right > gameController.score.left) ? Result.WIN : Result.LOSE;
+        const leftResult: Result = (gameController.score.left > gameController.score.right) ? Result.WIN : (gameController.score.left < gameController.score.right) ? Result.LOSE : Result.DRAW;
 
-        this._displayResults(leftResult, rightResult);
-        this._setPlayerScores(leftResult, rightResult);
+        this._displayResults(leftResult);
+        this._setPlayerScores(leftResult);
 
         setTimeout((): void => {
             this.scene.game.fadeIn((): void => {
@@ -74,7 +74,7 @@ export class GameScores implements IComponent {
         }, 10000);
     }
 
-    private _setPlayerScores(leftResult: Result, rightResult: Result): void {
+    private _setPlayerScores(leftResult: Result): void {
         const players: Entity[] = this.scene.entityManager.getEntitiesByTag("player");
         players.forEach((player: Entity): void => {
             const playerBehaviour = player.getComponent("PlayerBehaviour") as PlayerBehaviour;
@@ -95,7 +95,7 @@ export class GameScores implements IComponent {
 
             // player score text
             const playerScoreText = new GUI.TextBlock();
-            playerScoreText.text = (playerBehaviour.teamIndex === 0) ? leftResult === Result.WIN ? "1st" : "2nd" : rightResult === Result.WIN ? "1st" : "2nd";
+            playerScoreText.text = (playerBehaviour.teamIndex === 0) ? (leftResult === Result.WIN ? "1st" : "2nd") : (leftResult === Result.LOSE ? "1st" : "2nd");
             playerScoreText.color = "#22ff22"
             playerScoreText.fontSize = 25;
             playerScoreText.outlineColor = "black";
@@ -106,7 +106,7 @@ export class GameScores implements IComponent {
 
             // play reaction animation
             if (this.scene.game.networkInstance.isHost) {
-                playerBehaviour.playRandomReactionAnimation((playerBehaviour.teamIndex === 0) ? (leftResult === Result.WIN) : (rightResult === Result.WIN));
+                playerBehaviour.playRandomReactionAnimation((playerBehaviour.teamIndex === 0) ? (leftResult === Result.WIN) : (leftResult === Result.LOSE));
             }
 
             // reset position and add medals
@@ -114,22 +114,24 @@ export class GameScores implements IComponent {
                 playerMeshComponent.mesh.position = new B.Vector3(-this._leftPositionIndex, 1, 0);
                 this._leftPositionIndex++;
                 if (leftResult === Result.WIN) playerData.goldMedals++;
-                else playerData.silverMedals++;
+                else if (leftResult === Result.DRAW) playerData.silverMedals++;
+                else playerData.bronzeMedals++;
             }
             else {
                 playerMeshComponent.mesh.position = new B.Vector3(this._rightPositionIndex, 1, 0);
                 this._rightPositionIndex++;
-                if (rightResult === Result.WIN) playerData.goldMedals++;
-                else playerData.silverMedals++;
+                if (leftResult === Result.LOSE) playerData.goldMedals++;
+                else if (leftResult === Result.DRAW) playerData.silverMedals++;
+                else playerData.bronzeMedals++;
             }
         });
     }
 
-    private _displayResults(blueResult: Result, orangeResult: Result): void {
+    private _displayResults(blueResult: Result): void {
         this._resultsDiv = document.createElement("div");
         this._resultsDiv.id = "results-div";
         this._resultsDiv.innerHTML = `
-            <h1>${(orangeResult === Result.WIN) ? "Orange wins!" : (blueResult === Result.WIN) ? "Blue wins!" : "Draw!"}</h1>
+            <h1>${(blueResult === Result.WIN) ? "Blue wins!" : (blueResult === Result.LOSE) ? "Orange wins!" : "Draw!"}</h1>
         `;
         this.scene.game.uiContainer.appendChild(this._resultsDiv);
     }

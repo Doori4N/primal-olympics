@@ -164,7 +164,7 @@ export class BallBehaviour implements IComponent {
      */
     private _onBallOwnerUpdate(playerEntityId: B.Nullable<string>, teamId: B.Nullable<number>, playerId?: string): void {
         // if the player drops the ball
-        if (!playerEntityId || !teamId) {
+        if (!playerEntityId || teamId === null) {
             this._ballOwner = null;
             return;
         }
