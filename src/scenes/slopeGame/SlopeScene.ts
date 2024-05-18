@@ -41,7 +41,7 @@ export class SlopeScene extends Scene {
         this.enablePhysics(new B.Vector3(0, -9.81, 0));
 
         // camera
-        this.mainCamera.position = new B.Vector3(0, 30, -20);
+        this.mainCamera.position = new B.Vector3(0, -15, -60);
         this.mainCamera.setTarget(B.Vector3.Zero());
         this.mainCamera.attachControl(this.game.canvas, true);
         this.mainCamera.speed = 0.3;
@@ -77,7 +77,11 @@ export class SlopeScene extends Scene {
 
     private _createSlope(): void {
         const slopeEntity = new Entity("slope");
-        const slopeMesh: B.Mesh = B.MeshBuilder.CreateGround("ground", {width: 20, height: 40}, this.babylonScene);
+        const slopeMesh: B.Mesh = B.MeshBuilder.CreateGround("ground", {width: 20, height: 100}, this.babylonScene);
+    
+        // Incliner le sol pour créer une pente
+        slopeMesh.rotation = new B.Vector3(-Math.PI / 10, 0, 0); // -Math.PI / 14 ou -Math.PI / 12 voir les potos 
+    
         slopeMesh.metadata = {tag: slopeEntity.tag};
         slopeEntity.addComponent(new MeshComponent(slopeEntity, this, {mesh: slopeMesh}));
         slopeEntity.addComponent(new RigidBodyComponent(slopeEntity, this, {
@@ -86,6 +90,7 @@ export class SlopeScene extends Scene {
         }));
         this.entityManager.addEntity(slopeEntity);
     }
+    
 
     private _createFinishLine(): void {
         const finishLine = new Entity("finishLine");
@@ -142,6 +147,8 @@ export class SlopeScene extends Scene {
         hitbox.metadata = {tag: playerEntity.tag, id: playerEntity.id};
         player.setParent(hitbox);
         player.position = new B.Vector3(0, -1, 0);
+
+        hitbox.position = new B.Vector3(0, 0, -20);
 
         // player name text
         const playerNameText = new GUI.TextBlock();

@@ -42,7 +42,7 @@ export class FallingObjectController implements IComponent {
 
     private startSpawning(): void {
         this._intervalId = setInterval((): void => {
-            const randomPosition: B.Vector3 = new B.Vector3(Utils.randomInt(-7.5, 7.5), 25, 0);
+            const randomPosition: B.Vector3 = new B.Vector3(Utils.randomInt(-7.5, 7.5), 25, 18);
             const fallingObjectEntity: Entity = this._spawnFallingObject(randomPosition);
             this.scene.entityManager.addEntity(fallingObjectEntity);
         }, 1000);
@@ -77,20 +77,31 @@ export class FallingObjectController implements IComponent {
 
     private _createLog(position: B.Vector3): Entity {
         const logEntity: Entity = new Entity("fallingObject");
-
+    
         const logMesh: B.Mesh = B.MeshBuilder.CreateCylinder("FallingObject", { height: 2, diameter: 1 }, this.scene.babylonScene);
         logMesh.position = position;
         logMesh.metadata = { tag: logEntity.tag, id: logEntity.id };
-
+    
+        // Rotation aléatoire 
+        const randomRotation = Math.random() * Math.PI * 2; 
+        const randomOrientation = Math.random() > 0.1; 
+    
+        if (randomOrientation) {
+            logMesh.rotation.z = randomRotation; // horizontalité parallele au joueur 
+        } else {
+            logMesh.rotation.y = randomRotation; // verticalité
+        }
+    
         logEntity.addComponent(new MeshComponent(logEntity, this.scene, { mesh: logMesh }));
         logEntity.addComponent(new FallingObjectBehaviour(logEntity, this.scene));
         logEntity.addComponent(new RigidBodyComponent(logEntity, this.scene, {
             physicsShape: B.PhysicsImpostor.BoxImpostor,
             physicsProps: { mass: 1, restitution: 0.5 }
         }));
-
+    
         return logEntity;
     }
+    
 
     private stopSpawning(): void {
         clearInterval(this._intervalId);

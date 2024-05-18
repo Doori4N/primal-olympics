@@ -29,6 +29,7 @@ export class PlayerBehaviour implements IComponent {
     // movement
     private _speed: number = 5;
     private _velocity: B.Vector3 = B.Vector3.Zero();
+    private _isGrounded: boolean = false;
 
     constructor(entity: Entity, scene: Scene, props: {playerId: string}) {
         this.entity = entity;
@@ -128,6 +129,40 @@ export class PlayerBehaviour implements IComponent {
         if (!this._velocity.equals(B.Vector3.Zero())) {
             const rotationY: number = Math.atan2(this._velocity.z, -this._velocity.x) - Math.PI / 2;
             this._mesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, rotationY, 0);
+        }
+
+        // jump
+        const _velocity = this._physicsAggregate.body.getLinearVelocity().y;
+        this._isGrounded = Math.abs(_velocity) < 0.01; // check if the player is grounded
+        console.log("debut_isGrounded", this._isGrounded);
+        if (inputs.buttons["jump"] && this._canJump && this._isGrounded) {
+            console.log("jumping");
+            this._physicsAggregate.body.setLinearVelocity(new B.Vector3(this._velocity.x, 5, this._velocity.z));
+            
+            // prevent multiple jumps
+            setTimeout(() => {
+                this._canJump = false;
+            }, 500);
+
+            // modifier ici _isGrounded comme ca apres on pourra voir si on estt en juump ou dans tes morts 
+            this._isGrounded = false;
+            console.log("_isGrounded", this._isGrounded);
+        }
+        
+        // check if the player is on air bug ici je ne sais pas pourquoi 
+        if (this._isGrounded) {
+            console.log("not grounded");
+            this._physicsAggregate.body.setLinearVelocity(new B.Vector3(this._velocity.x, -5, this._velocity.z));
+            this._canJump = true;
+            this._isGrounded = false;
+        }
+
+        if (this._isGrounded && !inputs.buttons["jump"]) {
+            //down on the slope
+            console.log("down on the slope");
+            this._physicsAggregate.body.setLinearVelocity(new B.Vector3(this._velocity.x, -5, this._velocity.z));
+            this._canJump = true;
+            this._isGrounded = true;
         }
     }
 
