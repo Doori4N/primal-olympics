@@ -64,7 +64,7 @@ export class StartScene extends Scene {
             console.log("Error connecting to server: ", err);
 
             let timer: number = CONNECTION_RETRY_INTERVAL / 1000;
-            this._startText.textContent = `Error connecting to server\nTrying again in ${timer} seconds...`;
+            this._startText.textContent = `Can't connect to server\nTrying again in ${timer} seconds...`;
             this._startText.style.color = "red";
 
             const interval: number = setInterval((): void => {
@@ -74,7 +74,7 @@ export class StartScene extends Scene {
                     this._tryToConnectToServer();
                 }
                 else {
-                    this._startText.textContent = `Error connecting to server\nTrying again in ${timer} seconds...`;
+                    this._startText.textContent = `Can't connect to server\nTrying again in ${timer} seconds...`;
                 }
             }, 1000);
         });

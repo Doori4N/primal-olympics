@@ -225,25 +225,34 @@ export abstract class AbstractPlayerBehaviour implements IComponent {
         this._freezePlayer(this._stunDuration);
 
         const highlightLayer = new B.HighlightLayer("highlightLayer", this.scene.babylonScene);
-        const skinMesh = this._mesh.getChildMeshes(false, (node: B.Node): boolean => {
+
+        // if caveman
+        let childMeshes: B.AbstractMesh[] = this._mesh.getChildMeshes(false, (node: B.Node): boolean => {
             return node.name === `Personnage_primitive2${this.entity.id}`;
-        })[0] as B.Mesh;
+        });
+        // else cavewoman
+        if (childMeshes.length === 0) {
+            childMeshes = this._mesh.getChildMeshes(false, (node: B.Node): boolean => {
+                return node.name === `Base_Female_primitive0${this.entity.id}` || node.name === `Base_Female_primitive1${this.entity.id}`;
+            });
+        }
+        const skinMeshes = childMeshes as B.Mesh[];
 
         // start highlight blink effect
         setInterval((): void => {
             if (this._isHighlighted) {
-                highlightLayer.removeMesh(skinMesh);
+                skinMeshes.forEach((skinMesh: B.Mesh): void => highlightLayer.removeMesh(skinMesh));
                 this._isHighlighted = false;
             }
             else {
-                highlightLayer.addMesh(skinMesh, B.Color3.FromHexString("#222222"));
+                skinMeshes.forEach((skinMesh: B.Mesh): void => highlightLayer.addMesh(skinMesh, B.Color3.FromHexString("#222222")));
                 this._isHighlighted = true;
             }
         }, 150);
 
         // stop highlight effect after the stun duration
         setTimeout((): void => {
-            highlightLayer.removeMesh(skinMesh);
+            skinMeshes.forEach((skinMesh: B.Mesh): void => highlightLayer.removeMesh(skinMesh));
             highlightLayer.dispose();
         }, this._stunDuration);
     }

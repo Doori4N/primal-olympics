@@ -2,14 +2,15 @@ import {IComponent} from "../../../core/IComponent";
 import {Entity} from "../../../core/Entity";
 import {Scene} from "../../../core/Scene";
 import * as B from "@babylonjs/core";
+import * as GUI from "@babylonjs/gui";
 import {InputStates} from "../../../core/types";
 import {NetworkHost} from "../../../network/NetworkHost";
-import {NetworkMeshComponent} from "../../../network/components/NetworkMeshComponent";
 import {NetworkAnimationComponent} from "../../../network/components/NetworkAnimationComponent";
-import {NetworkRigidBodyComponent} from "../../../network/components/NetworkRigidBodyComponent";
 import {RigidBodyComponent} from "../../../core/components/RigidBodyComponent";
 import {MeshComponent} from "../../../core/components/MeshComponent";
-import {NetworkInputsComponent} from "../../../network/components/NetworkInputsComponent";
+import {NetworkPredictionComponent} from "../../../network/components/NetworkPredictionComponent";
+import {GameScores} from "./GameScores";
+import {PlayerData} from "../../../network/types";
 
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";
@@ -17,68 +18,78 @@ export class PlayerBehaviour implements IComponent {
     public scene: Scene;
 
     // components
-    private _modelMesh!: B.Mesh;
-    private _hitbox!: B.Mesh;
+    private _mesh!: B.Mesh;
     private _physicsAggregate!: B.PhysicsAggregate;
-    private _networkRigidBodyComponent!: NetworkRigidBodyComponent;
-    private _networkMeshComponent!: NetworkMeshComponent;
     private _networkAnimationComponent!: NetworkAnimationComponent;
-    private _networkInputsComponent!: NetworkInputsComponent;
+    private _networkPredictionComponent!: NetworkPredictionComponent<InputStates>;
 
     // properties
     private _isGameStarted: boolean = false;
     private _isGameFinished: boolean = false;
     private readonly _isOwner!: boolean; // is the player the owner of the entity
     private _observer!: B.Observer<B.IBasePhysicsCollisionEvent>;
+    private _playerCollisionEndedObserver!: B.Observer<B.IBasePhysicsCollisionEvent>;
+    private _playerCollisionObserver!: B.Observer<B.IPhysicsCollisionEvent>;
+    private _gui!: GUI.AdvancedDynamicTexture;
 
     // movement
     private _speed: number = 5;
-    private _lastDirection: number = 0;
     public velocity: B.Vector3 = B.Vector3.Zero();
+    private _isFalling: boolean = false;
 
     // push
     private _collisionBoxLifeSpan: number = 200;
     private _pushCooldown: number = 2000;
     private _canPush: boolean = true;
     private _pushDelay: number = 100;
-    private _pushDuration: number = 500;
-    private _pushForce: number = 15;
+    private _pushDuration: number = 600;
+    private _pushForce: number = 14;
     private _isPushed: boolean = false;
 
     // inputs
     public readonly playerId!: string;
+    public readonly _playerData!: PlayerData;
 
-    constructor(entity: Entity, scene: Scene, props: {playerId: string}) {
+    // event listeners
+    private _onPushEvent = this._pushPlayerClientRpc.bind(this);
+
+    constructor(entity: Entity, scene: Scene, props: {playerData: PlayerData}) {
         this.entity = entity;
         this.scene = scene;
-        this.playerId = props.playerId;
+        this.playerId = props.playerData.id;
+        this._playerData = props.playerData;
         this._isOwner = this.scene.game.networkInstance.playerId === this.playerId;
     }
 
     public onStart(): void {
-        this._networkInputsComponent = this.entity.getComponent("NetworkInputs") as NetworkInputsComponent;
+        const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
+        this._mesh = meshComponent.mesh;
 
-        if (!this.scene.game.networkInstance.isHost && !this._isOwner) return;
-
-        // network mesh component
-        this._networkMeshComponent = this.entity.getComponent("NetworkMesh") as NetworkMeshComponent;
-        this._hitbox = this._networkMeshComponent.mesh;
-        this._modelMesh = this._networkMeshComponent.meshRotation;
-
-        // network rigid body component
-        this._networkRigidBodyComponent = this.entity.getComponent("NetworkRigidBody") as NetworkRigidBodyComponent;
-        this._physicsAggregate = this._networkRigidBodyComponent.physicsAggregate;
-        this._networkRigidBodyComponent.onApplyInput = this._applyPredictedInput.bind(this);
+        this._networkPredictionComponent = this.entity.getComponent("NetworkPrediction") as NetworkPredictionComponent<InputStates>;
+        this._networkPredictionComponent.onApplyInput.add(this._applyPredictedInput.bind(this));
 
         this._networkAnimationComponent = this.entity.getComponent("NetworkAnimation") as NetworkAnimationComponent;
+        this._networkAnimationComponent.startAnimation("Idle");
+
+        const rigidBodyComponent = this.entity.getComponent("RigidBody") as RigidBodyComponent;
+        this._physicsAggregate = rigidBodyComponent.physicsAggregate;
+
+        this._showPlayerNameUI();
 
         // subscribe to game events
         this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
         this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
 
+        // HOST
         if (this.scene.game.networkInstance.isHost) {
             const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.physicsPlugin!.onTriggerCollisionObservable;
             this._observer = observable.add(this._onTriggerCollision.bind(this));
+            this._playerCollisionEndedObserver = this._physicsAggregate.body.getCollisionEndedObservable().add(this._onCollision.bind(this));
+            this._playerCollisionObserver = this._physicsAggregate.body.getCollisionObservable().add(this._onCollision.bind(this));
+        }
+        // CLIENT
+        else {
+            this.scene.game.networkInstance.addEventListener(`onPush${this.playerId}`, this._onPushEvent);
         }
     }
 
@@ -91,27 +102,44 @@ export class PlayerBehaviour implements IComponent {
     }
 
     public onDestroy(): void {
-        if (this.scene.game.networkInstance.isHost) this._observer.remove();
+        this._hidePlayerNameUI();
+
+        // HOST
+        if (this.scene.game.networkInstance.isHost) {
+            this._observer.remove();
+            this._playerCollisionEndedObserver.remove();
+            this._playerCollisionObserver.remove();
+        }
+        // CLIENT
+        else this.scene.game.networkInstance.removeEventListener(`onPush${this.playerId}`, this._onPushEvent);
     }
 
-    /**
-     * Get the direction of where the player is moving
-     */
-    private _getDirection(velocity: B.Vector3): number {
-        if (velocity.equals(B.Vector3.Zero())) {
-            return this._lastDirection;
-        }
-        this._lastDirection = Math.atan2(velocity.z, -velocity.x) - Math.PI / 2;
-        return this._lastDirection;
+    private _showPlayerNameUI(): void {
+        this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene.babylonScene);
+
+        // player name text
+        const playerNameText = new GUI.TextBlock();
+        playerNameText.text = this._playerData.name;
+        playerNameText.color = "#ff0000";
+        playerNameText.fontSize = 15;
+        playerNameText.outlineColor = "black";
+        playerNameText.outlineWidth = 5;
+        this._gui.addControl(playerNameText);
+        playerNameText.linkWithMesh(this._mesh);
+        playerNameText.linkOffsetY = -60;
+    }
+
+    private _hidePlayerNameUI(): void {
+        this._gui.dispose();
     }
 
     private _animate(inputStates: InputStates): void {
         const isInputPressed: boolean = inputStates.direction.x !== 0 || inputStates.direction.y !== 0;
         if (isInputPressed) {
-            this._networkAnimationComponent.startAnimation("Walking");
+            this._networkAnimationComponent.startAnimation("Running", {loop: true, transitionSpeed: 0.12});
         }
         else {
-            this._networkAnimationComponent.startAnimation("Idle");
+            this._networkAnimationComponent.startAnimation("Idle", {loop: true});
         }
     }
 
@@ -126,60 +154,68 @@ export class PlayerBehaviour implements IComponent {
     }
 
     private _onGameFinished(): void {
+        this.velocity = B.Vector3.Zero();
+        this._networkAnimationComponent.startAnimation("Idle", {loop: true});
         this._isGameFinished = true;
     }
 
     private _handleClientUpdate(): void {
         const inputStates: InputStates = this.scene.game.inputManager.cloneInputStates(this.scene.game.inputManager.inputStates);
-        this._networkInputsComponent.sendInputStates(inputStates);
 
         // client prediction
         if (this._isOwner) {
             this._processInputStates(inputStates);
-            this._networkRigidBodyComponent.predict(inputStates);
-            this._animate(inputStates);
+            this._networkPredictionComponent.predict(inputStates, inputStates.tick);
         }
     }
 
     private _handleServerUpdate(): void {
+        // if owner, compute the movement and send update to clients
         if (this._isOwner) {
             const inputStates: InputStates = this.scene.game.inputManager.inputStates;
             this._processInputStates(inputStates);
-            this._networkRigidBodyComponent.sendAuthoritativePhysics(inputStates.tick, this.velocity.clone());
-            this._animate(inputStates);
+            this._networkPredictionComponent.sendTransformUpdate(inputStates.tick, this.velocity.clone());
         }
+        // compute client movements and send updates to clients
         else {
-            const inputs: InputStates[] = this._networkInputsComponent.getInputs();
+            const inputs: InputStates[] = this.scene.game.networkInputManager.getPlayerInput(this.playerId);
             for (let i: number = 0; i < inputs.length; i++) {
                 const inputStates: InputStates = inputs[i];
                 this._processInputStates(inputStates);
-                this._networkRigidBodyComponent.sendAuthoritativePhysics(inputStates.tick, this.velocity.clone());
-                this._animate(inputStates);
+                this._networkPredictionComponent.sendTransformUpdate(inputStates.tick, this.velocity.clone());
                 // don't simulate the last input because it will be simulated automatically in this frame
                 if (i < inputs.length - 1) {
-                    this._networkRigidBodyComponent.simulate();
+                    this.scene.simulate([this._physicsAggregate.body]);
                 }
             }
         }
     }
 
     private _processInputStates(inputStates: InputStates): void {
+        if (this._isFalling) {
+            this.velocity.y = -9.81;
+            this._physicsAggregate.body.setLinearVelocity(this.velocity);
+            return;
+        }
+
         if (this._isPushed) return;
 
         this._movePlayer(inputStates);
-        if (this.scene.game.networkInstance.isHost) this._checkPush(inputStates);
+        this._animate(inputStates);
 
-        // rotate the model
-        // set z rotation to 180 degrees cause the imported model is inverted (best solution for now)
-        this._modelMesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, this._getDirection(this.velocity), Math.PI);
+        if (!this.scene.game.networkInstance.isHost) return;
+
+        // HOST
+        this._checkPush(inputStates);
     }
 
     /**
      * Re-apply the predicted input and simulate physics
      */
     private _applyPredictedInput(inputs: InputStates): void {
+        if (this._isPushed || this._isFalling) return;
         this._movePlayer(inputs);
-        this._networkRigidBodyComponent.simulate();
+        this.scene.simulate([this._physicsAggregate.body]);
     }
 
     /**
@@ -188,7 +224,14 @@ export class PlayerBehaviour implements IComponent {
     private _movePlayer(inputs: InputStates): void {
         this.velocity = new B.Vector3(inputs.direction.x, 0, inputs.direction.y).normalize();
         this.velocity.scaleInPlace(this._speed);
+
         this._physicsAggregate.body.setLinearVelocity(this.velocity);
+
+        // rotate mesh
+        if (!this.velocity.equals(B.Vector3.Zero())) {
+            const rotationY: number = Math.atan2(this.velocity.z, -this.velocity.x) - Math.PI / 2;
+            this._mesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, rotationY, 0);
+        }
     }
 
     /**
@@ -198,6 +241,7 @@ export class PlayerBehaviour implements IComponent {
         if (!inputStates.buttons["jump"] || !this._canPush) return;
 
         setTimeout((): void => {
+            if (!this._canPush) return;
             this._canPush = false;
 
             this._createCollisionBox();
@@ -216,16 +260,16 @@ export class PlayerBehaviour implements IComponent {
         const collisionBoxEntity: Entity = new Entity("collisionBox");
 
         // collisionBox mesh
-        const collisionBox: B.Mesh = B.MeshBuilder.CreateBox("collisionBox", {size: 1}, this.scene.babylonScene);
+        const collisionBox: B.Mesh = B.MeshBuilder.CreateBox("collisionBox", {width: 2.5, height: 1, depth: 1}, this.scene.babylonScene);
         collisionBox.isVisible = false;
 
         const direction: B.Vector3 = new B.Vector3(
-            Math.round(this._modelMesh.forward.x * 100) / 100,
+            Math.round(this._mesh.forward.x * 100) / 100,
             0,
-            Math.round(this._modelMesh.forward.z * 100) / 100
+            Math.round(this._mesh.forward.z * 100) / 100
         );
-        const offset: B.Vector3 = direction.clone().scale(1.5).addInPlaceFromFloats(0.5, 0.5, 0.5);
-        collisionBox.position = this._hitbox.position.add(offset);
+        collisionBox.position = this._mesh.position.add(direction.scale(1.2));
+        collisionBox.rotation.y = Math.atan2(direction.z, -direction.x);
 
         collisionBox.metadata = {
             tag: "collisionBox",
@@ -253,8 +297,21 @@ export class PlayerBehaviour implements IComponent {
     public pushPlayer(impulseDirection: B.Vector3): void {
         this._isPushed = true;
 
+        this._networkAnimationComponent.startAnimation("Push_Reaction");
+
         this.velocity = impulseDirection.scale(this._pushForce);
         this._physicsAggregate.body.setLinearVelocity(this.velocity);
+
+        const networkHost = this.scene.game.networkInstance as NetworkHost;
+        networkHost.sendToAllClients(`onPush${this.playerId}`);
+
+        setTimeout((): void => {
+            this._isPushed = false;
+        }, this._pushDuration);
+    }
+
+    private _pushPlayerClientRpc(): void {
+        this._isPushed = true;
 
         setTimeout((): void => {
             this._isPushed = false;
@@ -277,6 +334,26 @@ export class PlayerBehaviour implements IComponent {
             const playerEntity: Entity = this.scene.entityManager.getEntityById(collisionEvent.collider.transformNode.metadata?.id);
             const playerBehaviourComponent = playerEntity.getComponent("PlayerBehaviour") as PlayerBehaviour;
             playerBehaviourComponent.pushPlayer(impulseDirection);
+        }
+    }
+
+    private _onCollision(event: B.IBasePhysicsCollisionEvent): void {
+        const collidedAgainst: B.TransformNode = event.collidedAgainst.transformNode;
+
+        if (collidedAgainst.metadata?.tag === "ground" && event.type === B.PhysicsEventType.COLLISION_FINISHED) {
+            this._isFalling = true;
+        }
+        else if (collidedAgainst.metadata?.tag === "ground" && event.type === B.PhysicsEventType.COLLISION_STARTED) {
+            this._isFalling = false;
+        }
+        else if (collidedAgainst.metadata?.tag === "lavaGround") {
+            this.kill();
+
+            // update player score
+            const gameController: Entity | null = this.scene.entityManager.getFirstEntityByTag("gameManager");
+            if (!gameController) throw new Error("Game controller not found");
+            const gameScoresComponent = gameController.getComponent("GameScores") as GameScores;
+            gameScoresComponent.setPlayerScore(this.entity);
         }
     }
 }

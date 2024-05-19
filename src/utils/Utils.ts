@@ -154,17 +154,35 @@ export class Utils {
      * @param skinOptions The selected skin options
      */
     public static applyColorsToMesh(playerMesh: B.Mesh, skinOptions: SkinOptions): void {
-        // skin color
-        const skinMaterial = playerMesh.getChildMeshes()[2].material as B.PBRMaterial;
-        skinMaterial.albedoColor = B.Color3.FromHexString(_skinColors[skinOptions.skinColorIndex]).toLinearSpace();
+        if (skinOptions.modelIndex === 0) {
+            // skin color
+            const skinMaterial = playerMesh.getChildMeshes()[2].material as B.PBRMaterial;
+            skinMaterial.albedoColor = B.Color3.FromHexString(_skinColors[skinOptions.skinColorIndex]).toLinearSpace();
 
-        // hair color
-        const hairMaterial = playerMesh.getChildMeshes()[3].material as B.PBRMaterial;
-        if (hairMaterial.albedoTexture) hairMaterial.albedoTexture = null;
-        hairMaterial.albedoColor = B.Color3.FromHexString(_hairColors[skinOptions.hairColorIndex]).toLinearSpace();
+            // hair color
+            const hairMaterial = playerMesh.getChildMeshes()[3].material as B.PBRMaterial;
+            if (hairMaterial.albedoTexture) hairMaterial.albedoTexture = null;
+            hairMaterial.albedoColor = B.Color3.FromHexString(_hairColors[skinOptions.hairColorIndex]).toLinearSpace();
 
-        // outfit color
-        const outfitMaterial = playerMesh.getChildMeshes()[1].material as B.PBRMaterial;
-        outfitMaterial.albedoColor = B.Color3.FromHexString(_outfitColors[skinOptions.outfitColorIndex]).toLinearSpace();
+            // outfit color
+            const outfitMaterial = playerMesh.getChildMeshes()[1].material as B.PBRMaterial;
+            outfitMaterial.albedoColor = B.Color3.FromHexString(_outfitColors[skinOptions.outfitColorIndex]).toLinearSpace();
+        }
+        else {
+            // skin color
+            const skinMaterial1 = playerMesh.getChildMeshes()[0].material as B.PBRMaterial;
+            const skinMaterial2 = playerMesh.getChildMeshes()[1].material as B.PBRMaterial;
+            skinMaterial1.albedoColor = B.Color3.FromHexString(_skinColors[skinOptions.skinColorIndex]).toLinearSpace();
+            skinMaterial2.albedoColor = B.Color3.FromHexString(_skinColors[skinOptions.skinColorIndex]).toLinearSpace();
+
+            // hair color
+            const hairMaterial = playerMesh.getChildMeshes()[4].material as B.PBRMaterial;
+            if (hairMaterial.albedoTexture) hairMaterial.albedoTexture = null;
+            hairMaterial.albedoColor = B.Color3.FromHexString(_hairColors[skinOptions.hairColorIndex]).toLinearSpace();
+
+            // outfit color
+            const outfitMaterial = playerMesh.getChildMeshes()[2].material as B.PBRMaterial;
+            outfitMaterial.albedoColor = B.Color3.FromHexString(_outfitColors[skinOptions.outfitColorIndex]).toLinearSpace();
+        }
     }
 }

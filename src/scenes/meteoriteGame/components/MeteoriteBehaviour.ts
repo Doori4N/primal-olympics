@@ -11,6 +11,7 @@ export class MeteoriteBehaviour implements IComponent {
 
     // component properties
     private _shadow!: B.Mesh;
+    private _meteoriteMesh!: B.Mesh;
 
     constructor(entity: Entity, scene: Scene) {
         this.entity = entity;
@@ -19,9 +20,9 @@ export class MeteoriteBehaviour implements IComponent {
 
     public onStart(): void {
         const meteoriteMeshComponent = this.entity.getComponent("Mesh") as MeshComponent;
-        const meteoriteMesh: B.Mesh = meteoriteMeshComponent.mesh;
+        this._meteoriteMesh = meteoriteMeshComponent.mesh;
 
-        const shadowPosition: B.Vector3 = new B.Vector3(meteoriteMesh.position.x, 0, meteoriteMesh.position.z);
+        const shadowPosition: B.Vector3 = new B.Vector3(this._meteoriteMesh.position.x, 0, this._meteoriteMesh.position.z);
         this._shadow = B.MeshBuilder.CreateDisc("shadow", {radius: 1.5, tessellation: 0}, this.scene.babylonScene);
         this._shadow.position = shadowPosition;
         this._shadow.rotation.x = Math.PI / 2;
@@ -36,7 +37,12 @@ export class MeteoriteBehaviour implements IComponent {
 
     public onUpdate(): void {}
 
-    public onFixedUpdate(): void {}
+    public onFixedUpdate(): void {
+        if (!this.scene.game.networkInstance.isHost) return;
+
+        // HOST
+        this._meteoriteMesh.rotate(B.Axis.X, 0.03, B.Space.WORLD);
+    }
 
     public onDestroy(): void {
         this._shadow.dispose();

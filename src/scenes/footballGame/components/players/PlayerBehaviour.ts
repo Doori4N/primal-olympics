@@ -8,6 +8,8 @@ import {RigidBodyComponent} from "../../../../core/components/RigidBodyComponent
 import {NetworkPredictionComponent} from "../../../../network/components/NetworkPredictionComponent";
 import {AbstractPlayerBehaviour} from "./AbstractPlayerBehaviour";
 import {Utils} from "../../../../utils/Utils";
+import * as GUI from "@babylonjs/gui";
+import {PlayerData} from "../../../../network/types";
 
 export class PlayerBehaviour extends AbstractPlayerBehaviour {
     public name: string = "PlayerBehaviour";
@@ -16,13 +18,16 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
     private _networkPredictionComponent!: NetworkPredictionComponent<InputStates>;
     private _isOwner!: boolean; // is the player the owner of the entity
     private _playerCollisionObserver!: B.Observer<B.IPhysicsCollisionEvent>;
+    private _gui!: GUI.AdvancedDynamicTexture;
+    private _playerData: PlayerData;
 
     // inputs
     public readonly playerId!: string;
 
-    constructor(entity: Entity, scene: Scene, props: {playerId: string, teamIndex: number}) {
+    constructor(entity: Entity, scene: Scene, props: {playerData: PlayerData, teamIndex: number}) {
         super(entity, scene, props.teamIndex);
-        this.playerId = props.playerId;
+        this.playerId = props.playerData.id;
+        this._playerData = props.playerData;
     }
 
     public onStart(): void {
@@ -37,6 +42,8 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
         this._networkPredictionComponent.onApplyInput.add(this._applyPredictedInput.bind(this));
 
         this._isOwner = this.scene.game.networkInstance.playerId === this.playerId;
+
+        this._showPlayerNameUI();
     }
 
     public onUpdate(): void {}
@@ -48,8 +55,29 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
     }
 
     public onDestroy(): void {
+        this._hidePlayerNameUI();
+
         // HOST
         if (this.scene.game.networkInstance.isHost) this._playerCollisionObserver.remove();
+    }
+
+    private _showPlayerNameUI(): void {
+        this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene.babylonScene);
+
+        // player name text
+        const playerNameText = new GUI.TextBlock();
+        playerNameText.text = this._playerData.name;
+        playerNameText.color = "#ff0000";
+        playerNameText.fontSize = 15;
+        playerNameText.outlineColor = "black";
+        playerNameText.outlineWidth = 5;
+        this._gui.addControl(playerNameText);
+        playerNameText.linkWithMesh(this._mesh);
+        playerNameText.linkOffsetY = -60;
+    }
+
+    private _hidePlayerNameUI(): void {
+        this._gui.dispose();
     }
 
     private _handleServerUpdate(): void {

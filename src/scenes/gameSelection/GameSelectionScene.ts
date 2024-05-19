@@ -25,10 +25,11 @@ export class GameSelectionScene extends Scene {
         // get all mini-games to play
         let miniGamesToPlay: MiniGame[] = this.game.miniGames.filter((game: MiniGame) => game.toPlay);
 
-        // if all mini-games have been played, reset them
+        // TODO: reset mini-games to play if all have been played with selected games
+        // if all mini-games have been played, reset games selected
         if (miniGamesToPlay.length === 0) {
             miniGamesToPlay = this.game.miniGames.map((game: MiniGame) => {
-                game.toPlay = true;
+                if (game.isSelected) game.toPlay = true;
                 return game;
             });
         }

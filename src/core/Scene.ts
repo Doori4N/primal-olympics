@@ -9,7 +9,7 @@ import {IPhysicsEngine} from "@babylonjs/core/Physics/IPhysicsEngine";
 
 export abstract class Scene {
     public babylonScene: B.Scene;
-    public mainCamera: B.Camera;
+    public mainCamera: B.FreeCamera;
     public game: Game = Game.getInstance();
     public eventManager = new EventManager();
     public entityManager = new EntityManager();

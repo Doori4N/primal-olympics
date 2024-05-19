@@ -41,11 +41,8 @@ export class LobbyScene extends Scene {
     public async preload(): Promise<void> {
         this.game.engine.displayLoadingUI();
 
-        this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync(
-            "meshes/models/",
-            "caveman.glb",
-            this.babylonScene
-        );
+        this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
+        this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
 
         this.game.engine.hideLoadingUI();
     }
@@ -172,7 +169,13 @@ export class LobbyScene extends Scene {
     }
 
     private _createPlayer(playerData: PlayerData, transform: {position: B.Vector3, rotation: B.Vector3}): void {
-        const playerContainer: B.AssetContainer = this.loadedAssets["player"];
+        let playerContainer: B.AssetContainer;
+        if (playerData.skinOptions.modelIndex === 0) {
+            playerContainer = this.loadedAssets["caveman"];
+        }
+        else {
+            playerContainer = this.loadedAssets["cavewoman"];
+        }
         const playerEntity = new Entity("player");
 
         const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + playerEntity.id, true, {doNotInstantiate: true});

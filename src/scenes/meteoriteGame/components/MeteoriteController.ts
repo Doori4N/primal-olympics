@@ -8,7 +8,8 @@ import {MeteoriteBehaviour} from "./MeteoriteBehaviour";
 import {PlayerBehaviour} from "./PlayerBehaviour";
 import {GameScores} from "./GameScores";
 import {NetworkHost} from "../../../network/NetworkHost";
-import {NetworkMeshComponent} from "../../../network/components/NetworkMeshComponent";
+import {Utils} from "../../../utils/Utils";
+import {NetworkTransformComponent} from "../../../network/components/NetworkTransformComponent";
 
 export class MeteoriteController implements IComponent {
     public name: string = "MeteoriteController";
@@ -17,7 +18,9 @@ export class MeteoriteController implements IComponent {
 
     // component properties
     private _observer!: B.Observer<B.IBasePhysicsCollisionEvent>;
-    private _intervalId!: number;
+    private _isGameStarted: boolean = false;
+    private _isGameFinished: boolean = false;
+    private _timeToWait: number = 0;
 
     constructor(entity: Entity, scene: Scene) {
         this.entity = entity;
@@ -29,8 +32,8 @@ export class MeteoriteController implements IComponent {
             const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.physicsPlugin!.onTriggerCollisionObservable;
             this._observer = observable.add(this._onTriggerCollision.bind(this));
 
-            this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
-            this.scene.eventManager.subscribe("onGameFinished", this.stopSpawning.bind(this));
+            this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
+            this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
         }
         else {
             this.scene.game.networkInstance.addEventListener("onCreateMeteorite", this._spawnMeteoriteClientRpc.bind(this));
@@ -40,29 +43,41 @@ export class MeteoriteController implements IComponent {
 
     public onUpdate(): void {}
 
-    public onFixedUpdate(): void {}
+    public onFixedUpdate(): void {
+        if (!this._isGameStarted || this._isGameFinished || !this.scene.game.networkInstance.isHost) return;
+
+        // HOST
+        if (this._timeToWait > 0) {
+            this._timeToWait -= this.scene.game.engine.getDeltaTime();
+        }
+        else {
+            const halfMapSize: number = 9;
+            const randomNumber: number = Utils.randomInt(1, 3);
+            for (let i: number = 0; i < randomNumber; i++) {
+                const randomPosition: B.Vector3 = new B.Vector3(Utils.randomInt(-halfMapSize, halfMapSize), 20, Utils.randomInt(-halfMapSize, halfMapSize));
+                const meteoriteEntity: Entity = this._spawnMeteorite(randomPosition);
+                this.scene.entityManager.addEntity(meteoriteEntity);
+
+                const networkHost = this.scene.game.networkInstance as NetworkHost;
+                const position = {x: randomPosition.x, y: randomPosition.y, z: randomPosition.z};
+                networkHost.sendToAllClients("onCreateMeteorite", {position: position, entityId: meteoriteEntity.id});
+            }
+
+            const randomTime: number = Utils.randomInt(1, 6);
+            this._timeToWait = randomTime * 100;
+        }
+    }
 
     public onDestroy(): void {
         this._observer.remove();
     }
 
-    private startSpawning(): void {
-        this._intervalId = setInterval((): void => {
-            const randomPosition: B.Vector3 = new B.Vector3(
-                Math.random() * 15 - 7.5,
-                50,
-                Math.random() * 15 - 7.5
-            );
-            const networkHost = this.scene.game.networkInstance as NetworkHost;
-            const meteoriteEntity: Entity = this._spawnMeteorite(randomPosition);
-            const position = {x: randomPosition.x, y: randomPosition.y, z: randomPosition.z};
-            networkHost.sendToAllClients("onCreateMeteorite", {position: position, entityId: meteoriteEntity.id});
-            this.scene.entityManager.addEntity(meteoriteEntity);
-        }, 500);
+    private _onGameStarted(): void {
+        this._isGameStarted = true;
     }
 
-    private stopSpawning(): void {
-        clearInterval(this._intervalId);
+    private _onGameFinished(): void {
+        this._isGameFinished = true;
 
         // destroy all meteorites
         const meteorites: Entity[] = this.scene.entityManager.getEntitiesByTag("meteorite");
@@ -82,19 +97,24 @@ export class MeteoriteController implements IComponent {
         );
         const meteorite: B.Mesh = entries.rootNodes[0] as B.Mesh;
 
-        meteorite.scaling = new B.Vector3(0.5, 0.5, 0.5);
+        meteorite.scaling = new B.Vector3(0.5, 0.3, 0.5);
         meteorite.metadata = {tag: meteoriteEntity.tag, id: meteoriteEntity.id};
         meteorite.position = position;
+        meteorite.rotationQuaternion = B.Quaternion.FromEulerAngles(Utils.randomFloat(0, Math.PI * 2), 0, Utils.randomFloat(0, Math.PI * 2));
 
         meteoriteEntity.addComponent(new MeshComponent(meteoriteEntity, this.scene, {mesh: meteorite}));
-        meteoriteEntity.addComponent(new NetworkMeshComponent(meteoriteEntity, this.scene, {mesh: meteorite}));
+        meteoriteEntity.addComponent(new NetworkTransformComponent(meteoriteEntity, this.scene, {useInterpolation: true}));
         meteoriteEntity.addComponent(new MeteoriteBehaviour(meteoriteEntity, this.scene));
+
+        // HOST
         if (this.scene.game.networkInstance.isHost) {
-            meteoriteEntity.addComponent(new RigidBodyComponent(meteoriteEntity, this.scene, {
+            const rigidBodyComponent = new RigidBodyComponent(meteoriteEntity, this.scene, {
                 physicsShape: B.PhysicsShapeType.SPHERE,
                 physicsProps: {mass: 1},
                 isTrigger: true
-            }));
+            });
+            meteoriteEntity.addComponent(rigidBodyComponent);
+            rigidBodyComponent.setBodyPreStep(false);
         }
 
         return meteoriteEntity;
@@ -121,7 +141,7 @@ export class MeteoriteController implements IComponent {
                 playerBehaviourComponent.kill();
 
                 // update player score
-                const gameController: Entity | null = this.scene.entityManager.getFirstEntityByTag("gameController");
+                const gameController: Entity | null = this.scene.entityManager.getFirstEntityByTag("gameManager");
                 if (!gameController) throw new Error("Game controller not found");
                 const gameScoresComponent = gameController.getComponent("GameScores") as GameScores;
                 gameScoresComponent.setPlayerScore(playerEntity);

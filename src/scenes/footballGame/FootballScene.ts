@@ -1,5 +1,4 @@
 import * as B from '@babylonjs/core';
-import * as GUI from "@babylonjs/gui";
 import {Scene} from "../../core/Scene";
 import {Entity} from "../../core/Entity";
 import {MeshComponent} from "../../core/components/MeshComponent";
@@ -55,7 +54,6 @@ export class FootballScene extends Scene {
             emissiveColor: new B.Color3(0, 0, 0)
         }
     ];
-    private _gui!: GUI.AdvancedDynamicTexture;
 
     constructor() {
         super("Savage Soccer");
@@ -65,14 +63,18 @@ export class FootballScene extends Scene {
         this.game.engine.displayLoadingUI();
 
         // load assets
-        this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
+        this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
+        this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
         this.loadedAssets["footballPitch"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "footballPitch.glb", this.babylonScene);
         this.loadedAssets["ball"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "ball.glb", this.babylonScene);
 
         // HOST
         // wait for all players to be ready
         if (this.game.networkInstance.isHost) {
-            const playerReadyPromises: Promise<void>[] = this.game.networkInstance.players.map((): Promise<void> => {
+            const playerReadyPromises: Promise<void>[] = this.game.networkInstance.players.map((playerData: PlayerData): Promise<void> => {
+                // if the player is the host, return immediately
+                if (playerData.id === this.game.networkInstance.playerId) return Promise.resolve();
+
                 return new Promise<void>((resolve): void => {
                     this.game.networkInstance.addEventListener("onPlayerReady", resolve);
                 });
@@ -126,8 +128,6 @@ export class FootballScene extends Scene {
 
         this._createFootballPitch();
 
-        this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.babylonScene);
-
         // goals
         this._createGoal("leftGoal", new B.Vector3(-PITCH_WIDTH / 2 - 1.25, 1.5, 0));
         this._createGoal("rightGoal", new B.Vector3(PITCH_WIDTH / 2 + 1.25, 1.5, 0));
@@ -141,7 +141,6 @@ export class FootballScene extends Scene {
         this._createEdge(new B.Vector3((-PITCH_WIDTH / 2) - 0.5, 1.5, 8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
 
         this.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
-        this.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
 
         if (!this.game.networkInstance.isHost) return;
 
@@ -330,7 +329,13 @@ export class FootballScene extends Scene {
     }
 
     private _createPlayerEntity(playerData: PlayerData, teamIndex: number, position: B.Vector3, entityId?: string): Entity {
-        const playerContainer: B.AssetContainer = this.loadedAssets["player"];
+        let playerContainer: B.AssetContainer;
+        if (playerData.skinOptions.modelIndex === 0) {
+            playerContainer = this.loadedAssets["caveman"];
+        }
+        else {
+            playerContainer = this.loadedAssets["cavewoman"];
+        }
         const playerEntity = new Entity("player", entityId);
 
         const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + playerEntity.id, true, {doNotInstantiate: true});
@@ -360,20 +365,10 @@ export class FootballScene extends Scene {
         Utils.applyColorsToMesh(player, playerData.skinOptions);
 
         // change the outfit color based on the team
-        const outfitMaterial = player.getChildMeshes()[1].material as B.PBRMaterial;
+        const outifIndex: number = (playerData.skinOptions.modelIndex === 0) ? 1 : 2;
+        const outfitMaterial = player.getChildMeshes()[outifIndex].material as B.PBRMaterial;
         outfitMaterial.albedoColor = this._teamColors[teamIndex].albedoColor;
         outfitMaterial.emissiveColor = this._teamColors[teamIndex].emissiveColor;
-
-        // player name text
-        const playerNameText = new GUI.TextBlock();
-        playerNameText.text = this.game.networkInstance.players.find((playerData) => playerData.id === playerData.id)!.name;
-        playerNameText.color = (teamIndex === 0) ? "#0000ff" : "#ff0000"
-        playerNameText.fontSize = 15;
-        playerNameText.outlineColor = "black";
-        playerNameText.outlineWidth = 5;
-        this._gui.addControl(playerNameText);
-        playerNameText.linkWithMesh(hitbox);
-        playerNameText.linkOffsetY = -60;
 
         playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
 
@@ -392,14 +387,14 @@ export class FootballScene extends Scene {
 
         // animations
         const animations: {[key: string]: B.AnimationGroup} = {};
-        animations["Idle"] = this._getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
-        animations["Running"] = this._getAnimationGroupByName(`Running${playerEntity.id}`, entries.animationGroups);
-        animations["Kicking"] = this._getAnimationGroupByName(`Soccer_Pass${playerEntity.id}`, entries.animationGroups);
-        animations["Tackling"] = this._getAnimationGroupByName(`Soccer_Tackle${playerEntity.id}`, entries.animationGroups);
-        animations["Tackle_Reaction"] = this._getAnimationGroupByName(`Soccer_Tackle_React${playerEntity.id}`, entries.animationGroups);
-        animations["Celebration"] = this._getAnimationGroupByName(`Victory${playerEntity.id}`, entries.animationGroups);
-        animations["Defeat"] = this._getAnimationGroupByName(`Defeat${playerEntity.id}`, entries.animationGroups);
-        animations["TakeTheL"] = this._getAnimationGroupByName(`Loser${playerEntity.id}`, entries.animationGroups);
+        animations["Idle"] = Utils.getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
+        animations["Running"] = Utils.getAnimationGroupByName(`Running${playerEntity.id}`, entries.animationGroups);
+        animations["Kicking"] = Utils.getAnimationGroupByName(`Soccer_Pass${playerEntity.id}`, entries.animationGroups);
+        animations["Tackling"] = Utils.getAnimationGroupByName(`Soccer_Tackle${playerEntity.id}`, entries.animationGroups);
+        animations["Tackle_Reaction"] = Utils.getAnimationGroupByName(`Soccer_Tackle_React${playerEntity.id}`, entries.animationGroups);
+        animations["Celebration"] = Utils.getAnimationGroupByName(`Victory${playerEntity.id}`, entries.animationGroups);
+        animations["Defeat"] = Utils.getAnimationGroupByName(`Defeat${playerEntity.id}`, entries.animationGroups);
+        animations["TakeTheL"] = Utils.getAnimationGroupByName(`Loser${playerEntity.id}`, entries.animationGroups);
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
         // audio
@@ -408,21 +403,30 @@ export class FootballScene extends Scene {
         playerEntity.addComponent(new NetworkAudioComponent(playerEntity, this, {sounds}));
 
         playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
-        playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerId: playerData.id, teamIndex: teamIndex}));
+        playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerData: playerData, teamIndex: teamIndex}));
 
         return playerEntity;
     }
 
     private _createAIPlayerEntity(teamIndex: number, position: B.Vector3, wanderPosition: B.Vector2, entityId?: string): Entity {
-        const playerContainer: B.AssetContainer = this.loadedAssets["player"];
+        const randomModelIndex: number = Utils.randomInt(0, 1);
+        let playerContainer: B.AssetContainer;
+        if (randomModelIndex === 0) {
+            playerContainer = this.loadedAssets["caveman"];
+        }
+        else {
+            playerContainer = this.loadedAssets["cavewoman"];
+        }
         const aiPlayerEntity = new Entity("aiPlayer", entityId);
 
         const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + aiPlayerEntity.id, true, {doNotInstantiate: true});
         const aiPlayer = entries.rootNodes[0] as B.Mesh;
 
-        const outfitMaterial = aiPlayer.getChildMeshes()[1].material as B.PBRMaterial;
+        const outifIndex: number = (randomModelIndex === 0) ? 1 : 2;
+        const outfitMaterial = aiPlayer.getChildMeshes()[outifIndex].material as B.PBRMaterial;
         outfitMaterial.albedoColor = this._teamColors[teamIndex].albedoColor;
         outfitMaterial.emissiveColor = this._teamColors[teamIndex].emissiveColor;
+
 
         aiPlayer.scaling.scaleInPlace(0.25);
 
@@ -460,11 +464,11 @@ export class FootballScene extends Scene {
         }));
 
         const animations: {[key: string]: B.AnimationGroup} = {};
-        animations["Idle"] = this._getAnimationGroupByName(`Idle${aiPlayerEntity.id}`, entries.animationGroups);
-        animations["Running"] = this._getAnimationGroupByName(`Running${aiPlayerEntity.id}`, entries.animationGroups);
-        animations["Kicking"] = this._getAnimationGroupByName(`Soccer_Pass${aiPlayerEntity.id}`, entries.animationGroups);
-        animations["Tackling"] = this._getAnimationGroupByName(`Soccer_Tackle${aiPlayerEntity.id}`, entries.animationGroups);
-        animations["Tackle_Reaction"] = this._getAnimationGroupByName(`Soccer_Tackle_React${aiPlayerEntity.id}`, entries.animationGroups);
+        animations["Idle"] = Utils.getAnimationGroupByName(`Idle${aiPlayerEntity.id}`, entries.animationGroups);
+        animations["Running"] = Utils.getAnimationGroupByName(`Running${aiPlayerEntity.id}`, entries.animationGroups);
+        animations["Kicking"] = Utils.getAnimationGroupByName(`Soccer_Pass${aiPlayerEntity.id}`, entries.animationGroups);
+        animations["Tackling"] = Utils.getAnimationGroupByName(`Soccer_Tackle${aiPlayerEntity.id}`, entries.animationGroups);
+        animations["Tackle_Reaction"] = Utils.getAnimationGroupByName(`Soccer_Tackle_React${aiPlayerEntity.id}`, entries.animationGroups);
         aiPlayerEntity.addComponent(new NetworkAnimationComponent(aiPlayerEntity, this, {animations: animations}));
 
         // audio
@@ -524,10 +528,6 @@ export class FootballScene extends Scene {
         }, 4000);
     }
 
-    private _onGameFinished(): void {
-        this._gui.dispose();
-    }
-
     private _resetObjectsPosition(): void {
         this._ballMesh.position = new B.Vector3(0, 0.5, 0);
 
@@ -541,9 +541,5 @@ export class FootballScene extends Scene {
             const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
             playerMeshComponent.mesh.position = this._spawns[index].clone();
         });
-    }
-
-    private _getAnimationGroupByName(name: string, animationGroups: B.AnimationGroup[]): B.AnimationGroup {
-        return animationGroups.find((animationGroup: B.AnimationGroup): boolean => animationGroup.name === name)!;
     }
 }

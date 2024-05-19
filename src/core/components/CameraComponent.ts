@@ -9,9 +9,9 @@ export class CameraComponent implements IComponent {
     public scene: Scene;
 
     // component properties
-    public camera!: B.Camera;
+    public camera!: B.FreeCamera;
 
-    constructor(entity: Entity, scene: Scene, props: {camera: B.Camera}) {
+    constructor(entity: Entity, scene: Scene, props: {camera: B.FreeCamera}) {
         this.entity = entity;
         this.scene = scene;
         this.camera = props.camera;
