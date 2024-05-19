@@ -188,7 +188,7 @@ export class SlopeScene extends Scene {
         if (this.game.networkInstance.playerId === playerId) {
             console.log("Creating camera for player", playerId);
             const camera = new B.FollowCamera(`camera_${playerId}`, new B.Vector3(0, 10, -10), this.babylonScene);
-            camera.radius = 30;
+            camera.radius = 30; //askip distance de la target 
             camera.heightOffset = 10;
             camera.rotationOffset = 0;
             camera.cameraAcceleration = 0.005;
@@ -203,7 +203,6 @@ export class SlopeScene extends Scene {
             // Attacher les contrôles de la caméra au canvas du jeu
             this.mainCamera.attachControl(this.game.canvas, true);
 
-            
         }
 
         return playerEntity;
