@@ -10,7 +10,7 @@ export class CameraAnimation implements IComponent {
     public scene: Scene;
 
     // component properties
-    private camera!: B.FreeCamera;
+    private camera!: B.Camera;
     private frameRate: number = 30;
 
     constructor(entity: Entity, scene: Scene) {
