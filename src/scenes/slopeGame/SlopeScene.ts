@@ -42,6 +42,10 @@ export class SlopeScene extends Scene {
             this.babylonScene
         );
 
+        // load map slope
+        this.loadedAssets["slopeMap"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "slopeMap.glb", this.babylonScene);
+
+
         this.game.engine.hideLoadingUI();
     }
 
@@ -84,25 +88,11 @@ export class SlopeScene extends Scene {
         
     }
 
-    private _createSlope(): void {
-        const slopeEntity = new Entity("slope");
-        const slopeMesh: B.Mesh = B.MeshBuilder.CreateGround("ground", {width: 20, height: 100}, this.babylonScene);
     
-        // Incliner le sol pour créer une pente
-        slopeMesh.rotation = new B.Vector3(-Math.PI / 10, 0, 0); // -Math.PI / 14 ou -Math.PI / 12 voir les potos 
-    
-        slopeMesh.metadata = {tag: slopeEntity.tag};
-        slopeEntity.addComponent(new MeshComponent(slopeEntity, this, {mesh: slopeMesh}));
-        slopeEntity.addComponent(new RigidBodyComponent(slopeEntity, this, {
-            physicsShape: B.PhysicsShapeType.BOX,
-            physicsProps: {mass: 0}
-        }));
-        this.entityManager.addEntity(slopeEntity);
-    }
 
     private _createInvisibleWalls(): void {
         // Dimensions et la position des murs
-        const wallHeight = 5;
+        const wallHeight = 15;
         const wallDepth = 1;
         const wallWidth = 100;
         const wallOffset = 10.5; // Distance par rapport au centre de la pente
@@ -111,7 +101,7 @@ export class SlopeScene extends Scene {
         // Mur gauche
         const leftWall = new Entity("leftWall");
         const leftWallMesh = B.MeshBuilder.CreateBox("leftWall", {width: wallDepth, height: wallHeight, depth: wallWidth}, this.babylonScene);
-        leftWallMesh.position = new B.Vector3(-wallOffset, wallHeight / 2, 0);
+        leftWallMesh.position = new B.Vector3(-wallOffset, wallHeight / 2, -0.40);
         leftWallMesh.rotation = new B.Vector3(slopeInclination, 0, 0); // Incliner le mur gauche
         leftWallMesh.visibility = 1; // Rendre le mur invisible
         leftWallMesh.metadata = {tag: leftWall.tag};
@@ -125,7 +115,7 @@ export class SlopeScene extends Scene {
         // Mur droit
         const rightWall = new Entity("rightWall");
         const rightWallMesh = B.MeshBuilder.CreateBox("rightWall", {width: wallDepth, height: wallHeight, depth: wallWidth}, this.babylonScene);
-        rightWallMesh.position = new B.Vector3(wallOffset, wallHeight / 2, 0);
+        rightWallMesh.position = new B.Vector3(wallOffset, wallHeight / 2, -0.40);
         rightWallMesh.rotation = new B.Vector3(slopeInclination, 0, 0); // Incliner le mur droit dans le sens opposé
         rightWallMesh.visibility = 1; // Rendre le mur invisible
         rightWallMesh.metadata = {tag: rightWall.tag};
@@ -137,6 +127,72 @@ export class SlopeScene extends Scene {
         this.entityManager.addEntity(rightWall);
     }
     
+    private _createSlope(): void {
+        const slopeEntity = new Entity("slope");
+
+        const mapContainer: B.AssetContainer = this.loadedAssets["slopeMap"];
+        mapContainer.addAllToScene();
+        const slopeMap: B.Mesh = mapContainer.meshes[0] as B.Mesh;
+        mapContainer.meshes.forEach((mesh: B.AbstractMesh): void => {
+            mesh.receiveShadows = true;
+        });
+
+        // Redimensionner la map
+        slopeMap.scaling = new B.Vector3(0.5, 0.75, 1);
+
+        //touner la map vers la droite
+        slopeMap.rotation = new B.Vector3(0, -Math.PI / 2, 0);
+        
+        // baisser un peu la map 
+        slopeMap.position = new B.Vector3(0, -7, 0);
+
+        // reculer un peu la map
+        slopeMap.position.z = -30;
+
+        const slopeMesh: B.Mesh = B.MeshBuilder.CreateGround("ground", {width: 20, height: 100}, this.babylonScene);
+        // Incliner le sol pour créer une pente
+        slopeMesh.rotation = new B.Vector3(-Math.PI / 10, 0, 0); // -Math.PI / 14 ou -Math.PI / 12 voir les potos 
+        
+        // avancer un peu la pente
+        slopeMesh.position.z = 2;
+
+        // monter un peu la pente
+        slopeMesh.position.y = 0.80;
+
+        slopeMesh.metadata = {tag: slopeEntity.tag};
+        slopeMesh.isVisible = true;
+        slopeMap.setParent(slopeMesh);
+
+        slopeMesh.metadata = {tag: slopeEntity.tag};
+        slopeEntity.addComponent(new MeshComponent(slopeEntity, this, {mesh: slopeMesh}));
+        slopeEntity.addComponent(new RigidBodyComponent(slopeEntity, this, {
+            physicsShape: B.PhysicsShapeType.BOX,
+            physicsProps: {mass: 0}
+        }));
+        this.entityManager.addEntity(slopeEntity);
+    
+        // Créer et positionner la plateforme en bas de la pente
+        this._createPlatform();
+    }
+
+    private _createPlatform(): void {
+        const platformEntity = new Entity("platform");
+
+        // Créer la plateforme
+        const platformMesh: B.Mesh = B.MeshBuilder.CreateGround("platform", {width: 20, height: 20}, this.babylonScene);
+        platformMesh.position = new B.Vector3(0, -14.5, -56); 
+
+        platformMesh.isVisible = true;
+
+        platformMesh.metadata = {tag: platformEntity.tag};
+        platformEntity.addComponent(new MeshComponent(platformEntity, this, {mesh: platformMesh}));
+        platformEntity.addComponent(new RigidBodyComponent(platformEntity, this, {
+            physicsShape: B.PhysicsShapeType.BOX,
+            physicsProps: {mass: 0}
+        }));
+
+        this.entityManager.addEntity(platformEntity);
+    }
 
     private _createFinishLine(): void {
         const finishLine = new Entity("finishLine");

@@ -25,6 +25,7 @@ export class PlayerBehaviour implements IComponent {
     private _playerCollisionObserver!: B.Observer<B.IPhysicsCollisionEvent>;
     private _mesh!: B.Mesh;
     private _canJump: boolean = true;
+    
 
     // movement
     private _speed: number = 5;
