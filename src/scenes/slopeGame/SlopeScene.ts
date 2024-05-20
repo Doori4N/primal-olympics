@@ -16,6 +16,7 @@ import {CameraComponent} from "../../core/components/CameraComponent";
 import {CameraAnimation} from "./components/CameraAnimation";
 import {FallingObjectController} from "./components/FallingObjectController";
 import {GameScores} from "./components/GameScores";
+import { CameraMovement } from './components/CameraMovement';
 
 export class SlopeScene extends Scene {
     private _gui!: GUI.AdvancedDynamicTexture;
@@ -31,6 +32,13 @@ export class SlopeScene extends Scene {
         this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync(
             "meshes/models/",
             "caveman.glb",
+            this.babylonScene
+        );
+
+        // load buche
+        this.loadedAssets["buche"] = await B.SceneLoader.LoadAssetContainerAsync(
+            "meshes/models/",
+            "buche.glb",
             this.babylonScene
         );
 
@@ -58,7 +66,8 @@ export class SlopeScene extends Scene {
         light.intensity = 0.7;
 
         this._createSlope();
-
+        this._createInvisibleWalls(); // pour éviter que les joueurs/objets tombent sur les cotes de la pente
+        
         // players
         this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.babylonScene);
         this._initPlayers();
@@ -72,6 +81,7 @@ export class SlopeScene extends Scene {
 
         // finish line
         this._createFinishLine();
+        
     }
 
     private _createSlope(): void {
@@ -89,12 +99,49 @@ export class SlopeScene extends Scene {
         }));
         this.entityManager.addEntity(slopeEntity);
     }
+
+    private _createInvisibleWalls(): void {
+        // Dimensions et la position des murs
+        const wallHeight = 5;
+        const wallDepth = 1;
+        const wallWidth = 100;
+        const wallOffset = 10.5; // Distance par rapport au centre de la pente
+        const slopeInclination = -Math.PI / 10; // Inclinaison de la pente
+    
+        // Mur gauche
+        const leftWall = new Entity("leftWall");
+        const leftWallMesh = B.MeshBuilder.CreateBox("leftWall", {width: wallDepth, height: wallHeight, depth: wallWidth}, this.babylonScene);
+        leftWallMesh.position = new B.Vector3(-wallOffset, wallHeight / 2, 0);
+        leftWallMesh.rotation = new B.Vector3(slopeInclination, 0, 0); // Incliner le mur gauche
+        leftWallMesh.visibility = 1; // Rendre le mur invisible
+        leftWallMesh.metadata = {tag: leftWall.tag};
+        leftWall.addComponent(new MeshComponent(leftWall, this, {mesh: leftWallMesh}));
+        leftWall.addComponent(new RigidBodyComponent(leftWall, this, {
+            physicsShape: B.PhysicsShapeType.BOX,
+            physicsProps: {mass: 0}
+        }));
+        this.entityManager.addEntity(leftWall);
+    
+        // Mur droit
+        const rightWall = new Entity("rightWall");
+        const rightWallMesh = B.MeshBuilder.CreateBox("rightWall", {width: wallDepth, height: wallHeight, depth: wallWidth}, this.babylonScene);
+        rightWallMesh.position = new B.Vector3(wallOffset, wallHeight / 2, 0);
+        rightWallMesh.rotation = new B.Vector3(slopeInclination, 0, 0); // Incliner le mur droit dans le sens opposé
+        rightWallMesh.visibility = 1; // Rendre le mur invisible
+        rightWallMesh.metadata = {tag: rightWall.tag};
+        rightWall.addComponent(new MeshComponent(rightWall, this, {mesh: rightWallMesh}));
+        rightWall.addComponent(new RigidBodyComponent(rightWall, this, {
+            physicsShape: B.PhysicsShapeType.BOX,
+            physicsProps: {mass: 0}
+        }));
+        this.entityManager.addEntity(rightWall);
+    }
     
 
     private _createFinishLine(): void {
         const finishLine = new Entity("finishLine");
         const finishLineMesh: B.Mesh = B.MeshBuilder.CreateBox("finishLine", {width: 20, height: 10, depth: 1}, this.babylonScene);
-        finishLineMesh.position = new B.Vector3(0, 5, 20);
+        finishLineMesh.position = new B.Vector3(0, 20, 48);
         finishLineMesh.metadata = {tag: finishLine.tag};
         finishLine.addComponent(new MeshComponent(finishLine, this, {mesh: finishLineMesh}));
         finishLine.addComponent(new RigidBodyComponent(finishLine, this, {
@@ -160,6 +207,8 @@ export class SlopeScene extends Scene {
         playerNameText.linkWithMesh(hitbox);
         playerNameText.linkOffsetY = -60;
 
+        
+
         playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
         const playerPhysicsShape = new B.PhysicsShapeBox(
             new B.Vector3(0, 0, 0),
@@ -169,7 +218,7 @@ export class SlopeScene extends Scene {
         );
         playerEntity.addComponent(new RigidBodyComponent(playerEntity, this, {
             physicsShape: playerPhysicsShape,
-            physicsProps: {mass: 1},
+            physicsProps: {mass: 1}, // si on baisse le perso glisse moins mais on doit garder de la masse pour le saut 
             massProps: {inertia: new B.Vector3(0, 0, 0)},
             isCollisionCallbackEnabled: true
         }));
@@ -186,23 +235,11 @@ export class SlopeScene extends Scene {
 
         // Constructing a Follow Camera
         if (this.game.networkInstance.playerId === playerId) {
-            console.log("Creating camera for player", playerId);
-            const camera = new B.FollowCamera(`camera_${playerId}`, new B.Vector3(0, 10, -10), this.babylonScene);
-            camera.radius = 30; //askip distance de la target 
-            camera.heightOffset = 10;
-            camera.rotationOffset = 0;
-            camera.cameraAcceleration = 0.005;
-            camera.maxCameraSpeed = 10;
-            camera.lockedTarget = player; // hitbox or player ca change rien ca rend fou au bout d'un moment
-            
-            camera.attachControl(true);
-            playerEntity.addComponent(new CameraComponent(playerEntity, this, {camera}));
-            // Définir la caméra principale sur la caméra du joueur
-            this.mainCamera = camera;
-
-            // Attacher les contrôles de la caméra au canvas du jeu
-            this.mainCamera.attachControl(this.game.canvas, true);
-
+            // follow camera
+            const mainCameraEntity = new Entity("camera");
+            mainCameraEntity.addComponent(new CameraComponent(mainCameraEntity, this, {camera: this.mainCamera}));
+            mainCameraEntity.addComponent(new CameraMovement(mainCameraEntity, this, {player: playerEntity}));
+            this.entityManager.addEntity(mainCameraEntity);
         }
 
         return playerEntity;

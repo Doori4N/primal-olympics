@@ -22,10 +22,10 @@ export class FallingObjectController implements IComponent {
 
     public onStart(): void {
         // HOST
-        // if (this.scene.game.networkInstance.isHost) {
-        //     this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
-        //     this.scene.eventManager.subscribe("onGameFinished", this.stopSpawning.bind(this));
-        // }
+        if (this.scene.game.networkInstance.isHost) {
+            this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
+            this.scene.eventManager.subscribe("onGameFinished", this.stopSpawning.bind(this));
+        }
     }
 
     public onUpdate(): void {}
@@ -59,7 +59,7 @@ export class FallingObjectController implements IComponent {
     }
 
     private _createRock(position: B.Vector3): Entity {
-        const fallingObjectEntity: Entity = new Entity("fallingObject");
+        const fallingObjectEntity: Entity = new Entity("rock");
 
         const fallingObjectMesh: B.Mesh = B.MeshBuilder.CreateSphere("FallingObject", { diameter: 1 }, this.scene.babylonScene);
         fallingObjectMesh.position = position;
@@ -76,9 +76,16 @@ export class FallingObjectController implements IComponent {
     }
 
     private _createLog(position: B.Vector3): Entity {
-        const logEntity: Entity = new Entity("fallingObject");
+        const logEntity: Entity = new Entity("buche");
     
-        const logMesh: B.Mesh = B.MeshBuilder.CreateCylinder("FallingObject", { height: 2, diameter: 1 }, this.scene.babylonScene);
+        const entries: B.InstantiatedEntries = this.scene.loadedAssets["buche"].instantiateModelsToScene(
+            (sourceName: string): string => sourceName + logEntity.id,
+            false,
+            { doNotInstantiate: true }
+        );
+        const logMesh: B.Mesh = entries.rootNodes[0] as B.Mesh;
+
+        logMesh.scaling = new B.Vector3(0.3, 0.3, 0.3);
         logMesh.position = position;
         logMesh.metadata = { tag: logEntity.tag, id: logEntity.id };
     
@@ -96,7 +103,8 @@ export class FallingObjectController implements IComponent {
         logEntity.addComponent(new FallingObjectBehaviour(logEntity, this.scene));
         logEntity.addComponent(new RigidBodyComponent(logEntity, this.scene, {
             physicsShape: B.PhysicsImpostor.BoxImpostor,
-            physicsProps: { mass: 1, restitution: 0.5 }
+            physicsProps: { mass: 1, restitution: 0.5 },
+            
         }));
     
         return logEntity;

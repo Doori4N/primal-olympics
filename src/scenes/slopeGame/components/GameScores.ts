@@ -42,12 +42,29 @@ export class GameScores implements IComponent {
         const collider: B.TransformNode = collisionEvent.collider.transformNode;
         const networkHost = this.scene.game.networkInstance as NetworkHost;
 
-        // handle collision with ground
+        // handle collision with finishline
         if (collidedAgainst.metadata.tag === "finishLine" && collider.metadata.tag === "player") {
             console.log("player finished the game!");
             const playerEntity: Entity = this.scene.entityManager.getEntityById(collider.metadata.id);
             this.scene.entityManager.removeEntity(playerEntity);
             networkHost.sendToAllClients("onDestroyPlayer", {entityId: playerEntity.id});
         }
+
+         // ground collision
+        if (collidedAgainst.metadata.tag === "buche" && collider.metadata.tag === "slope") {
+            console.log("buche dans tes morts a pas touche le sol ptn de t mort");
+        }
+
+        // handle collision with log or rock
+        if (collidedAgainst.metadata.tag === "player" && (collider.metadata.tag === "buche" || collider.metadata.tag === "rock")) {
+            console.log("player hit an obstacle!");
+            const playerEntity: Entity = this.scene.entityManager.getEntityById(collidedAgainst.metadata.id);
+            this.scene.entityManager.removeEntity(playerEntity);
+            networkHost.sendToAllClients("onDestroyPlayer", {entityId: playerEntity.id});
+
+            // update player score
+        } 
+
+
     }
 }

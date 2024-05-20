@@ -183,12 +183,21 @@ export class PlayerBehaviour implements IComponent {
         if (collidedAgainst.metadata.tag === "slope") {
             this._canJump = true;
         }
-        else if (collidedAgainst.metadata.tag === "fallingObject") {
+        else if (collidedAgainst.metadata.tag === "rock" || collidedAgainst.metadata.tag === "buche") {
+            console.log("mort du player"); // buche ne marche pas
+            //remove falling object
+            this.scene.entityManager.removeEntity(this.scene.entityManager.getEntityById(collidedAgainst.metadata.id));
+
+            //remove player
             this.kill();
         }
     }
 
     public kill(): void {
+        // remove playerNameText
+        // TODO     
+
+        // remove player entity
         this.scene.entityManager.removeEntity(this.entity);
         const networkHost = this.scene.game.networkInstance as NetworkHost;
         networkHost.sendToAllClients("onDestroyPlayer", {entityId: this.entity.id});

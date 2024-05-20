@@ -10,7 +10,7 @@ export class CameraAnimation implements IComponent {
     public scene: Scene;
 
     // component properties
-    private camera!: B.Camera;
+    private camera!: B.FreeCamera;
     private frameRate: number = 30;
 
     constructor(entity: Entity, scene: Scene) {
@@ -20,7 +20,7 @@ export class CameraAnimation implements IComponent {
 
     public onStart(): void {
         const cameraComponent = this.entity.getComponent("Camera") as CameraComponent;
-        this.camera = cameraComponent.camera;
+        this.camera = cameraComponent.camera as B.FreeCamera; 
 
         this.scene.babylonScene.switchActiveCamera(this.camera);
 
