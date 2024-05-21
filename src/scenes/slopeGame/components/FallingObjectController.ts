@@ -88,23 +88,20 @@ export class FallingObjectController implements IComponent {
         logMesh.scaling = new B.Vector3(0.3, 0.3, 0.3);
         logMesh.position = position;
         logMesh.metadata = { tag: logEntity.tag, id: logEntity.id };
-    
-        // Rotation aléatoire 
-        const randomRotation = Math.random() * Math.PI * 2; 
-        const randomOrientation = Math.random() > 0.1; 
-    
-        if (randomOrientation) {
-            logMesh.rotation.z = randomRotation; // horizontalité parallele au joueur 
-        } else {
-            logMesh.rotation.y = randomRotation; // verticalité
-        }
+
+        logMesh.rotate(B.Axis.Z, Math.random() * Math.PI * 2, B.Space.WORLD)
     
         logEntity.addComponent(new MeshComponent(logEntity, this.scene, { mesh: logMesh }));
         logEntity.addComponent(new FallingObjectBehaviour(logEntity, this.scene));
+        const logPhysicsShape = new B.PhysicsShapeCylinder(
+            new B.Vector3(-2, 0, 0),
+            new B.Vector3(2, 0, 0),
+                .4,
+            this.scene.babylonScene
+        );
         logEntity.addComponent(new RigidBodyComponent(logEntity, this.scene, {
-            physicsShape: B.PhysicsImpostor.BoxImpostor,
-            physicsProps: { mass: 1, restitution: 0.5 },
-            
+            physicsShape: logPhysicsShape,
+            physicsProps: { mass: 1, restitution: 0.5 }
         }));
     
         return logEntity;
