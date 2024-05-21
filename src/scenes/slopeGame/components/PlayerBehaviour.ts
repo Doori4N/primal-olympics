@@ -2,12 +2,14 @@ import {IComponent} from "../../../core/IComponent";
 import {Entity} from "../../../core/Entity";
 import {Scene} from "../../../core/Scene";
 import * as B from "@babylonjs/core";
+import * as GUI from "@babylonjs/gui";
 import {NetworkAnimationComponent} from "../../../network/components/NetworkAnimationComponent";
 import {NetworkPredictionComponent} from "../../../network/components/NetworkPredictionComponent";
 import {InputStates} from "../../../core/types";
 import {RigidBodyComponent} from "../../../core/components/RigidBodyComponent";
 import {MeshComponent} from "../../../core/components/MeshComponent";
 import {NetworkHost} from "../../../network/NetworkHost";
+import {PlayerData} from "../../../network/types";
 
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";
@@ -16,6 +18,7 @@ export class PlayerBehaviour implements IComponent {
 
     // component properties
     public readonly playerId: string;
+    public readonly playerData: PlayerData;
     private readonly _isOwner: boolean; // is the player the owner of the entity
     protected _isGameStarted: boolean = false;
     protected _isGameFinished: boolean = false;
@@ -25,17 +28,18 @@ export class PlayerBehaviour implements IComponent {
     private _playerCollisionObserver!: B.Observer<B.IPhysicsCollisionEvent>;
     private _mesh!: B.Mesh;
     private _canJump: boolean = true;
-    
+    private _gui!: GUI.AdvancedDynamicTexture;
 
     // movement
     private _speed: number = 5;
     private _velocity: B.Vector3 = B.Vector3.Zero();
     private _isGrounded: boolean = false;
 
-    constructor(entity: Entity, scene: Scene, props: {playerId: string}) {
+    constructor(entity: Entity, scene: Scene, props: {playerData: PlayerData}) {
         this.entity = entity;
         this.scene = scene;
-        this.playerId = props.playerId;
+        this.playerId = props.playerData.id;
+        this.playerData = props.playerData;
         this._isOwner = this.scene.game.networkInstance.playerId === this.playerId;
     }
 
@@ -55,6 +59,8 @@ export class PlayerBehaviour implements IComponent {
         const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
         this._mesh = meshComponent.mesh;
 
+        this._showPlayerNameUI();
+
         // subscribe to game events
         this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
         this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
@@ -69,8 +75,29 @@ export class PlayerBehaviour implements IComponent {
     }
 
     public onDestroy(): void {
+        this._hidePlayerNameUI();
+
         // HOST
         if (this.scene.game.networkInstance.isHost) this._playerCollisionObserver.remove();
+    }
+
+    private _showPlayerNameUI(): void {
+        this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene.babylonScene);
+
+        // player name text
+        const playerNameText = new GUI.TextBlock();
+        playerNameText.text = this.playerData.name;
+        playerNameText.color = "#ff0000";
+        playerNameText.fontSize = 15;
+        playerNameText.outlineColor = "black";
+        playerNameText.outlineWidth = 5;
+        this._gui.addControl(playerNameText);
+        playerNameText.linkWithMesh(this._mesh);
+        playerNameText.linkOffsetY = -60;
+    }
+
+    private _hidePlayerNameUI(): void {
+        this._gui.dispose();
     }
 
     private _handleServerUpdate(): void {
@@ -178,9 +205,6 @@ export class PlayerBehaviour implements IComponent {
     }
 
     public kill(): void {
-        // remove playerNameText
-        // TODO     
-
         // remove player entity
         this.scene.entityManager.removeEntity(this.entity);
         const networkHost = this.scene.game.networkInstance as NetworkHost;

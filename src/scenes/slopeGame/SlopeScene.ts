@@ -1,5 +1,4 @@
 import * as B from '@babylonjs/core';
-import * as GUI from "@babylonjs/gui";
 import {Scene} from "../../core/Scene";
 import {Entity} from "../../core/Entity";
 import {MeshComponent} from "../../core/components/MeshComponent";
@@ -17,10 +16,10 @@ import {CameraAnimation} from "./components/CameraAnimation";
 import {FallingObjectController} from "./components/FallingObjectController";
 import {GameScores} from "./components/GameScores";
 import { CameraMovement } from './components/CameraMovement';
+import {PlayerData} from "../../network/types";
+import {NetworkClient} from "../../network/NetworkClient";
 
 export class SlopeScene extends Scene {
-    private _gui!: GUI.AdvancedDynamicTexture;
-
     constructor() {
         super("Downhill Madness");
     }
@@ -32,6 +31,34 @@ export class SlopeScene extends Scene {
         this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
         this.loadedAssets["log"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "log.glb", this.babylonScene);
         this.loadedAssets["slopeMap"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "slopeMap.glb", this.babylonScene);
+
+        // HOST
+        // wait for all players to be ready
+        if (this.game.networkInstance.isHost) {
+            const playerReadyPromises: Promise<void>[] = this.game.networkInstance.players.map((playerData: PlayerData): Promise<void> => {
+                // if the player is the host, return immediately
+                if (playerData.id === this.game.networkInstance.playerId) return Promise.resolve();
+
+                return new Promise<void>((resolve): void => {
+                    this.game.networkInstance.addEventListener("onPlayerReady", resolve);
+                });
+            });
+            await Promise.all(playerReadyPromises);
+        }
+        // CLIENT
+        else {
+            // listen to onCreateEntity events
+            this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerData: PlayerData, entityId: string}): void => {
+                this._createPlayer(args.playerData, args.entityId);
+            });
+            this.game.networkInstance.addEventListener("onDestroyPlayer", this._destroyPlayerClientRpc.bind(this));
+
+            // tell the host that the player is ready
+            const networkClient = this.game.networkInstance as NetworkClient;
+            setTimeout((): void => {
+                networkClient.sendToHost("onPlayerReady");
+            }, 500);
+        }
 
         this.game.engine.hideLoadingUI();
     }
@@ -58,10 +85,6 @@ export class SlopeScene extends Scene {
 
         this._createSlope();
         this._createInvisibleWalls(); // pour éviter que les joueurs/objets tombent sur les cotes de la pente
-        
-        // players
-        this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.babylonScene);
-        this._initPlayers();
 
         this._createGameManager();
 
@@ -72,9 +95,12 @@ export class SlopeScene extends Scene {
 
         // finish line
         this._createFinishLine();
-    }
 
-    
+        if (!this.game.networkInstance.isHost) return;
+
+        // HOST
+        this._initPlayers();
+    }
 
     private _createInvisibleWalls(): void {
         // Dimensions et la position des murs
@@ -194,35 +220,27 @@ export class SlopeScene extends Scene {
         this.entityManager.addEntity(finishLine);
     }
 
+
     private _initPlayers(): void {
-        // HOST
-        if (this.game.networkInstance.isHost) {
-            const networkHost = this.game.networkInstance as NetworkHost;
-
-            for (let i: number = 0; i < networkHost.players.length; i++) {
-                const playerId: string = networkHost.players[i].id;
-
-                const playerEntity: Entity = this._createPlayer(playerId, i);
-                this.entityManager.addEntity(playerEntity);
-
-                networkHost.sendToAllClients("onCreatePlayer", {
-                    playerId: playerId,
-                    id: playerEntity.id,
-                    index: i
-                });
-            }
-        }
-        // CLIENT
-        else {
-            this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerId: string, id: string, index: number}): void => {
-                const playerEntity: Entity = this._createPlayer(args.playerId, args.index, args.id);
-                this.entityManager.addEntity(playerEntity);
-            });
-            this.game.networkInstance.addEventListener("onDestroyPlayer", this._destroyPlayerClientRpc.bind(this));
+        const networkHost = this.game.networkInstance as NetworkHost;
+        for (let i: number = 0; i < networkHost.players.length; i++) {
+            const playerData: PlayerData = networkHost.players[i];
+            this._createPlayer(playerData);
         }
     }
 
-    private _createPlayer(playerId: string, index: number, entityId?: string): Entity {
+    private _createPlayer(playerData: PlayerData, entityId?: string): void {
+        const playerEntity: Entity = this._createPlayerEntity(playerData, entityId);
+        this.entityManager.addEntity(playerEntity);
+
+        // HOST
+        if (this.game.networkInstance.isHost) {
+            const networkHost = this.game.networkInstance as NetworkHost;
+            networkHost.sendToAllClients("onCreatePlayer", {playerData: playerData, entityId: playerEntity.id});
+        }
+    }
+
+    private _createPlayerEntity(playerData: PlayerData, entityId?: string): Entity {
         const playerContainer: B.AssetContainer = this.loadedAssets["player"];
         const playerEntity = new Entity("player", entityId);
 
@@ -237,19 +255,6 @@ export class SlopeScene extends Scene {
         player.position = new B.Vector3(0, -1, 0);
 
         hitbox.position = new B.Vector3(0, 0, -30);
-
-        // player name text
-        const playerNameText = new GUI.TextBlock();
-        playerNameText.text = this.game.networkInstance.players.find((playerData) => playerData.id === playerId)!.name;
-        playerNameText.color = "#ff0000";
-        playerNameText.fontSize = 15;
-        playerNameText.outlineColor = "black";
-        playerNameText.outlineWidth = 5;
-        this._gui.addControl(playerNameText);
-        playerNameText.linkWithMesh(hitbox);
-        playerNameText.linkOffsetY = -60;
-
-        
 
         playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
         const playerPhysicsShape = new B.PhysicsShapeBox(
@@ -273,10 +278,10 @@ export class SlopeScene extends Scene {
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
         playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
-        playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerId: playerId}));
+        playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerData: playerData}));
 
         // Constructing a Follow Camera
-        if (this.game.networkInstance.playerId === playerId) {
+        if (this.game.networkInstance.playerId === playerData.id) {
             // follow camera
             const mainCameraEntity = new Entity("camera");
             mainCameraEntity.addComponent(new CameraComponent(mainCameraEntity, this, {camera: this.mainCamera}));
