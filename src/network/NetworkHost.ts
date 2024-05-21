@@ -100,6 +100,16 @@ export class NetworkHost extends NetworkInstance {
         connection.send({type: event, data: args});
     }
 
+    public getPeerId(playerId: string): string {
+        const peer: DataConnection | undefined = this.connections.find((connection: DataConnection): boolean => {
+            return connection.metadata.playerId === playerId;
+        });
+
+        if (!peer) throw new Error("Player not found");
+
+        return peer.peer;
+    }
+
     private _listenToPing(): void {
         this.addEventListener("ping", (clientId: string, startTime: number): void => {
             this.sendToClient("pong", clientId, startTime);

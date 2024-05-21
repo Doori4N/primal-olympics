@@ -65,7 +65,8 @@ export class NetworkAnimationComponent implements IComponent {
         const animationLoop: boolean = options?.loop ?? false;
         const animationFrom: number = options?.from ?? animation.from;
         const animationTo: number = options?.to ?? animation.to;
-        animation.start(animationLoop, 1.0, animationFrom, animationTo);
+        const speedRatio: number = options?.speedRatio ?? 1;
+        animation.start(animationLoop, speedRatio, animationFrom, animationTo);
 
         // send the animation name to all clients
         if (this.scene.game.networkInstance.isHost) {

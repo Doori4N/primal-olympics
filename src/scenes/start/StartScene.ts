@@ -25,7 +25,7 @@ export class StartScene extends Scene {
 
         const versionText: HTMLParagraphElement = document.createElement("p");
         versionText.id = "versionText";
-        versionText.innerHTML = "Version: 0.4.0";
+        versionText.innerHTML = "Version: 0.5.0";
         this._startDiv.appendChild(versionText);
 
         const icon: HTMLImageElement = document.createElement("img");

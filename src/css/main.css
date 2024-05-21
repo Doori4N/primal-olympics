@@ -145,17 +145,19 @@
     left: 4vw;
     display: flex;
     flex-direction: column;
-    text-align: center;
+    justify-content: flex-start;
     row-gap: 1vh;
     background-color: rgba(0, 0, 0, 0.4);
     border-radius: 20px;
     color: #fae69f;
     text-shadow: #000 1px 1px 1px;
     font-size: 1.3vw;
+    list-style: inside;
 }
 
 .description-title {
     font-size: 2vw;
+    color: #FEB941;
 }
 
 #commands-container {
@@ -480,4 +482,63 @@
 
 .color-button-selected {
     border: .14vw solid blue;
+}
+
+/* TRACK AND FIELD */
+
+#position-div {
+    width: 9vw;
+    height: 9vw;
+    position: absolute;
+    top: .2vh;
+    left: .5vw;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    background-image: url("/img/stone-circle.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    color: #fae69f;
+    text-shadow: #000 1px 1px 1px;
+    font-size: 2.8vw;
+    padding-left: 1.5vw;
+}
+
+#speed-container {
+    position: absolute;
+    width: 17vw;
+    height: 11vh;
+    bottom: 2vh;
+    left: 1.5vw;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-image: url("/img/large-stone-button.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    padding-left: 1.3vw;
+}
+
+#speed-div {
+    max-width: 14vw;
+    width: .1vw;
+    height: 6vh;
+    border-radius: 10px;
+    border: .1vw solid black;
+    opacity: .7;
+}
+
+.high-speed {
+    background-color: #C40C0C;
+}
+
+.low-speed {
+    background-color: #0CC40C;
+}
+
+.medium-speed {
+    background-color: #C4C40C;
 }

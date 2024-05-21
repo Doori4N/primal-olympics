@@ -1,29 +1,29 @@
-import * as B from '@babylonjs/core';
 import {Scene} from "../../core/Scene";
+import * as B from '@babylonjs/core';
+import {PlayerData} from "../../network/types";
+import {NetworkClient} from "../../network/NetworkClient";
+import {NetworkHost} from "../../network/NetworkHost";
 import {Entity} from "../../core/Entity";
+import {Utils} from "../../utils/Utils";
+import {MeshComponent} from "../../core/components/MeshComponent";
+import {RigidBodyComponent} from "../../core/components/RigidBodyComponent";
+import {NetworkAnimationComponent} from "../../network/components/NetworkAnimationComponent";
+import {CameraComponent} from "../../core/components/CameraComponent";
+import {TRexBeheviour} from "./components/TRexBeheviour";
+import {NetworkTransformComponent} from "../../network/components/NetworkTransformComponent";
+import {PlayerBehaviour} from "./components/PlayerBehaviour";
+import {Commands} from "../../core/types";
 import {GamePresentation} from "../../core/components/GamePresentation";
 import {GameMessages} from "../../core/components/GameMessages";
 import {Leaderboard} from "../../core/components/Leaderboard";
-import {MeshComponent} from "../../core/components/MeshComponent";
-import {RigidBodyComponent} from "../../core/components/RigidBodyComponent";
-import {PlayerBehaviour} from "./components/PlayerBehaviour";
-import {MeteoriteController} from "./components/MeteoriteController";
-import {GameTimer} from "../../core/components/GameTimer";
-import {CameraComponent} from "../../core/components/CameraComponent";
 import {CameraAnimation} from "./components/CameraAnimation";
-import {GameScores} from "./components/GameScores";
-import {NetworkHost} from "../../network/NetworkHost";
-import {NetworkAnimationComponent} from "../../network/components/NetworkAnimationComponent";
-import {Commands, InputStates} from "../../core/types";
-import {NetworkClient} from "../../network/NetworkClient";
-import {PlayerData} from "../../network/types";
-import {Utils} from "../../utils/Utils";
-import {NetworkPredictionComponent} from "../../network/components/NetworkPredictionComponent";
+import {GameController} from "./components/GameController";
 import {CameraMovement} from "./components/CameraMovement";
+import {GameScores} from "./components/GameScores";
 
-export class MeteoritesScene extends Scene {
+export class TrackAndFieldScene extends Scene {
     constructor() {
-        super("Stellar Storm");
+        super("T-Rex Track");
     }
 
     public async preload(): Promise<void> {
@@ -32,8 +32,7 @@ export class MeteoritesScene extends Scene {
         // load assets
         this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
         this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
-        this.loadedAssets["meteorite"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "meteorite.glb", this.babylonScene);
-        this.loadedAssets["meteoriteMap"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "meteoriteScene.glb", this.babylonScene);
+        this.loadedAssets["t-rex"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "t-rex.glb", this.babylonScene);
 
         // HOST
         // wait for all players to be ready
@@ -51,14 +50,17 @@ export class MeteoritesScene extends Scene {
         // CLIENT
         else {
             // listen to onCreateEntity events
+            this.game.networkInstance.addEventListener("onCreateTRex", this._createTRex.bind(this));
             this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerData: PlayerData, entityId: string}): void => {
                 this._createPlayer(args.playerData, args.entityId);
             });
-            this.game.networkInstance.addEventListener("onDestroyPlayer", this._destroyPlayerClientRpc.bind(this));
 
             // tell the host that the player is ready
             const networkClient = this.game.networkInstance as NetworkClient;
-            networkClient.sendToHost("onPlayerReady");
+            setTimeout((): void => {
+                console.log("playerReady");
+                networkClient.sendToHost("onPlayerReady");
+            }, 500);
         }
 
         this.game.engine.hideLoadingUI();
@@ -68,15 +70,13 @@ export class MeteoritesScene extends Scene {
         this.enablePhysics(new B.Vector3(0, -9.81, 0));
 
         // camera
-        this.mainCamera.position = new B.Vector3(0, 20, -25);
         this.mainCamera.setTarget(B.Vector3.Zero());
         this.mainCamera.attachControl(this.game.canvas, true);
-        this.mainCamera.speed = 0.3;
+        this.mainCamera.position = new B.Vector3(0, 10, -20);
 
         // start animation
         const cameraEntity = new Entity();
-        const camera = new B.FreeCamera("camera", new B.Vector3(0, 3, 15), this.babylonScene);
-        camera.rotation.y = Math.PI;
+        const camera = new B.FreeCamera("camera", new B.Vector3(-20, 3, -10), this.babylonScene);
         cameraEntity.addComponent(new CameraComponent(cameraEntity, this, {camera: camera}));
         cameraEntity.addComponent(new CameraAnimation(cameraEntity, this));
         this.entityManager.addEntity(cameraEntity);
@@ -87,68 +87,68 @@ export class MeteoritesScene extends Scene {
 
         // ground
         const groundEntity = new Entity("ground");
-        const ground: B.Mesh = B.MeshBuilder.CreateDisc("ground", {radius: 16, tessellation: 8}, this.babylonScene);
-        ground.rotation.x = Math.PI / 2;
+        const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: 60, height: 15}, this.babylonScene);
         ground.metadata = {tag: groundEntity.tag};
         groundEntity.addComponent(new MeshComponent(groundEntity, this, {mesh: ground}));
         groundEntity.addComponent(new RigidBodyComponent(groundEntity, this, {
-            physicsShape: B.PhysicsShapeType.CONVEX_HULL,
-            physicsProps: {mass: 0}
-        }));
-        this.entityManager.addEntity(groundEntity);
-
-        // lava ground
-        const lavaGroundEntity = new Entity("lavaGround");
-        const lavaGround: B.Mesh = B.MeshBuilder.CreateGround("lavaGround", {width: 50, height: 50}, this.babylonScene);
-        lavaGround.position.y = -2;
-        lavaGround.metadata = {tag: lavaGroundEntity.tag};
-        const lavaMaterial = new B.StandardMaterial("lavaMaterial", this.babylonScene);
-        lavaMaterial.diffuseColor = new B.Color3(1, 0.2, 0);
-        lavaMaterial.alpha = 0.5;
-        lavaGround.material = lavaMaterial;
-
-        lavaGroundEntity.addComponent(new MeshComponent(lavaGroundEntity, this, {mesh: lavaGround}));
-        lavaGroundEntity.addComponent(new RigidBodyComponent(lavaGroundEntity, this, {
             physicsShape: B.PhysicsShapeType.BOX,
             physicsProps: {mass: 0}
         }));
-        this.entityManager.addEntity(lavaGroundEntity);
-
-        // meteorites
-        const meteoriteController = new Entity();
-        meteoriteController.addComponent(new MeteoriteController(meteoriteController, this));
-        this.entityManager.addEntity(meteoriteController);
+        this.entityManager.addEntity(groundEntity);
 
         // gameManager
         const gameManager = this._createGameManagerEntity();
         this.entityManager.addEntity(gameManager);
 
+        // finish line
+        const finishLineEntity = new Entity("finishLine");
+        const finishLine: B.Mesh = B.MeshBuilder.CreateBox("finishLine", {width: 1, height: 5, depth: 15}, this.babylonScene);
+        finishLine.metadata = {tag: finishLineEntity.tag};
+        finishLine.position = new B.Vector3(20, 2.5, 0);
+        finishLineEntity.addComponent(new MeshComponent(finishLineEntity, this, {mesh: finishLine}));
+        finishLineEntity.addComponent(new RigidBodyComponent(finishLineEntity, this, {
+            physicsShape: B.PhysicsShapeType.BOX,
+            physicsProps: {mass: 0},
+            isTrigger: true
+        }));
+        this.entityManager.addEntity(finishLineEntity);
+
         if (!this.game.networkInstance.isHost) return;
 
         // HOST
+        this._createTRex();
         this._initPlayers();
+    }
+
+    private _createTRex(entityId?: string): void {
+        const ballEntity: Entity = this._createTRexEntity(entityId);
+        this.entityManager.addEntity(ballEntity);
+
+        if (this.game.networkInstance.isHost) {
+            const networkHost = this.game.networkInstance as NetworkHost;
+            networkHost.sendToAllClients("onCreateTRex", ballEntity.id);
+        }
     }
 
     private _createGameManagerEntity(): Entity {
         const gameManager = new Entity("gameManager");
 
         const description: string = `
-            <span class='description-title'>Dodge the meteorites falling from the sky!</span></span><br>
+            <span class='description-title'>Run away from the T-Rex before it eats you!</span></span><br>
             <ul>
-                <li>Move your character to dodge meteorites falling from the sky</li>
-                <li>Push other players into the meteorites to eliminate them</li>
+                <li>To move forward, alternately press the indicated keys as quickly as possible</li>
+                <li>Reach the finish line before the T-Rex catches you!</li>
             </ul>
         `;
-        const imgSrc: string = "meteorites-presentation.png";
+        const imgSrc: string = "track-and-field-presentation.png";
         const commands: Commands = [
-            {keys: ["z", "q", "s", "d"], description: "Move"},
-            {keys: ["space"], description: "Push"}
+            {keys: ["q", "d"], description: "Run"},
         ];
 
         gameManager.addComponent(new GamePresentation(gameManager, this, {description, imgSrc, commands}));
         gameManager.addComponent(new GameMessages(gameManager, this));
         gameManager.addComponent(new Leaderboard(gameManager, this));
-        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 120}));
+        gameManager.addComponent(new GameController(gameManager, this));
         gameManager.addComponent(new GameScores(gameManager, this));
 
         return gameManager;
@@ -173,6 +173,48 @@ export class MeteoritesScene extends Scene {
         }
     }
 
+    private _createTRexEntity(entityId?: string): Entity {
+        const tRexContainer: B.AssetContainer = this.loadedAssets["t-rex"];
+        const tRexEntity = new Entity("t-rex", entityId);
+
+        tRexContainer.addAllToScene();
+        const tRex = tRexContainer.meshes[0] as B.Mesh;
+        tRex.scaling.scaleInPlace(0.5);
+
+        const hitbox = new B.Mesh(`hitbox${tRexEntity.id}`, this.babylonScene);
+        hitbox.metadata = {tag: tRexEntity.tag, id: tRexEntity.id};
+        tRex.setParent(hitbox);
+        tRex.position = new B.Vector3(0, -4, 0);
+
+        hitbox.rotate(B.Axis.Y, Math.PI / 2, B.Space.WORLD);
+        hitbox.position = new B.Vector3(-20, 4, 0);
+
+        tRexEntity.addComponent(new MeshComponent(tRexEntity, this, {mesh: hitbox}));
+
+        const playerPhysicsShape = new B.PhysicsShapeBox(
+            new B.Vector3(0, 0, 0),
+            new B.Quaternion(0, 0, 0, 1),
+            new B.Vector3(10, 8, 10),
+            this.babylonScene
+        );
+        tRexEntity.addComponent(new RigidBodyComponent(tRexEntity, this, {
+            physicsShape: playerPhysicsShape,
+            physicsProps: {mass: 0},
+            massProps: {inertia: new B.Vector3(0, 0, 0)},
+            isTrigger: true
+        }));
+
+        const animations: {[key: string]: B.AnimationGroup} = {};
+        animations["Attack"] = Utils.getAnimationGroupByName(`Armature|TRex_Attack`, tRexContainer.animationGroups);
+        animations["Idle"] = Utils.getAnimationGroupByName(`Armature|TRex_Idle`, tRexContainer.animationGroups);
+        animations["Running"] = Utils.getAnimationGroupByName(`Armature|TRex_Run`, tRexContainer.animationGroups);
+        tRexEntity.addComponent(new NetworkAnimationComponent(tRexEntity, this, {animations: animations}));
+
+        tRexEntity.addComponent(new TRexBeheviour(tRexEntity, this));
+
+        return tRexEntity;
+    }
+
     private _createPlayerEntity(playerData: PlayerData, entityId?: string): Entity {
         let playerContainer: B.AssetContainer;
         if (playerData.skinOptions.modelIndex === 0) {
@@ -194,6 +236,7 @@ export class MeteoritesScene extends Scene {
         player.position = new B.Vector3(0, -1, 0);
 
         hitbox.position.y = 1;
+        hitbox.rotate(B.Axis.Y, Math.PI / 2, B.Space.WORLD);
 
         // player skin colors
         Utils.applyColorsToMesh(player, playerData.skinOptions);
@@ -209,36 +252,29 @@ export class MeteoritesScene extends Scene {
         playerEntity.addComponent(new RigidBodyComponent(playerEntity, this, {
             physicsShape: playerPhysicsShape,
             physicsProps: {mass: 1},
-            massProps: {inertia: new B.Vector3(0, 0, 0)},
-            isCollisionCallbackEnabled: true
+            massProps: {inertia: new B.Vector3(0, 0, 0)}
         }));
 
         // animations
         const animations: {[key: string]: B.AnimationGroup} = {};
         animations["Idle"] = Utils.getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
         animations["Running"] = Utils.getAnimationGroupByName(`Running${playerEntity.id}`, entries.animationGroups);
-        animations["Push_Reaction"] = Utils.getAnimationGroupByName(`Soccer_Tackle_React${playerEntity.id}`, entries.animationGroups);
         animations["Celebration"] = Utils.getAnimationGroupByName(`Victory${playerEntity.id}`, entries.animationGroups);
         animations["Defeat"] = Utils.getAnimationGroupByName(`Defeat${playerEntity.id}`, entries.animationGroups);
         animations["TakeTheL"] = Utils.getAnimationGroupByName(`Loser${playerEntity.id}`, entries.animationGroups);
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
-        playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
+        playerEntity.addComponent(new NetworkTransformComponent(playerEntity, this, {usePhysics: true}));
         playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerData: playerData}));
 
         if (this.game.networkInstance.playerId === playerData.id) {
             // follow camera
             const mainCameraEntity = new Entity("camera");
             mainCameraEntity.addComponent(new CameraComponent(mainCameraEntity, this, {camera: this.mainCamera}));
-            mainCameraEntity.addComponent(new CameraMovement(mainCameraEntity, this, {player: playerEntity}));
+            mainCameraEntity.addComponent(new CameraMovement(mainCameraEntity, this, {player: playerEntity}))
             this.entityManager.addEntity(mainCameraEntity);
         }
 
         return playerEntity;
-    }
-
-    private _destroyPlayerClientRpc(args: {entityId: string}): void {
-        const playerEntity: Entity = this.entityManager.getEntityById(args.entityId);
-        this.entityManager.removeEntity(playerEntity);
     }
 }

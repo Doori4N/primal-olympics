@@ -10,6 +10,7 @@ import {FootballScene} from "../scenes/footballGame/FootballScene";
 import {StartScene} from "../scenes/start/StartScene";
 import {SlopeScene} from "../scenes/slopeGame/SlopeScene";
 import {CharacterCustomizationScene} from "../scenes/characterCustomization/CharacterCustomizationScene";
+import {TrackAndFieldScene} from "../scenes/trackAndFieldGame/TrackAndFieldScene";
 
 export class SceneManager {
     private static _instance: SceneManager;
@@ -92,6 +93,8 @@ export class SceneManager {
                 return new FootballScene();
             case "slope":
                 return new SlopeScene();
+            case "track-and-field":
+                return new TrackAndFieldScene();
             default:
                 throw new Error("Scene not found");
         }
