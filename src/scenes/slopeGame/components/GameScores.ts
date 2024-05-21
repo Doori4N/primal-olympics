@@ -51,12 +51,12 @@ export class GameScores implements IComponent {
         }
 
          // ground collision
-        if (collidedAgainst.metadata.tag === "buche" && collider.metadata.tag === "slope") {
+        if (collidedAgainst.metadata.tag === "log" && collider.metadata.tag === "slope") {
             console.log("buche dans tes morts a pas touche le sol ptn de t mort");
         }
 
         // handle collision with log or rock
-        if (collidedAgainst.metadata.tag === "player" && (collider.metadata.tag === "buche" || collider.metadata.tag === "rock")) {
+        if (collidedAgainst.metadata.tag === "player" && (collider.metadata.tag === "log" || collider.metadata.tag === "rock")) {
             console.log("player hit an obstacle!");
             const playerEntity: Entity = this.scene.entityManager.getEntityById(collidedAgainst.metadata.id);
             this.scene.entityManager.removeEntity(playerEntity);

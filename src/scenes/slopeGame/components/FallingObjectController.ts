@@ -76,9 +76,9 @@ export class FallingObjectController implements IComponent {
     }
 
     private _createLog(position: B.Vector3): Entity {
-        const logEntity: Entity = new Entity("buche");
+        const logEntity: Entity = new Entity("log");
     
-        const entries: B.InstantiatedEntries = this.scene.loadedAssets["buche"].instantiateModelsToScene(
+        const entries: B.InstantiatedEntries = this.scene.loadedAssets["log"].instantiateModelsToScene(
             (sourceName: string): string => sourceName + logEntity.id,
             false,
             { doNotInstantiate: true }

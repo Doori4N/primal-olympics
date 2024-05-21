@@ -167,7 +167,7 @@ export class PlayerBehaviour implements IComponent {
         if (collidedAgainst.metadata.tag === "slope") {
             this._canJump = true;
         }
-        else if (collidedAgainst.metadata.tag === "rock" || collidedAgainst.metadata.tag === "buche") {
+        else if (collidedAgainst.metadata.tag === "rock" || collidedAgainst.metadata.tag === "log") {
             console.log("mort du player"); // buche ne marche pas
             //remove falling object
             this.scene.entityManager.removeEntity(this.scene.entityManager.getEntityById(collidedAgainst.metadata.id));

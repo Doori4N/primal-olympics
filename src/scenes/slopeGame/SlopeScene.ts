@@ -29,22 +29,9 @@ export class SlopeScene extends Scene {
         this.game.engine.displayLoadingUI();
 
         // load assets
-        this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync(
-            "meshes/models/",
-            "caveman.glb",
-            this.babylonScene
-        );
-
-        // load buche
-        this.loadedAssets["buche"] = await B.SceneLoader.LoadAssetContainerAsync(
-            "meshes/models/",
-            "buche.glb",
-            this.babylonScene
-        );
-
-        // load map slope
+        this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
+        this.loadedAssets["log"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "log.glb", this.babylonScene);
         this.loadedAssets["slopeMap"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "slopeMap.glb", this.babylonScene);
-
 
         this.game.engine.hideLoadingUI();
     }
@@ -85,7 +72,6 @@ export class SlopeScene extends Scene {
 
         // finish line
         this._createFinishLine();
-        
     }
 
     
