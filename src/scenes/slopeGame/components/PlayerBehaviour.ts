@@ -25,9 +25,9 @@ export class PlayerBehaviour implements IComponent {
     private _networkAnimationComponent!: NetworkAnimationComponent;
     private _networkPredictionComponent!: NetworkPredictionComponent<InputStates>;
     private _physicsAggregate!: B.PhysicsAggregate;
+    private _playerCollisionEndedObserver!: B.Observer<B.IBasePhysicsCollisionEvent>;
     private _playerCollisionObserver!: B.Observer<B.IPhysicsCollisionEvent>;
     private _mesh!: B.Mesh;
-    private _canJump: boolean = true;
     private _gui!: GUI.AdvancedDynamicTexture;
 
     // movement
@@ -53,7 +53,8 @@ export class PlayerBehaviour implements IComponent {
         const rigidBodyComponent = this.entity.getComponent("RigidBody") as RigidBodyComponent;
         this._physicsAggregate = rigidBodyComponent.physicsAggregate;
         if (this.scene.game.networkInstance.isHost) {
-            this._playerCollisionObserver = rigidBodyComponent.collisionObservable.add(this._onCollision.bind(this));
+            this._playerCollisionObserver = this._physicsAggregate.body.getCollisionObservable().add(this._onCollision.bind(this));
+            this._playerCollisionEndedObserver = this._physicsAggregate.body.getCollisionEndedObservable().add(this._onCollision.bind(this));
         }
 
         const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
@@ -78,7 +79,10 @@ export class PlayerBehaviour implements IComponent {
         this._hidePlayerNameUI();
 
         // HOST
-        if (this.scene.game.networkInstance.isHost) this._playerCollisionObserver.remove();
+        if (this.scene.game.networkInstance.isHost) {
+            this._playerCollisionObserver.remove();
+            this._playerCollisionEndedObserver.remove();
+        }
     }
 
     private _showPlayerNameUI(): void {
@@ -131,8 +135,27 @@ export class PlayerBehaviour implements IComponent {
     }
 
     private _processInputStates(inputStates: InputStates): void {
+        if (!this._isGrounded) {
+            this._velocity.y -= .9;
+            this._physicsAggregate.body.setLinearVelocity(this._velocity);
+            return;
+        }
+
         this._movePlayer(inputStates);
         this._animate(inputStates);
+
+        if (!this.scene.game.networkInstance.isHost) return;
+
+        // HOST
+        this._checkJump(inputStates);
+    }
+
+    private _checkJump(inputStates: InputStates): void {
+        if (!inputStates.buttons["jump"] || !this._isGrounded) return;
+
+        this._networkAnimationComponent.startAnimation("Jumping", {from: 29});
+        this._velocity.y = 15;
+        this._physicsAggregate.body.setLinearVelocity(this._velocity);
     }
 
     private _animate(inputStates: InputStates): void {
@@ -158,23 +181,6 @@ export class PlayerBehaviour implements IComponent {
             const rotationY: number = Math.atan2(this._velocity.z, -this._velocity.x) - Math.PI / 2;
             this._mesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, rotationY, 0);
         }
-
-        // jump
-        const _posy = this._mesh.position.y;
-        this._isGrounded = Math.abs(_posy) < 0.01; // check if the player is grounded
-        console.log("posy", _posy);
-        console.log("debut_isGrounded", this._isGrounded);
-        if (inputs.buttons["jump"] && this._canJump && this._isGrounded) {
-            //console.log("jumping");
-            this._physicsAggregate.body.setLinearVelocity(new B.Vector3(this._velocity.x, 5, this._velocity.z));
-            this._canJump = false;
-            this._isGrounded = false;
-            // prevent multiple jumps
-            setTimeout(() => {
-                this._canJump = true;
-            }, 500);
-
-        }
     }
 
     /**
@@ -185,22 +191,24 @@ export class PlayerBehaviour implements IComponent {
         this.scene.simulate([this._physicsAggregate.body]);
     }
 
-    private _onCollision(event: B.IPhysicsCollisionEvent): void {
-        if (event.type !== B.PhysicsEventType.COLLISION_CONTINUED) return;
-
+    private _onCollision(event: B.IBasePhysicsCollisionEvent): void {
         const collidedAgainst: B.TransformNode = event.collidedAgainst.transformNode;
 
-        // handle collision with ground
-        if (collidedAgainst.metadata.tag === "slope") {
-            this._canJump = true;
+        if (event.type === B.PhysicsEventType.COLLISION_CONTINUED) {
+            // player is on the ground
+            if (collidedAgainst.metadata.tag === "slope" || collidedAgainst.metadata.tag === "platform") {
+                this._isGrounded = true;
+            }
+            else if (collidedAgainst.metadata.tag === "rock" || collidedAgainst.metadata.tag === "log") {
+                this.scene.entityManager.removeEntity(this.scene.entityManager.getEntityById(collidedAgainst.metadata.id));
+                this.kill();
+            }
         }
-        else if (collidedAgainst.metadata.tag === "rock" || collidedAgainst.metadata.tag === "log") {
-            console.log("mort du player"); // buche ne marche pas
-            //remove falling object
-            this.scene.entityManager.removeEntity(this.scene.entityManager.getEntityById(collidedAgainst.metadata.id));
-
-            //remove player
-            this.kill();
+        else if (event.type === B.PhysicsEventType.COLLISION_FINISHED) {
+            // player jumped off the ground
+            if (collidedAgainst.metadata.tag === "slope" || collidedAgainst.metadata.tag === "platform") {
+                this._isGrounded = false;
+            }
         }
     }
 

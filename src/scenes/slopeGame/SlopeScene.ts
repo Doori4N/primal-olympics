@@ -18,6 +18,7 @@ import {GameScores} from "./components/GameScores";
 import { CameraMovement } from './components/CameraMovement';
 import {PlayerData} from "../../network/types";
 import {NetworkClient} from "../../network/NetworkClient";
+import {Utils} from "../../utils/Utils";
 
 export class SlopeScene extends Scene {
     constructor() {
@@ -28,7 +29,8 @@ export class SlopeScene extends Scene {
         this.game.engine.displayLoadingUI();
 
         // load assets
-        this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
+        this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
+        this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
         this.loadedAssets["log"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "log.glb", this.babylonScene);
         this.loadedAssets["slopeMap"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "slopeMap.glb", this.babylonScene);
 
@@ -149,27 +151,15 @@ export class SlopeScene extends Scene {
             mesh.receiveShadows = true;
         });
 
-        // Redimensionner la map
         slopeMap.scaling = new B.Vector3(0.40, 0.75, 1);
-
-        //touner la map vers la droite
         slopeMap.rotation = new B.Vector3(0, -Math.PI / 2, 0);
-        
-        // baisser un peu la map 
         slopeMap.position = new B.Vector3(0, -7, 0);
-
-        // reculer un peu la map
         slopeMap.position.z = -30;
 
         const slopeMesh: B.Mesh = B.MeshBuilder.CreateGround("ground", {width: 20, height: 100}, this.babylonScene);
-        // Incliner le sol pour créer une pente
-        slopeMesh.rotation = new B.Vector3(-Math.PI / 10, 0, 0); // -Math.PI / 14 ou -Math.PI / 12 voir les potos 
-        
-        // avancer un peu la pente
+        slopeMesh.rotation = new B.Vector3(-Math.PI / 10, 0, 0); // -Math.PI / 14 ou -Math.PI / 12 voir les potos
         slopeMesh.position.z = 2;
-
-        // monter un peu la pente
-        slopeMesh.position.y = 0.80;
+        slopeMesh.position.y = 0.8;
 
         slopeMesh.metadata = {tag: slopeEntity.tag};
         slopeMesh.isVisible = true;
@@ -182,15 +172,13 @@ export class SlopeScene extends Scene {
             physicsProps: {mass: 0}
         }));
         this.entityManager.addEntity(slopeEntity);
-    
-        // Créer et positionner la plateforme en bas de la pente
+
         this._createPlatform();
     }
 
     private _createPlatform(): void {
         const platformEntity = new Entity("platform");
 
-        // Créer la plateforme
         const platformMesh: B.Mesh = B.MeshBuilder.CreateGround("platform", {width: 20, height: 20}, this.babylonScene);
         platformMesh.position = new B.Vector3(0, -14.5, -56); 
 
@@ -241,7 +229,13 @@ export class SlopeScene extends Scene {
     }
 
     private _createPlayerEntity(playerData: PlayerData, entityId?: string): Entity {
-        const playerContainer: B.AssetContainer = this.loadedAssets["player"];
+        let playerContainer: B.AssetContainer;
+        if (playerData.skinOptions.modelIndex === 0) {
+            playerContainer = this.loadedAssets["caveman"];
+        }
+        else {
+            playerContainer = this.loadedAssets["cavewoman"];
+        }
         const playerEntity = new Entity("player", entityId);
 
         const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + playerEntity.id, true, {doNotInstantiate: true});
@@ -255,6 +249,9 @@ export class SlopeScene extends Scene {
         player.position = new B.Vector3(0, -1, 0);
 
         hitbox.position = new B.Vector3(0, 0, -30);
+
+        // player skin colors
+        Utils.applyColorsToMesh(player, playerData.skinOptions);
 
         playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
         const playerPhysicsShape = new B.PhysicsShapeBox(
@@ -272,9 +269,9 @@ export class SlopeScene extends Scene {
 
         // animations
         const animations: {[key: string]: B.AnimationGroup} = {};
-        animations["Idle"] = this._getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
-        animations["Running"] = this._getAnimationGroupByName(`Running${playerEntity.id}`, entries.animationGroups);
-        animations["Jumping"] = this._getAnimationGroupByName(`Jumping${playerEntity.id}`, entries.animationGroups);
+        animations["Idle"] = Utils.getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
+        animations["Running"] = Utils.getAnimationGroupByName(`Running${playerEntity.id}`, entries.animationGroups);
+        animations["Jumping"] = Utils.getAnimationGroupByName(`Jumping${playerEntity.id}`, entries.animationGroups);
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
         playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
@@ -314,9 +311,5 @@ export class SlopeScene extends Scene {
     private _destroyPlayerClientRpc(args: {entityId: string}): void {
         const playerEntity: Entity = this.entityManager.getEntityById(args.entityId);
         this.entityManager.removeEntity(playerEntity);
-    }
-
-    private _getAnimationGroupByName(name: string, animationGroups: B.AnimationGroup[]): B.AnimationGroup {
-        return animationGroups.find((animationGroup: B.AnimationGroup): boolean => animationGroup.name === name)!;
     }
 }
