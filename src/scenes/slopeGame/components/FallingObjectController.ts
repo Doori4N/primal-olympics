@@ -22,10 +22,10 @@ export class FallingObjectController implements IComponent {
 
     public onStart(): void {
         // HOST
-        // if (this.scene.game.networkInstance.isHost) {
-        //     this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
-        //     this.scene.eventManager.subscribe("onGameFinished", this.stopSpawning.bind(this));
-        // }
+        if (this.scene.game.networkInstance.isHost) {
+            this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
+            this.scene.eventManager.subscribe("onGameFinished", this.stopSpawning.bind(this));
+        }
     }
 
     public onUpdate(): void {}

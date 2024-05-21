@@ -138,7 +138,7 @@ export class SlopeScene extends Scene {
         });
 
         // Redimensionner la map
-        slopeMap.scaling = new B.Vector3(0.5, 0.75, 1);
+        slopeMap.scaling = new B.Vector3(0.40, 0.75, 1);
 
         //touner la map vers la droite
         slopeMap.rotation = new B.Vector3(0, -Math.PI / 2, 0);
@@ -250,7 +250,7 @@ export class SlopeScene extends Scene {
         player.setParent(hitbox);
         player.position = new B.Vector3(0, -1, 0);
 
-        hitbox.position = new B.Vector3(0, 0, -20);
+        hitbox.position = new B.Vector3(0, 0, -30);
 
         // player name text
         const playerNameText = new GUI.TextBlock();

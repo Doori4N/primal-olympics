@@ -133,37 +133,20 @@ export class PlayerBehaviour implements IComponent {
         }
 
         // jump
-        const _velocity = this._physicsAggregate.body.getLinearVelocity().y;
-        this._isGrounded = Math.abs(_velocity) < 0.01; // check if the player is grounded
-        //console.log("debut_isGrounded", this._isGrounded);
+        const _posy = this._mesh.position.y;
+        this._isGrounded = Math.abs(_posy) < 0.01; // check if the player is grounded
+        console.log("posy", _posy);
+        console.log("debut_isGrounded", this._isGrounded);
         if (inputs.buttons["jump"] && this._canJump && this._isGrounded) {
             //console.log("jumping");
             this._physicsAggregate.body.setLinearVelocity(new B.Vector3(this._velocity.x, 5, this._velocity.z));
-            
+            this._canJump = false;
+            this._isGrounded = false;
             // prevent multiple jumps
             setTimeout(() => {
-                this._canJump = false;
+                this._canJump = true;
             }, 500);
 
-            // modifier ici _isGrounded comme ca apres on pourra voir si on estt en juump ou dans tes morts 
-            this._isGrounded = false;
-            //console.log("_isGrounded", this._isGrounded);
-        }
-        
-        // check if the player is on air bug ici je ne sais pas pourquoi 
-        if (this._isGrounded) {
-            //console.log("not grounded");
-            this._physicsAggregate.body.setLinearVelocity(new B.Vector3(this._velocity.x, -5, this._velocity.z));
-            this._canJump = true;
-            this._isGrounded = false;
-        }
-
-        if (this._isGrounded && !inputs.buttons["jump"]) {
-            //down on the slope
-            //console.log("down on the slope");
-            this._physicsAggregate.body.setLinearVelocity(new B.Vector3(this._velocity.x, -5, this._velocity.z));
-            this._canJump = true;
-            this._isGrounded = true;
         }
     }
 

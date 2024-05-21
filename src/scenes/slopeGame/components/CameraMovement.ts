@@ -15,7 +15,7 @@ export class CameraMovement implements IComponent {
     private _camera!: B.FreeCamera;
     private _cameraSpeed: number = 0.1;
     private _player: Entity;
-    private _offsetZ: number = 5;
+    private _offsetZ: number = 7;
 
     constructor(entity: Entity, scene: Scene, props: {player: Entity}) {
         this.entity = entity;
@@ -35,8 +35,8 @@ export class CameraMovement implements IComponent {
         const playerMesh: B.Mesh = meshComponent.mesh;
 
         this._camera.position.x = Utils.lerp(this._camera.position.x, playerMesh.position.x, this._cameraSpeed);
-        this._camera.position.y = Utils.lerp(this._camera.position.y, playerMesh.position.y, this._cameraSpeed);
-        this._camera.position.z = Utils.lerp(this._camera.position.z, playerMesh.position.z - this._offsetZ, this._cameraSpeed);
+        this._camera.position.y = Utils.lerp(this._camera.position.y, playerMesh.position.y + 1, this._cameraSpeed);
+        this._camera.position.z = Utils.lerp(this._camera.position.z, playerMesh.position.z - this._offsetZ, this._cameraSpeed); // reculer cam 
     }
 
     public onDestroy(): void {}
