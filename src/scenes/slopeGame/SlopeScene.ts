@@ -59,7 +59,7 @@ export class SlopeScene extends Scene {
             const networkClient = this.game.networkInstance as NetworkClient;
             setTimeout((): void => {
                 networkClient.sendToHost("onPlayerReady");
-            }, 500);
+            }, 1000);
         }
 
         this.game.engine.hideLoadingUI();
