@@ -80,8 +80,10 @@ export class CharacterCustomizationScene extends Scene {
         const backBtn: HTMLButtonElement = document.createElement("button");
         backBtn.className = "small-stone-button left-button";
         backBtn.onclick = (): void => {
+            this.game.soundManager.playSound("click");
             this.game.fadeIn(this.sceneManager.changeScene.bind(this.sceneManager, "menu"));
         };
+        backBtn.onmouseenter = (): void => this.game.soundManager.playSound("select");
         this._menuDiv.appendChild(backBtn);
 
         // back button image
@@ -105,7 +107,11 @@ export class CharacterCustomizationScene extends Scene {
         // left arrow
         const leftArrowBtn: HTMLButtonElement = document.createElement("button");
         leftArrowBtn.className = "arrow-button left-arrow";
-        leftArrowBtn.onclick = (): void => { this._changeCategory(-1); };
+        leftArrowBtn.onclick = (): void => {
+            this.game.soundManager.playSound("click");
+            this._changeCategory(-1);
+        };
+        leftArrowBtn.onmouseenter = (): void => this.game.soundManager.playSound("select");
         categoriesDiv.appendChild(leftArrowBtn);
 
         // category button
@@ -118,7 +124,11 @@ export class CharacterCustomizationScene extends Scene {
         // right arrow
         const rightArrowBtn: HTMLButtonElement = document.createElement("button");
         rightArrowBtn.className = "arrow-button right-arrow";
-        rightArrowBtn.onclick = (): void => { this._changeCategory(1); };
+        rightArrowBtn.onclick = (): void => {
+            this.game.soundManager.playSound("click");
+            this._changeCategory(1);
+        };
+        rightArrowBtn.onmouseenter = (): void => this.game.soundManager.playSound("select");
         categoriesDiv.appendChild(rightArrowBtn);
 
         // color options div
@@ -134,18 +144,22 @@ export class CharacterCustomizationScene extends Scene {
         const leftBtn: HTMLButtonElement = document.createElement("button");
         leftBtn.className = "next-button left-next-button";
         leftBtn.onclick = (): void => {
+            this.game.soundManager.playSound("click");
             this._showNextModel();
             this._applyColors();
         };
+        leftBtn.onmouseenter = (): void => this.game.soundManager.playSound("select");
         this._menuDiv.appendChild(leftBtn);
 
         // right next button
         const rightBtn: HTMLButtonElement = document.createElement("button");
         rightBtn.className = "next-button right-next-button";
         rightBtn.onclick = (): void => {
+            this.game.soundManager.playSound("click");
             this._showNextModel();
             this._applyColors();
         };
+        rightBtn.onmouseenter = (): void => this.game.soundManager.playSound("select");
         this._menuDiv.appendChild(rightBtn);
     }
 
@@ -162,10 +176,12 @@ export class CharacterCustomizationScene extends Scene {
             this._skinUIColors.forEach((color: string, index: number): void => {
                 const colorBtn: HTMLButtonElement = this._createColorBtn(color, index, this.game.skinOptions.skinColorIndex);
                 colorBtn.onclick = (): void => {
+                    this.game.soundManager.playSound("click");
                     this.game.skinOptions.skinColorIndex = index;
                     this._changeCurrentColorBtn(colorBtn);
                     this._applyColors();
                 };
+                colorBtn.onmouseenter = (): void => this.game.soundManager.playSound("select");
                 this._colorOptionsDiv.appendChild(colorBtn);
             });
         }
@@ -173,10 +189,12 @@ export class CharacterCustomizationScene extends Scene {
             this._hairUIColors.forEach((color: string, index: number): void => {
                 const colorBtn: HTMLButtonElement = this._createColorBtn(color, index, this.game.skinOptions.hairColorIndex);
                 colorBtn.onclick = (): void => {
+                    this.game.soundManager.playSound("click");
                     this.game.skinOptions.hairColorIndex = index;
                     this._changeCurrentColorBtn(colorBtn);
                     this._applyColors();
                 };
+                colorBtn.onmouseenter = (): void => this.game.soundManager.playSound("select");
                 this._colorOptionsDiv.appendChild(colorBtn);
             });
         }
@@ -184,10 +202,12 @@ export class CharacterCustomizationScene extends Scene {
             this._outfitUIColors.forEach((color: string, index: number): void => {
                 const colorBtn: HTMLButtonElement = this._createColorBtn(color, index, this.game.skinOptions.outfitColorIndex);
                 colorBtn.onclick = (): void => {
+                    this.game.soundManager.playSound("click");
                     this.game.skinOptions.outfitColorIndex = index;
                     this._changeCurrentColorBtn(colorBtn);
                     this._applyColors();
                 };
+                colorBtn.onmouseenter = (): void => this.game.soundManager.playSound("select");
                 this._colorOptionsDiv.appendChild(colorBtn);
             });
         }

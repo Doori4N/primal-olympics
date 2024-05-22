@@ -32,6 +32,8 @@ export class StartScene extends Scene {
         icon.id = "big-icon";
         icon.src = "img/primal-olympics-logo.png";
         this._startDiv.appendChild(icon);
+
+        this.game.soundManager.playSound("jungle");
     }
 
     public destroy(): void {
@@ -44,6 +46,7 @@ export class StartScene extends Scene {
 
         if (this.game.inputManager.inputStates.buttons["jump"] && this._canClick) {
             this._canClick = false;
+            this.game.soundManager.playSound("click");
             this._tryToConnectToServer();
         }
     }

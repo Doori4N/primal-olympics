@@ -18,7 +18,9 @@
   },
   "dependencies": {
     "@babylonjs/gui": "^6.41.0",
+    "@types/howler": "^2.2.11",
     "colyseus.js": "^0.15.18",
+    "howler": "^2.2.4",
     "peerjs": "^1.5.2",
     "priority-queue-typed": "^1.52.0",
     "uuid": "^9.0.1"

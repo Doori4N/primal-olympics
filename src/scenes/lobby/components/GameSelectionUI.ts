@@ -48,11 +48,13 @@ export class GameSelectionUI implements IComponent {
         const backBtn: HTMLButtonElement = document.createElement("button");
         backBtn.className = "small-stone-button left-button";
         backBtn.onclick = (): void => {
+            this.scene.game.soundManager.playSound("click");
             this.scene.game.fadeIn((): void => {
                 this.scene.eventManager.notify("display-lobby");
                 this.hideUI();
             });
         };
+        backBtn.onmouseenter = (): void => this.scene.game.soundManager.playSound("select");
         this._gameSelectionDiv.appendChild(backBtn);
 
         // back button image
@@ -102,6 +104,7 @@ export class GameSelectionUI implements IComponent {
         else gameBtn.appendChild(checkImg);
 
         gameBtn.onclick = (): void => {
+            this.scene.game.soundManager.playSound("click");
             game.isSelected = !game.isSelected;
             game.toPlay = game.isSelected;
 
@@ -114,6 +117,7 @@ export class GameSelectionUI implements IComponent {
                 gameBtn.appendChild(cancelImg);
             }
         }
+        gameBtn.onmouseenter = (): void => this.scene.game.soundManager.playSound("select");
 
         return gameBtn;
     }

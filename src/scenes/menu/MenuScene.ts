@@ -94,7 +94,12 @@ export class MenuScene extends Scene {
         characterBtn.appendChild(characterImg);
 
         characterBtn.onclick = (): void => {
+            this.game.soundManager.playSound("click");
             this.sceneManager.changeScene("character-customization");
+        }
+
+        characterBtn.onmouseenter = (): void => {
+            this.game.soundManager.playSound("select");
         }
     }
 
@@ -112,12 +117,17 @@ export class MenuScene extends Scene {
         hostBtn.appendChild(hostImg);
 
         hostBtn.onclick = (): void => {
+            this.game.soundManager.playSound("click");
             if (!this._checkName()) return;
             const name: string = this._nameInput.value;
             localStorage.setItem("name", name);
             this.game.networkInstance = new NetworkHost(this.game.peer, name);
             this.game.networkInputManager = new NetworkInputManager();
             this.sceneManager.changeScene("lobby");
+        }
+
+        hostBtn.onmouseenter = (): void => {
+            this.game.soundManager.playSound("select");
         }
     }
 
@@ -135,12 +145,17 @@ export class MenuScene extends Scene {
         joinBtn.appendChild(joinImg);
 
         joinBtn.onclick = (): void => {
+            this.game.soundManager.playSound("click");
             if (!this._checkName()) return;
             const name: string = this._nameInput.value;
             localStorage.setItem("name", name);
             this.game.networkInstance = new NetworkClient(this.game.peer, name);
             this.game.networkInputManager = new NetworkInputManager();
             this.game.fadeIn(this.sceneManager.changeScene.bind(this.sceneManager, "join-lobby"));
+        }
+
+        joinBtn.onmouseenter = (): void => {
+            this.game.soundManager.playSound("select");
         }
     }
 

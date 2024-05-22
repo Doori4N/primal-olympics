@@ -48,6 +48,8 @@ export class LobbyScene extends Scene {
     }
 
     public start(): void {
+        this.game.soundManager.stopSound("jungle");
+
         this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.babylonScene);
 
         // camera
@@ -144,6 +146,8 @@ export class LobbyScene extends Scene {
     private _addPlayer(player: PlayerData): void {
         if (this._players.get(player.id)) return;
 
+        this.game.displayMessage(`${player.name} joined the lobby`, "info");
+
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;
             networkHost.sendToAllClients("player-joined", player);
@@ -156,6 +160,8 @@ export class LobbyScene extends Scene {
     private _removePlayer(playerId: string): void {
         const player: {entity: Entity, text: GUI.TextBlock} | undefined = this._players.get(playerId);
         if (!player) return;
+
+        this.game.displayMessage(`${player.text.text} left the lobby`, "info");
 
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;

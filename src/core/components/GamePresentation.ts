@@ -21,6 +21,7 @@ export class GamePresentation implements IComponent {
     private readonly _description: string;
     private readonly _imgSrc: string;
     private readonly _commands: Commands;
+    private _canSkip: boolean = true;
 
     // event listeners
     private _playerSkipEvent = this._onPlayerSkipClientRpc.bind(this);
@@ -195,22 +196,28 @@ export class GamePresentation implements IComponent {
     }
 
     private _checkPlayerSkip(): void {
-        if (!this.scene.game.inputManager.inputStates.buttons["jump"]) return;
+        if (!this.scene.game.inputManager.inputStates.buttons["jump"] || !this._canSkip) return;
+        this._canSkip = false;
 
         const playerIndex: number = this._networkInstance.players.findIndex((player: {id: string}): boolean => player.id === this._networkInstance.playerId);
 
+        // HOST
         if (this._networkInstance.isHost) {
             this._onClientSkipServerRpc(playerIndex);
         }
+        // CLIENT
         else {
             const networkClient = this._networkInstance as NetworkClient;
             networkClient.sendToHost("onClientSkip", playerIndex);
         }
+
+        this.scene.game.soundManager.playSound("click");
     }
 
     private _onPlayerSkipClientRpc(playerIndex: number): void {
         this._updatePlayerSkipUI(playerIndex);
         this._isPlayerSkipping[playerIndex] = true;
+        this.scene.game.soundManager.playSound("click");
     }
 
     private _onClientSkipServerRpc(playerIndex: number): void {

@@ -57,9 +57,11 @@ export class GameLobbyUI implements IComponent {
         const backBtn: HTMLButtonElement = document.createElement("button");
         backBtn.className = "small-stone-button left-button";
         backBtn.onclick = (): void => {
+            this.scene.game.soundManager.playSound("click");
             this.scene.game.networkInstance.disconnect();
             this.scene.game.fadeIn(this.scene.sceneManager.changeScene.bind(this.scene.sceneManager, "menu"));
         };
+        backBtn.onmouseenter = (): void => this.scene.game.soundManager.playSound("select");
         this._lobbyDiv.appendChild(backBtn);
 
         // back button image
@@ -90,12 +92,14 @@ export class GameLobbyUI implements IComponent {
         selectionBtn.className = "large-stone-button";
         this._buttonContainer.appendChild(selectionBtn);
 
-        selectionBtn.addEventListener("click", (): void => {
+        selectionBtn.onclick = (): void => {
+            this.scene.game.soundManager.playSound("click");
             this.scene.game.fadeIn((): void => {
                 this.scene.eventManager.notify("display-mini-games");
                 this.hideUI();
             });
-        });
+        }
+        selectionBtn.onmouseenter = (): void => this.scene.game.soundManager.playSound("select");
 
         // HOST
         if (this.scene.game.networkInstance.isHost) {
@@ -108,9 +112,11 @@ export class GameLobbyUI implements IComponent {
             const leftArrowBtn: HTMLButtonElement = document.createElement("button");
             leftArrowBtn.className = "arrow-button left-arrow";
             leftArrowBtn.onclick = (): void => {
+                this.scene.game.soundManager.playSound("click");
                 this.scene.game.rounds = Math.max(1, this.scene.game.rounds - 1);
                 this._roundsBtn.innerHTML = `Rounds: ${this.scene.game.rounds}`;
             }
+            leftArrowBtn.onmouseenter = (): void => this.scene.game.soundManager.playSound("select");
             roundDiv.appendChild(leftArrowBtn);
 
             // round button
@@ -124,9 +130,11 @@ export class GameLobbyUI implements IComponent {
             const rightArrowBtn: HTMLButtonElement = document.createElement("button");
             rightArrowBtn.className = "arrow-button right-arrow";
             rightArrowBtn.onclick = (): void => {
+                this.scene.game.soundManager.playSound("click");
                 this.scene.game.rounds = Math.min(15, this.scene.game.rounds + 1);
                 this._roundsBtn.innerHTML = `Rounds: ${this.scene.game.rounds}`;
             }
+            rightArrowBtn.onmouseenter = (): void => this.scene.game.soundManager.playSound("select");
             roundDiv.appendChild(rightArrowBtn);
         }
 
@@ -138,11 +146,13 @@ export class GameLobbyUI implements IComponent {
             startBtn.innerHTML = "Start Game";
             startBtn.className = "large-stone-button";
             startBtn.onclick = (): void => {
+                this.scene.game.soundManager.playSound("click");
                 if (this._checkMiniGamesNumber()) {
                     networkHost.sendToAllClients("changeScene", "game-selection");
                     this.scene.sceneManager.changeScene("game-selection");
                 }
             }
+            startBtn.onmouseenter = (): void => this.scene.game.soundManager.playSound("select");
         }
         // CLIENT
         else {

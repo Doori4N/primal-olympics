@@ -28,9 +28,11 @@ export class JoinLobbyScene extends Scene {
         const backBtn: HTMLButtonElement = document.createElement("button");
         backBtn.className = "small-stone-button left-button";
         backBtn.onclick = (): void => {
+            this.game.soundManager.playSound("click");
             this.game.networkInstance.clearEventListeners();
             this.game.fadeIn(this.sceneManager.changeScene.bind(this.sceneManager, "menu"));
         };
+        backBtn.onmouseenter = (): void => this.game.soundManager.playSound("select");
         this._joinLobbyDiv.appendChild(backBtn);
 
         // back button image
@@ -63,10 +65,12 @@ export class JoinLobbyScene extends Scene {
         networkClient.addEventListener("connected", this._onClientConnected.bind(this));
 
         this._joinBtn.onclick = (): void => {
+            this.game.soundManager.playSound("click");
             this._joinBtn.disabled = true;
             const hostId: string = input.value;
             networkClient.connectToHost(hostId);
         };
+        this._joinBtn.onmouseenter = (): void => this.game.soundManager.playSound("select");
     }
 
     public destroy(): void {

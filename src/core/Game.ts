@@ -7,6 +7,7 @@ import {NetworkInputManager} from "../network/NetworkInputManager";
 import Peer from "peerjs";
 import {LoadingScreen} from "./LoadingScreen";
 import {MessageType, MiniGame, SkinOptions} from "./types";
+import {SoundManager} from "./SoundManager";
 
 export class Game {
     private static instance: Game;
@@ -15,6 +16,7 @@ export class Game {
     public inputManager: InputManager = new InputManager();
     public networkInstance!: NetworkInstance;
     public networkInputManager!: NetworkInputManager;
+    public soundManager: SoundManager = new SoundManager();
     public peer!: Peer;
     public readonly tick: number = 45; // Number of server updates per second
     public tickIndex: number = 0; // Index of the current tick
@@ -235,6 +237,8 @@ export class Game {
         messageDiv.className = `message ${type}-message`;
         messageDiv.innerHTML = `<p>${message}</p>`;
         document.body.appendChild(messageDiv);
+
+        this.soundManager.playSound("popup");
 
         messageDiv.addEventListener("animationend", (): void => {
             messageDiv.remove();
