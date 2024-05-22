@@ -144,26 +144,26 @@ export class SlopeScene extends Scene {
     private _createSlope(): void {
         const slopeEntity = new Entity("slope");
 
-        const mapContainer: B.AssetContainer = this.loadedAssets["slopeMap"];
-        mapContainer.addAllToScene();
-        const slopeMap: B.Mesh = mapContainer.meshes[0] as B.Mesh;
-        mapContainer.meshes.forEach((mesh: B.AbstractMesh): void => {
-            mesh.receiveShadows = true;
-        });
+        // const mapContainer: B.AssetContainer = this.loadedAssets["slopeMap"];
+        // mapContainer.addAllToScene();
+        // const slopeMap: B.Mesh = mapContainer.meshes[0] as B.Mesh;
+        // mapContainer.meshes.forEach((mesh: B.AbstractMesh): void => {
+        //     mesh.receiveShadows = true;
+        // });
 
-        slopeMap.scaling = new B.Vector3(0.40, 0.75, 1);
-        slopeMap.rotation = new B.Vector3(0, -Math.PI / 2, 0);
-        slopeMap.position = new B.Vector3(0, -7, 0);
-        slopeMap.position.z = -30;
+        // slopeMap.scaling = new B.Vector3(0.40, 0.75, 1);
+        // slopeMap.rotation = new B.Vector3(0, -Math.PI / 2, 0);
+        // slopeMap.position = new B.Vector3(0, -7, 0);
+        // slopeMap.position.z = -30;
 
-        const slopeMesh: B.Mesh = B.MeshBuilder.CreateGround("ground", {width: 20, height: 100}, this.babylonScene);
+        const slopeMesh: B.Mesh = B.MeshBuilder.CreateGround("ground", {width: 20, height: 120}, this.babylonScene);
         slopeMesh.rotation = new B.Vector3(-Math.PI / 10, 0, 0); // -Math.PI / 14 ou -Math.PI / 12 voir les potos
         slopeMesh.position.z = 2;
         slopeMesh.position.y = 0.8;
 
         slopeMesh.metadata = {tag: slopeEntity.tag};
         slopeMesh.isVisible = true;
-        slopeMap.setParent(slopeMesh);
+        //slopeMap.setParent(slopeMesh);
 
         slopeMesh.metadata = {tag: slopeEntity.tag};
         slopeEntity.addComponent(new MeshComponent(slopeEntity, this, {mesh: slopeMesh}));
@@ -197,7 +197,7 @@ export class SlopeScene extends Scene {
     private _createFinishLine(): void {
         const finishLine = new Entity("finishLine");
         const finishLineMesh: B.Mesh = B.MeshBuilder.CreateBox("finishLine", {width: 20, height: 10, depth: 1}, this.babylonScene);
-        finishLineMesh.position = new B.Vector3(0, 20, 48);
+        finishLineMesh.position = new B.Vector3(0, 25, 58);
         finishLineMesh.metadata = {tag: finishLine.tag};
         finishLine.addComponent(new MeshComponent(finishLine, this, {mesh: finishLineMesh}));
         finishLine.addComponent(new RigidBodyComponent(finishLine, this, {
@@ -248,7 +248,7 @@ export class SlopeScene extends Scene {
         player.setParent(hitbox);
         player.position = new B.Vector3(0, -1, 0);
 
-        hitbox.position = new B.Vector3(0, 0, -30);
+        hitbox.position = new B.Vector3(0, 0, -60);
 
         // player skin colors
         Utils.applyColorsToMesh(player, playerData.skinOptions);

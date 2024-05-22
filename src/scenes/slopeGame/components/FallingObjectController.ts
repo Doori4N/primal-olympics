@@ -42,10 +42,10 @@ export class FallingObjectController implements IComponent {
 
     private startSpawning(): void {
         this._intervalId = setInterval((): void => {
-            const randomPosition: B.Vector3 = new B.Vector3(Utils.randomInt(-7.5, 7.5), 25, 18);
+            const randomPosition: B.Vector3 = new B.Vector3(Utils.randomInt(-9, 9), 19, Utils.randomInt(30,40)); // 18
             const fallingObjectEntity: Entity = this._spawnFallingObject(randomPosition);
             this.scene.entityManager.addEntity(fallingObjectEntity);
-        }, 1000);
+        }, 800);
     }
 
     private _spawnFallingObject(position: B.Vector3): Entity {
@@ -69,7 +69,7 @@ export class FallingObjectController implements IComponent {
         fallingObjectEntity.addComponent(new FallingObjectBehaviour(fallingObjectEntity, this.scene));
         fallingObjectEntity.addComponent(new RigidBodyComponent(fallingObjectEntity, this.scene, {
             physicsShape: B.PhysicsImpostor.SphereImpostor,
-            physicsProps: { mass: 1, restitution: 0.5 }
+            physicsProps: { mass: 1, restitution: 0.58 }
         }));
 
         return fallingObjectEntity;
@@ -101,7 +101,7 @@ export class FallingObjectController implements IComponent {
         );
         logEntity.addComponent(new RigidBodyComponent(logEntity, this.scene, {
             physicsShape: logPhysicsShape,
-            physicsProps: { mass: 1, restitution: 0.5 }
+            physicsProps: { mass: 1, restitution: 0.53 }
         }));
     
         return logEntity;
