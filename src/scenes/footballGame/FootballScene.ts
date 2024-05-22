@@ -60,14 +60,6 @@ export class FootballScene extends Scene {
     }
 
     public async preload(): Promise<void> {
-        this.game.engine.displayLoadingUI();
-
-        // load assets
-        this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
-        this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
-        this.loadedAssets["footballPitch"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "footballPitch.glb", this.babylonScene);
-        this.loadedAssets["ball"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "ball.glb", this.babylonScene);
-
         // HOST
         // wait for all players to be ready
         if (this.game.networkInstance.isHost) {
@@ -97,6 +89,14 @@ export class FootballScene extends Scene {
             const networkClient = this.game.networkInstance as NetworkClient;
             networkClient.sendToHost("onPlayerReady");
         }
+
+        this.game.engine.displayLoadingUI();
+
+        // load assets
+        this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
+        this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
+        this.loadedAssets["footballPitch"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "footballPitch.glb", this.babylonScene);
+        this.loadedAssets["ball"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "ball.glb", this.babylonScene);
 
         this.game.engine.hideLoadingUI();
     }

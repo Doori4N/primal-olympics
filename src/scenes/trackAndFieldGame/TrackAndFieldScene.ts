@@ -27,13 +27,6 @@ export class TrackAndFieldScene extends Scene {
     }
 
     public async preload(): Promise<void> {
-        this.game.engine.displayLoadingUI();
-
-        // load assets
-        this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
-        this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
-        this.loadedAssets["t-rex"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "t-rex.glb", this.babylonScene);
-
         // HOST
         // wait for all players to be ready
         if (this.game.networkInstance.isHost) {
@@ -57,11 +50,15 @@ export class TrackAndFieldScene extends Scene {
 
             // tell the host that the player is ready
             const networkClient = this.game.networkInstance as NetworkClient;
-            setTimeout((): void => {
-                console.log("playerReady");
-                networkClient.sendToHost("onPlayerReady");
-            }, 500);
+            networkClient.sendToHost("onPlayerReady");
         }
+
+        this.game.engine.displayLoadingUI();
+
+        // load assets
+        this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
+        this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
+        this.loadedAssets["t-rex"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "t-rex.glb", this.babylonScene);
 
         this.game.engine.hideLoadingUI();
     }

@@ -27,14 +27,6 @@ export class MeteoritesScene extends Scene {
     }
 
     public async preload(): Promise<void> {
-        this.game.engine.displayLoadingUI();
-
-        // load assets
-        this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
-        this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
-        this.loadedAssets["meteorite"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "meteorite.glb", this.babylonScene);
-        this.loadedAssets["meteoriteMap"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "meteoriteScene.glb", this.babylonScene);
-
         // HOST
         // wait for all players to be ready
         if (this.game.networkInstance.isHost) {
@@ -60,6 +52,14 @@ export class MeteoritesScene extends Scene {
             const networkClient = this.game.networkInstance as NetworkClient;
             networkClient.sendToHost("onPlayerReady");
         }
+
+        this.game.engine.displayLoadingUI();
+
+        // load assets
+        this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
+        this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
+        this.loadedAssets["meteorite"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "meteorite.glb", this.babylonScene);
+        this.loadedAssets["meteoriteMap"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "meteoriteScene.glb", this.babylonScene);
 
         this.game.engine.hideLoadingUI();
     }
