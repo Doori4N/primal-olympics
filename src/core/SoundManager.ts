@@ -22,7 +22,7 @@ export class SoundManager {
         });
         this._sounds["jungle"] = new Howl({
             src: ["sounds/jungle.flac"],
-            volume: 0.2,
+            volume: 0.1,
             loop: true
         });
     }
