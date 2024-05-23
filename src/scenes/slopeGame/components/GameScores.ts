@@ -64,7 +64,6 @@ export class GameScores implements IComponent {
 
             // update player score
         } 
-
-
+        
     }
 }

@@ -58,7 +58,7 @@ export class SlopeScene extends Scene {
         this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
         this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
         this.loadedAssets["log"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "log.glb", this.babylonScene);
-        this.loadedAssets["slopeMap"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "slopeMap.glb", this.babylonScene);
+        this.loadedAssets["slopeMap"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "slopeMap2.glb", this.babylonScene);
 
         this.game.engine.hideLoadingUI();
     }
@@ -142,17 +142,23 @@ export class SlopeScene extends Scene {
     private _createSlope(): void {
         const slopeEntity = new Entity("slope");
 
-        // const mapContainer: B.AssetContainer = this.loadedAssets["slopeMap"];
-        // mapContainer.addAllToScene();
-        // const slopeMap: B.Mesh = mapContainer.meshes[0] as B.Mesh;
-        // mapContainer.meshes.forEach((mesh: B.AbstractMesh): void => {
-        //     mesh.receiveShadows = true;
-        // });
+        const mapContainer: B.AssetContainer = this.loadedAssets["slopeMap"];
+        mapContainer.addAllToScene();
+        const slopeMap: B.Mesh = mapContainer.meshes[0] as B.Mesh;
+        mapContainer.meshes.forEach((mesh: B.AbstractMesh): void => {
+            mesh.receiveShadows = true;
+            // if (mesh.name === "terrain") {
+            //     const terrainMesh = mesh as B.Mesh;
+            //     const terrainPhysicsShape = new B.PhysicsShapeConvexHull(terrainMesh, this.babylonScene);
+            //     const terrainRigidBody = new B.PhysicsBody(terrainMesh, B.PhysicsMotionType.STATIC, false, this.babylonScene);
+            //     terrainRigidBody.shape = terrainPhysicsShape;
+            // }
+        });
 
-        // slopeMap.scaling = new B.Vector3(0.40, 0.75, 1);
-        // slopeMap.rotation = new B.Vector3(0, -Math.PI / 2, 0);
-        // slopeMap.position = new B.Vector3(0, -7, 0);
-        // slopeMap.position.z = -30;
+        slopeMap.scaling = new B.Vector3(0.40, 0.75, 1);
+        slopeMap.rotation = new B.Vector3(0, -Math.PI / 2, 0);
+        slopeMap.position = new B.Vector3(0, -7, 0);
+        slopeMap.position.z = -30;
 
         const slopeMesh: B.Mesh = B.MeshBuilder.CreateGround("ground", {width: 20, height: 120}, this.babylonScene);
         slopeMesh.rotation = new B.Vector3(-Math.PI / 10, 0, 0); // -Math.PI / 14 ou -Math.PI / 12 voir les potos
