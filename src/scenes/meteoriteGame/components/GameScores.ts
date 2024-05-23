@@ -6,6 +6,9 @@ import {GameTimer} from "../../../core/components/GameTimer";
 import {PlayerData} from "../../../network/types";
 import {NetworkInstance} from "../../../network/NetworkInstance";
 import {NetworkHost} from "../../../network/NetworkHost";
+import {MeshComponent} from "../../../core/components/MeshComponent";
+import * as B from "@babylonjs/core";
+import * as GUI from "@babylonjs/gui";
 
 export class GameScores implements IComponent {
     public name: string = "GameScores";
@@ -17,6 +20,7 @@ export class GameScores implements IComponent {
     private _deadPlayers: number = 0;
     private _gameTimer!: GameTimer;
     private readonly _networkInstance: NetworkInstance;
+    private _gui!: GUI.AdvancedDynamicTexture;
 
     // event listeners
     private _setPlayerScoreEvent = this._setPlayerScoreClientRpc.bind(this);
@@ -35,7 +39,7 @@ export class GameScores implements IComponent {
         }
 
         this.scene.eventManager.subscribe("onGameStarted", this._initScores.bind(this));
-        this.scene.eventManager.subscribe("onMessageFinished", this.displayEventScores.bind(this));
+        this.scene.eventManager.subscribe("onMessageFinished", this._displayEventScores.bind(this));
 
         const gameController: Entity | null = this.scene.entityManager.getFirstEntityByTag("gameManager");
         if (!gameController) throw new Error("Game controller not found");
@@ -47,6 +51,9 @@ export class GameScores implements IComponent {
     public onFixedUpdate(): void {}
 
     public onDestroy(): void {
+        this._gui.dispose();
+
+        // HOST
         if (!this._networkInstance.isHost) {
             this._networkInstance.removeEventListener("onSetPlayerScore", this._setPlayerScoreEvent);
             this._networkInstance.removeEventListener("onUpdatePlayers", this._updatePlayersEvent);
@@ -83,35 +90,71 @@ export class GameScores implements IComponent {
         }
     }
 
-    private displayEventScores(): void {
+    private _displayEventScores(): void {
         this._scores.sort((a, b) => a.score - b.score);
+
+        this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene.babylonScene);
+        this._displayPlayerScores();
 
         if (this._networkInstance.isHost) {
             this.setPlayerMedals();
         }
 
         setTimeout((): void => {
-            this.scene.eventManager.notify("onDisplayLeaderboard");
-        }, 5000);
+            this.scene.game.fadeIn((): void => {
+                this.scene.eventManager.notify("onDisplayLeaderboard");
+                this.entity.removeComponent("GameScores");
+            });
+        }, 10000);
+    }
+
+    private _displayPlayerScores(): void {
+        const camera = new B.FreeCamera("scoreCamera", new B.Vector3(0, 3, -10), this.scene.babylonScene);
+        this.scene.babylonScene.switchActiveCamera(camera);
+
+        const player: Entity[] = this.scene.entityManager.getEntitiesByTag("player");
+        player.forEach((player: Entity): void => {
+            const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
+            const playerBehaviour = player.getComponent("PlayerBehaviour") as PlayerBehaviour;
+
+            const position: number = this._scores.findIndex((score): boolean => score.playerData.id === playerBehaviour.playerId);
+            playerMeshComponent.mesh.rotationQuaternion = new B.Quaternion(0, 1, 0, 0);
+            playerMeshComponent.mesh.position = new B.Vector3(position * 2 - (this._scores.length / 2), 1, 0);
+
+            playerBehaviour.showPlayerNameUI(22, 6, -180);
+
+            // player score text
+            const playerScoreText = new GUI.TextBlock();
+            playerScoreText.text = `${120 - this._scores[position].score}s`;
+            playerScoreText.color = "#22ff22";
+            playerScoreText.fontSize = 25;
+            playerScoreText.outlineColor = "black";
+            playerScoreText.outlineWidth = 6;
+            this._gui.addControl(playerScoreText);
+            playerScoreText.linkWithMesh(playerMeshComponent.mesh);
+            playerScoreText.linkOffsetY = 140;
+
+            const isWin: boolean = !(position > 2 && this._scores[position].score !== 0);
+            playerBehaviour.playRandomReactionAnimation(isWin);
+        });
     }
 
     private setPlayerMedals(): void {
+        let firstPlaces: number = 0;
         for (let i: number = 0; i < this._scores.length; i++) {
+            // in case of a tie, all players get the same medal
+            if (this._scores[i].score === 0 || i === 0) {
+                this._scores[i].playerData.goldMedals++;
+                firstPlaces++;
+            }
             switch (i) {
-                case 0:
-                    console.log("First place: ", this._scores[i].playerData.name);
-                    this._scores[i].playerData.goldMedals++;
-                    break;
-                case 1:
-                    console.log("Second place: ", this._scores[i].playerData.name);
+                case firstPlaces:
                     this._scores[i].playerData.silverMedals++;
                     break;
-                case 2:
-                    console.log("Third place: ", this._scores[i].playerData.name);
+                case firstPlaces + 1:
                     this._scores[i].playerData.bronzeMedals++;
                     break;
                 default:
-                    console.log("No medals: ", this._scores[i].playerData.name);
                     break;
             }
         }

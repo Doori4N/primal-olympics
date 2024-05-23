@@ -11,6 +11,7 @@ import {MeshComponent} from "../../../core/components/MeshComponent";
 import {NetworkPredictionComponent} from "../../../network/components/NetworkPredictionComponent";
 import {GameScores} from "./GameScores";
 import {PlayerData} from "../../../network/types";
+import {Utils} from "../../../utils/Utils";
 
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";
@@ -31,20 +32,21 @@ export class PlayerBehaviour implements IComponent {
     private _playerCollisionEndedObserver!: B.Observer<B.IBasePhysicsCollisionEvent>;
     private _playerCollisionObserver!: B.Observer<B.IPhysicsCollisionEvent>;
     private _gui!: GUI.AdvancedDynamicTexture;
+    private _isDead: boolean = false;
 
     // movement
     private _speed: number = 5;
     public velocity: B.Vector3 = B.Vector3.Zero();
     private _isFalling: boolean = false;
+    private _isFrozen: boolean = false;
 
     // push
     private _collisionBoxLifeSpan: number = 200;
     private _pushCooldown: number = 2000;
     private _canPush: boolean = true;
-    private _pushDelay: number = 100;
+    private _pushDelay: number = 300;
     private _pushDuration: number = 600;
     private _pushForce: number = 14;
-    private _isPushed: boolean = false;
 
     // inputs
     public readonly playerId!: string;
@@ -52,6 +54,8 @@ export class PlayerBehaviour implements IComponent {
 
     // event listeners
     private _onPushEvent = this._pushPlayerClientRpc.bind(this);
+    private _onKillPlayerEvent = this._onKillPlayerClientRpc.bind(this);
+    private _onBurnPlayerEvent = this._onBurnPlayerClientRpc.bind(this);
 
     constructor(entity: Entity, scene: Scene, props: {playerData: PlayerData}) {
         this.entity = entity;
@@ -74,7 +78,7 @@ export class PlayerBehaviour implements IComponent {
         const rigidBodyComponent = this.entity.getComponent("RigidBody") as RigidBodyComponent;
         this._physicsAggregate = rigidBodyComponent.physicsAggregate;
 
-        this._showPlayerNameUI();
+        this.showPlayerNameUI(15, 5, -60);
 
         // subscribe to game events
         this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
@@ -89,7 +93,9 @@ export class PlayerBehaviour implements IComponent {
         }
         // CLIENT
         else {
-            this.scene.game.networkInstance.addEventListener(`onPush${this.playerId}`, this._onPushEvent);
+            this.scene.game.networkInstance.addEventListener(`onPush${this.entity.id}`, this._onPushEvent);
+            this.scene.game.networkInstance.addEventListener(`onKillPlayer${this.entity.id}`, this._onKillPlayerEvent);
+            this.scene.game.networkInstance.addEventListener(`onBurnPlayer${this.entity.id}`, this._onBurnPlayerEvent);
         }
     }
 
@@ -111,22 +117,26 @@ export class PlayerBehaviour implements IComponent {
             this._playerCollisionObserver.remove();
         }
         // CLIENT
-        else this.scene.game.networkInstance.removeEventListener(`onPush${this.playerId}`, this._onPushEvent);
+        else {
+            this.scene.game.networkInstance.removeEventListener(`onPush${this.entity.id}`, this._onPushEvent);
+            this.scene.game.networkInstance.removeEventListener(`onKillPlayer${this.entity.id}`, this._onKillPlayerEvent);
+            this.scene.game.networkInstance.removeEventListener(`onBurnPlayer${this.entity.id}`, this._onBurnPlayerEvent);
+        }
     }
 
-    private _showPlayerNameUI(): void {
+    public showPlayerNameUI(fontSize: number, outline: number, offsetY: number): void {
         this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene.babylonScene);
 
         // player name text
         const playerNameText = new GUI.TextBlock();
         playerNameText.text = this._playerData.name;
         playerNameText.color = "#ff0000";
-        playerNameText.fontSize = 15;
+        playerNameText.fontSize = fontSize;
         playerNameText.outlineColor = "black";
-        playerNameText.outlineWidth = 5;
+        playerNameText.outlineWidth = outline;
         this._gui.addControl(playerNameText);
         playerNameText.linkWithMesh(this._mesh);
-        playerNameText.linkOffsetY = -60;
+        playerNameText.linkOffsetY = offsetY;
     }
 
     private _hidePlayerNameUI(): void {
@@ -143,20 +153,18 @@ export class PlayerBehaviour implements IComponent {
         }
     }
 
-    public kill(): void {
-        this.scene.entityManager.removeEntity(this.entity);
-        const networkHost = this.scene.game.networkInstance as NetworkHost;
-        networkHost.sendToAllClients("onDestroyPlayer", {entityId: this.entity.id});
-    }
-
     private _onGameStarted(): void {
         this._isGameStarted = true;
     }
 
     private _onGameFinished(): void {
         this.velocity = B.Vector3.Zero();
+        this._physicsAggregate.body.setLinearVelocity(this.velocity);
         this._networkAnimationComponent.startAnimation("Idle", {loop: true});
         this._isGameFinished = true;
+        if (!this._isDead) {
+            this._hidePlayerNameUI();
+        }
     }
 
     private _handleClientUpdate(): void {
@@ -192,20 +200,23 @@ export class PlayerBehaviour implements IComponent {
     }
 
     private _processInputStates(inputStates: InputStates): void {
+        if (this._isDead) return;
+
         if (this._isFalling) {
-            this.velocity.y = -9.81;
+            this.velocity.y = -5;
             this._physicsAggregate.body.setLinearVelocity(this.velocity);
+            this._networkAnimationComponent.startAnimation("Jump", {loop: true, from: 35, to: 35});
             return;
         }
 
-        if (this._isPushed) return;
+        if (this._isFrozen) return;
 
         this._movePlayer(inputStates);
-        this._animate(inputStates);
 
         if (!this.scene.game.networkInstance.isHost) return;
 
         // HOST
+        this._animate(inputStates);
         this._checkPush(inputStates);
     }
 
@@ -213,7 +224,7 @@ export class PlayerBehaviour implements IComponent {
      * Re-apply the predicted input and simulate physics
      */
     private _applyPredictedInput(inputs: InputStates): void {
-        if (this._isPushed || this._isFalling) return;
+        if (this._isFrozen || this._isFalling || this._isDead) return;
         this._movePlayer(inputs);
         this.scene.simulate([this._physicsAggregate.body]);
     }
@@ -235,10 +246,26 @@ export class PlayerBehaviour implements IComponent {
     }
 
     /**
+     * Freeze the player for a certain amount of time
+     */
+    private _freezePlayer(timestamp: number): void {
+        this._isFrozen = true;
+        this.velocity = B.Vector3.Zero();
+        this._physicsAggregate.body.setLinearVelocity(this.velocity);
+
+        setTimeout((): void => {
+            this._isFrozen = false;
+        }, timestamp);
+    }
+
+    /**
      * Check if the player can push other players and create a collision box
      */
     private _checkPush(inputStates: InputStates): void {
         if (!inputStates.buttons["jump"] || !this._canPush) return;
+
+        this._networkAnimationComponent.startAnimation("Push", {from: 40, to: 90});
+        this._freezePlayer(500);
 
         setTimeout((): void => {
             if (!this._canPush) return;
@@ -295,7 +322,7 @@ export class PlayerBehaviour implements IComponent {
      * Push the player in the direction of the impulse
      */
     public pushPlayer(impulseDirection: B.Vector3): void {
-        this._isPushed = true;
+        this._isFrozen = true;
 
         this._networkAnimationComponent.startAnimation("Push_Reaction");
 
@@ -303,18 +330,18 @@ export class PlayerBehaviour implements IComponent {
         this._physicsAggregate.body.setLinearVelocity(this.velocity);
 
         const networkHost = this.scene.game.networkInstance as NetworkHost;
-        networkHost.sendToAllClients(`onPush${this.playerId}`);
+        networkHost.sendToAllClients(`onPush${this.entity.id}`);
 
         setTimeout((): void => {
-            this._isPushed = false;
+            this._isFrozen = false;
         }, this._pushDuration);
     }
 
     private _pushPlayerClientRpc(): void {
-        this._isPushed = true;
+        this._isFrozen = true;
 
         setTimeout((): void => {
-            this._isPushed = false;
+            this._isFrozen = false;
         }, this._pushDuration);
     }
 
@@ -347,7 +374,13 @@ export class PlayerBehaviour implements IComponent {
             this._isFalling = false;
         }
         else if (collidedAgainst.metadata?.tag === "lavaGround") {
-            this.kill();
+            const networkHost = this.scene.game.networkInstance as NetworkHost;
+            networkHost.sendToAllClients(`onBurnPlayer${this.entity.id}`);
+
+            this._burnPlayer();
+            this._mesh.position.y = -10;
+            this._hidePlayer();
+            this._removeCollisionObservers();
 
             // update player score
             const gameController: Entity | null = this.scene.entityManager.getFirstEntityByTag("gameManager");
@@ -355,5 +388,78 @@ export class PlayerBehaviour implements IComponent {
             const gameScoresComponent = gameController.getComponent("GameScores") as GameScores;
             gameScoresComponent.setPlayerScore(this.entity);
         }
+    }
+
+    private _burnPlayer(): void {
+        const deathPoint: B.Vector3 = this._mesh.position.clone();
+
+        B.ParticleHelper.CreateAsync("fire", this.scene.babylonScene).then((set: B.ParticleSystemSet): void => {
+            // attach the particle system to the player mesh
+            set.systems.forEach((s: B.IParticleSystem): void => {
+                s.emitter = deathPoint;
+            });
+            set.start();
+
+            // dispose the particle system
+            setTimeout((): void => {
+                set.dispose();
+            }, 3000);
+        });
+    }
+
+    public kill(): void {
+        // move the player under the ground so other players can't see him
+        setTimeout((): void => {
+            if (this._isGameFinished) return;
+            this._mesh.position.y = -10;
+        }, 4000);
+
+        this._hidePlayer();
+        this._networkAnimationComponent.startAnimation("Death", {from: 60});
+
+        const networkHost = this.scene.game.networkInstance as NetworkHost;
+        networkHost.sendToAllClients(`onKillPlayer${this.entity.id}`);
+
+        this._removeCollisionObservers();
+    }
+
+    private _hidePlayer(): void {
+        this._isDead = true;
+        this._hidePlayerNameUI();
+        this.velocity = B.Vector3.Zero();
+        this._physicsAggregate.body.setLinearVelocity(this.velocity);
+
+        if (this.scene.game.networkInstance.isHost) {
+            this._physicsAggregate.body.setMassProperties({mass: 0});
+        }
+    }
+
+    private _removeCollisionObservers(): void {
+        this._observer.remove();
+        this._playerCollisionEndedObserver.remove();
+        this._playerCollisionObserver.remove();
+    }
+
+    private _onKillPlayerClientRpc(): void {
+        this._hidePlayer();
+    }
+
+    private _onBurnPlayerClientRpc(): void {
+        this._burnPlayer();
+        this._hidePlayer();
+    }
+
+    public playRandomReactionAnimation(isWin: boolean): void {
+        const randomDelay: number = Utils.randomInt(0, 1000);
+        setTimeout((): void => {
+            if (isWin) {
+                const random: number = Utils.randomInt(0, 1);
+                if (random === 0) this._networkAnimationComponent.startAnimation("Celebration", {loop: true, smoothTransition: true});
+                else this._networkAnimationComponent.startAnimation("TakeTheL", {loop: true, smoothTransition: true});
+            }
+            else {
+                this._networkAnimationComponent.startAnimation("Defeat", {loop: true, smoothTransition: true});
+            }
+        }, randomDelay);
     }
 }

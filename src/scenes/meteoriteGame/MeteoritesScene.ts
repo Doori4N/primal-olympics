@@ -46,7 +46,6 @@ export class MeteoritesScene extends Scene {
             this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerData: PlayerData, entityId: string}): void => {
                 this._createPlayer(args.playerData, args.entityId);
             });
-            this.game.networkInstance.addEventListener("onDestroyPlayer", this._destroyPlayerClientRpc.bind(this));
 
             // tell the host that the player is ready
             const networkClient = this.game.networkInstance as NetworkClient;
@@ -104,7 +103,6 @@ export class MeteoritesScene extends Scene {
         lavaGround.metadata = {tag: lavaGroundEntity.tag};
         const lavaMaterial = new B.StandardMaterial("lavaMaterial", this.babylonScene);
         lavaMaterial.diffuseColor = new B.Color3(1, 0.2, 0);
-        lavaMaterial.alpha = 0.5;
         lavaGround.material = lavaMaterial;
 
         lavaGroundEntity.addComponent(new MeshComponent(lavaGroundEntity, this, {mesh: lavaGround}));
@@ -217,10 +215,13 @@ export class MeteoritesScene extends Scene {
         const animations: {[key: string]: B.AnimationGroup} = {};
         animations["Idle"] = Utils.getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
         animations["Running"] = Utils.getAnimationGroupByName(`Running${playerEntity.id}`, entries.animationGroups);
+        animations["Jump"] = Utils.getAnimationGroupByName(`Jumping${playerEntity.id}`, entries.animationGroups);
         animations["Push_Reaction"] = Utils.getAnimationGroupByName(`Soccer_Tackle_React${playerEntity.id}`, entries.animationGroups);
         animations["Celebration"] = Utils.getAnimationGroupByName(`Victory${playerEntity.id}`, entries.animationGroups);
         animations["Defeat"] = Utils.getAnimationGroupByName(`Defeat${playerEntity.id}`, entries.animationGroups);
         animations["TakeTheL"] = Utils.getAnimationGroupByName(`Loser${playerEntity.id}`, entries.animationGroups);
+        animations["Push"] = Utils.getAnimationGroupByName(`CrossPunch${playerEntity.id}`, entries.animationGroups);
+        animations["Death"] = Utils.getAnimationGroupByName(`Dying${playerEntity.id}`, entries.animationGroups);
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
         playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
@@ -235,10 +236,5 @@ export class MeteoritesScene extends Scene {
         }
 
         return playerEntity;
-    }
-
-    private _destroyPlayerClientRpc(args: {entityId: string}): void {
-        const playerEntity: Entity = this.entityManager.getEntityById(args.entityId);
-        this.entityManager.removeEntity(playerEntity);
     }
 }

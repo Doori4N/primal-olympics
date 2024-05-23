@@ -88,7 +88,7 @@ export class GameScores implements IComponent {
             // player score text
             const playerScoreText = new GUI.TextBlock();
             playerScoreText.text = (playerBehaviour.teamIndex === 0) ? (leftResult === Result.WIN ? "1st" : "2nd") : (leftResult === Result.LOSE ? "1st" : "2nd");
-            playerScoreText.color = "#22ff22"
+            playerScoreText.color = "#22ff22";
             playerScoreText.fontSize = 25;
             playerScoreText.outlineColor = "black";
             playerScoreText.outlineWidth = 6;
