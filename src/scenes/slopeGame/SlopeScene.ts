@@ -167,7 +167,7 @@ export class SlopeScene extends Scene {
 
         slopeMesh.metadata = {tag: slopeEntity.tag};
         slopeMesh.isVisible = true;
-        //slopeMap.setParent(slopeMesh);
+        slopeMap.setParent(slopeMesh);
 
         slopeMesh.metadata = {tag: slopeEntity.tag};
         slopeEntity.addComponent(new MeshComponent(slopeEntity, this, {mesh: slopeMesh}));
