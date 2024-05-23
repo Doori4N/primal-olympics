@@ -68,6 +68,12 @@ export class MenuScene extends Scene {
         settingsImg.id = "settings-img";
         settingsBtn.appendChild(settingsImg);
 
+        settingsBtn.onclick = (): void => {
+            this.game.soundManager.playSound("click");
+            this.game.fadeIn(this.sceneManager.changeScene.bind(this.sceneManager, "settings"));
+        }
+        settingsBtn.onmouseenter = (): void => this.game.soundManager.playSound("select");
+
         // help button
         const helpBtn: HTMLButtonElement = document.createElement("button");
         helpBtn.className = "small-stone-button right-button";

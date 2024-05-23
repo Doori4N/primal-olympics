@@ -229,3 +229,101 @@
     width: 3.5vw;
     height: 3.5vw;
 }
+
+/* Settings */
+
+#settings-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-image: url("/img/big-leaf-stone-container.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 55vw;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding-left: 8vw;
+    padding-top: 12vh;
+    row-gap: 3vh;
+}
+
+.settings-title {
+    font-size: 2.3vw;
+    color: #fae69f;
+    text-shadow: #000 1px 1px 1px;
+}
+
+.settings-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    column-gap: 3vw;
+}
+
+.on-off-button {
+    width: 8vw;
+    height: 9vh;
+    border: none;
+    background-image: url("/img/red-stone-button.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    cursor: pointer;
+    transition: transform .15s ease;
+    outline: none;
+    font-size: 1.5vw;
+    color: #fae69f;
+    text-shadow: #000 1px 1px 1px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.on-off-button:hover {
+    transform: scale(0.97);
+}
+
+.on-off-button:active {
+    transform: scale(0.95);
+}
+
+.range {
+    -webkit-appearance: none;
+    width: 30vw;
+    height: 6vh;
+    background-image: url("/img/range-background.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    outline: none;
+}
+
+.range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 2.5vw;
+    height: 2.5vw;
+    background-image: url("/img/range-thumb.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+}
+
+.range::-moz-range-thumb {
+    width: 2.5vw;
+    height: 2.5vw;
+    background-image: url("/img/range-thumb.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+}

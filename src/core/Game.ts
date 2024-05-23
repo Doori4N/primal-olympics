@@ -18,9 +18,13 @@ export class Game {
     public networkInputManager!: NetworkInputManager;
     public soundManager: SoundManager = new SoundManager();
     public peer!: Peer;
+    public havokInstance!: HavokPhysicsWithBindings;
+    public skinOptions!: SkinOptions;
+
     public readonly tick: number = 45; // Number of server updates per second
     public tickIndex: number = 0; // Index of the current tick
     private _timer: number = 0; // Timer to keep track of the time passed since the last tick
+
     public miniGames: MiniGame[] = [
         {name: "Savage Soccer", isSelected: false, scene: "football", toPlay: false},
         {name: "Stellar Storm", isSelected: false, scene: "meteorites", toPlay: false},
@@ -28,11 +32,11 @@ export class Game {
         {name: "T-Rex Track", isSelected: true, scene: "track-and-field", toPlay: true},
     ];
     public rounds: number = 2;
+
     public readonly uiContainer: Element = document.querySelector("#ui")!;
     public viewportWidth!: number;
     public viewportHeight!: number;
-    public havokInstance!: HavokPhysicsWithBindings;
-    public skinOptions!: SkinOptions;
+    private _infoDiv!: HTMLDivElement;
 
     private constructor() {}
 
@@ -67,7 +71,9 @@ export class Game {
         this._listenToDebugInputs(sceneManager);
 
         // info ui
-        this._createInfoUI();
+        if (localStorage.getItem("showInfoUI") === "true") {
+            this.showInfoUI();
+        }
 
         this.skinOptions = this._loadSkinOptions();
 
@@ -140,20 +146,22 @@ export class Game {
     }
 
     /**
-     * Create the info UI to display fps and ping
+     * Show the info UI to display fps and ping
      */
-    private _createInfoUI(): void {
-        const infoDiv: HTMLDivElement = document.createElement("div");
-        infoDiv.id = "info";
-        this.uiContainer.appendChild(infoDiv);
+    public showInfoUI(): void {
+        localStorage.setItem("showInfoUI", "true");
+
+        this._infoDiv = document.createElement("div");
+        this._infoDiv.id = "info";
+        this.uiContainer.appendChild(this._infoDiv);
 
         const fpsDiv: HTMLDivElement = document.createElement("div");
         fpsDiv.id = "fps";
-        infoDiv.appendChild(fpsDiv);
+        this._infoDiv.appendChild(fpsDiv);
 
         const pingDiv: HTMLDivElement = document.createElement("div");
         pingDiv.id = "ping";
-        infoDiv.appendChild(pingDiv);
+        this._infoDiv.appendChild(pingDiv);
 
         // signal icon
         const badSignalIcon: HTMLImageElement = document.createElement("img");
@@ -205,6 +213,11 @@ export class Game {
                 pingDiv.appendChild(pingText);
             }
         });
+    }
+
+    public hideInfoUI(): void {
+        localStorage.setItem("showInfoUI", "false");
+        this.uiContainer.removeChild(this._infoDiv);
     }
 
     /**

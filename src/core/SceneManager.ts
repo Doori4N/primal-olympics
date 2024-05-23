@@ -11,6 +11,7 @@ import {StartScene} from "../scenes/start/StartScene";
 import {SlopeScene} from "../scenes/slopeGame/SlopeScene";
 import {CharacterCustomizationScene} from "../scenes/characterCustomization/CharacterCustomizationScene";
 import {TrackAndFieldScene} from "../scenes/trackAndFieldGame/TrackAndFieldScene";
+import {SettingsScene} from "../scenes/settings/SettingsScene";
 
 export class SceneManager {
     private static _instance: SceneManager;
@@ -85,6 +86,8 @@ export class SceneManager {
                 return new GameOverScene();
             case "character-customization":
                 return new CharacterCustomizationScene();
+            case "settings":
+                return new SettingsScene();
             case "catch-the-dodo":
                 return new CatchTheDodoScene();
             case "meteorites":
