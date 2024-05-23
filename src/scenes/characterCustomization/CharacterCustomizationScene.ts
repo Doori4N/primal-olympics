@@ -23,17 +23,9 @@ export class CharacterCustomizationScene extends Scene {
         this.game.engine.displayLoadingUI();
 
         // load assets
-        this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync(
-            "meshes/models/",
-            "caveman.glb",
-            this.babylonScene
-        );
-
-        this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync(
-            "meshes/models/",
-            "cavewoman.glb",
-            this.babylonScene
-        );
+        this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
+        this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
+        this.loadedAssets["lobbyScene"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "lobbyScene.glb", this.babylonScene);
 
         this.game.engine.hideLoadingUI();
     }
@@ -46,6 +38,8 @@ export class CharacterCustomizationScene extends Scene {
         // light
         const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.babylonScene);
         light.intensity = 0.7;
+
+        this._createCave();
 
         if (this.game.skinOptions.modelIndex === 0) {
             this._createPlayer(B.Vector3.Zero(), "caveman");
@@ -63,6 +57,14 @@ export class CharacterCustomizationScene extends Scene {
     public destroy(): void {
         this.game.uiContainer.removeChild(this._menuDiv);
         super.destroy();
+    }
+
+    private _createCave(): void {
+        const caveContainer = this.loadedAssets["lobbyScene"];
+        caveContainer.addAllToScene();
+        const cave = caveContainer.meshes[0];
+        cave.scaling.scaleInPlace(.4);
+        cave.position.x = 5;
     }
 
     private _displayUI(): void {

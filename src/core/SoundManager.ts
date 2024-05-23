@@ -24,6 +24,10 @@ export class SoundManager {
             sound: new Howl({src: ["sounds/jungle.flac"], loop: true}),
             baseVolume: 0.2
         };
+        this._sounds["fireplace"] = {
+            sound: new Howl({src: ["sounds/fireplace.wav"], loop: true}),
+            baseVolume: .5
+        }
 
         await this._waitForSoundsToLoad();
 

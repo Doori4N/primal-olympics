@@ -77,14 +77,23 @@ export class GameController implements IComponent {
         const isRightScore: boolean = collidedAgainst?.metadata?.tag === "leftGoal";
 
         if (collider?.metadata?.tag === "ball" && (isRightScore || isLeftScore)) {
+            let goalPosition: number = 1;
             if (isLeftScore) {
                 networkHost.sendToAllClients("onGoalScored", true);
                 this.score.left++;
             }
             else {
                 networkHost.sendToAllClients("onGoalScored", false);
+                goalPosition = -1;
                 this.score.right++;
             }
+
+            // particle system
+            const particleSystem: B.IParticleSystem = B.ParticleHelper.CreateDefault(new B.Vector3(20 * goalPosition, .1, 0));
+            particleSystem.start();
+            setTimeout((): void => {
+                particleSystem.stop();
+            }, 1500);
 
             this._updateScoreUI();
             this._gameMessagesComponent.displayMessage("GOAL!", 1500);

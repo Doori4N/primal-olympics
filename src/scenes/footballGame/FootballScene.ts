@@ -283,7 +283,7 @@ export class FootballScene extends Scene {
         gameManager.addComponent(new GamePresentation(gameManager, this, {description, imgSrc, commands}));
 
         gameManager.addComponent(new GameMessages(gameManager, this));
-        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 1}));
+        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 120}));
         gameManager.addComponent(new GameController(gameManager, this));
         gameManager.addComponent(new GameScores(gameManager, this));
         gameManager.addComponent(new Leaderboard(gameManager, this));

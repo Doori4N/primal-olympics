@@ -14,14 +14,14 @@ import {Utils} from "../../utils/Utils";
 export class LobbyScene extends Scene {
     private _gui!: GUI.AdvancedDynamicTexture;
     private _playersTransform: {position: B.Vector3, rotation: B.Vector3}[] = [
-        {position: new B.Vector3(0, 0, 0), rotation: new B.Vector3(0, Math.PI, 0)},
-        {position: new B.Vector3(7, 0, 3), rotation: new B.Vector3(0, 2.5, 0)},
-        {position: new B.Vector3(-7, 0, 3), rotation: new B.Vector3(0, 3.7, 0)},
-        {position: new B.Vector3(10, 0, 10), rotation: new B.Vector3(0, 1.5, 0)},
-        {position: new B.Vector3(-10, 0, 10), rotation: new B.Vector3(0, 4.7, 0)},
-        {position: new B.Vector3(13, 0, 3), rotation: new B.Vector3(0, 2, 0)},
-        {position: new B.Vector3(-13, 0, 3), rotation: new B.Vector3(0, 4, 0)},
-        {position: new B.Vector3(5, 0, -4), rotation: new B.Vector3(0, 3, 0)}
+        {position: new B.Vector3(8.825, 0, 5.8), rotation: new B.Vector3(0, 1.8, 0)},
+        {position: new B.Vector3(-9.7, 0, 7), rotation: new B.Vector3(0, -1.5, 0)},
+        {position: new B.Vector3(8.290, 0, 14.368), rotation: new B.Vector3(0, 1.2, 0)},
+        {position: new B.Vector3(-9.5, 0, 13.9), rotation: new B.Vector3(0, -1.2, 0)},
+        {position: new B.Vector3(15.2, 0, 7.5), rotation: new B.Vector3(0, 1.6, 0)},
+        {position: new B.Vector3(-15.9, 0, 7.5), rotation: new B.Vector3(0, -1.6, 0)},
+        {position: new B.Vector3(13.7, 0, -2.7), rotation: new B.Vector3(0, 2, 0)},
+        {position: new B.Vector3(-13.4, 0, -0.5), rotation: new B.Vector3(0, -1.8, 0)}
     ];
     private _players = new Map<string, {entity: Entity, text: GUI.TextBlock}>();
     private _gameManager!: Entity;
@@ -43,6 +43,7 @@ export class LobbyScene extends Scene {
 
         this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
         this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
+        this.loadedAssets["lobbyScene"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "lobbyScene.glb", this.babylonScene);
 
         this.game.engine.hideLoadingUI();
     }
@@ -56,11 +57,14 @@ export class LobbyScene extends Scene {
         this.mainCamera.rotation = new B.Vector3(0, Math.PI, 0);
         this.mainCamera.position.z = 40;
         this.mainCamera.position.y = 20;
+        this.mainCamera.position.x = 3;
         this.mainCamera.rotation.x = 0.4;
 
         // light
         const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.babylonScene);
         light.intensity = 0.7;
+
+        this._createCave();
 
         if (this.game.networkInstance.isHost) this._handleHost();
         else this._handleClient();
@@ -72,6 +76,7 @@ export class LobbyScene extends Scene {
     }
 
     public destroy(): void {
+        this.game.soundManager.stopSound("fireplace");
         this._gui.dispose();
 
         if (this.game.networkInstance.isHost) {
@@ -89,6 +94,23 @@ export class LobbyScene extends Scene {
         }
 
         super.destroy();
+    }
+
+    private _createCave(): void {
+        const caveContainer = this.loadedAssets["lobbyScene"];
+        caveContainer.addAllToScene();
+
+        // fire particles
+        const firePosition: B.Vector3 = new B.Vector3(-.5, 2, 7);
+
+        B.ParticleHelper.CreateAsync("fire", this.babylonScene).then((set: B.ParticleSystemSet): void => {
+            set.systems.forEach((s: B.IParticleSystem): void => {
+                s.emitter = firePosition;
+            });
+            set.start();
+        });
+
+        this.game.soundManager.playSound("fireplace");
     }
 
     private _handleHost(): void {
@@ -175,12 +197,14 @@ export class LobbyScene extends Scene {
     }
 
     private _createPlayer(playerData: PlayerData, transform: {position: B.Vector3, rotation: B.Vector3}): void {
+        let sittingAnimationIndex: string = "";
         let playerContainer: B.AssetContainer;
         if (playerData.skinOptions.modelIndex === 0) {
             playerContainer = this.loadedAssets["caveman"];
         }
         else {
             playerContainer = this.loadedAssets["cavewoman"];
+            sittingAnimationIndex = "1";
         }
         const playerEntity = new Entity("player");
 
@@ -196,21 +220,21 @@ export class LobbyScene extends Scene {
 
         // animations
         const animations: {[key: string]: B.AnimationGroup} = {};
-        animations["Idle"] = Utils.getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
+        animations["Sitting"] = Utils.getAnimationGroupByName(`Siting${sittingAnimationIndex}${playerEntity.id}`, entries.animationGroups);
         const networkAnimationComponent = new NetworkAnimationComponent(playerEntity, this, {animations});
         playerEntity.addComponent(networkAnimationComponent);
-        networkAnimationComponent.startAnimation("Idle");
+        networkAnimationComponent.startAnimation("Sitting", {loop: true});
 
         // player name text
         const playerNameText = new GUI.TextBlock();
         playerNameText.text = playerData.name;
         playerNameText.color = "#ff0000";
-        playerNameText.fontSize = 2.5 * this.game.viewportHeight;
+        playerNameText.fontSize = 2.3 * this.game.viewportHeight;
         playerNameText.outlineColor = "black";
-        playerNameText.outlineWidth = 0.7 * this.game.viewportHeight;
+        playerNameText.outlineWidth = 0.6 * this.game.viewportHeight;
         this._gui.addControl(playerNameText);
         playerNameText.linkWithMesh(player);
-        playerNameText.linkOffsetY = -30 * this.game.viewportHeight;
+        playerNameText.linkOffsetY = -17 * this.game.viewportHeight;
 
         this.entityManager.addEntity(playerEntity);
 
