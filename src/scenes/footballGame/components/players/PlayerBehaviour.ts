@@ -43,7 +43,7 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
 
         this._isOwner = this.scene.game.networkInstance.playerId === this.playerId;
 
-        this._showPlayerNameUI();
+        this.showPlayerNameUI(15, 5, -60);
     }
 
     public onUpdate(): void {}
@@ -55,28 +55,28 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
     }
 
     public onDestroy(): void {
-        this._hidePlayerNameUI();
+        this.hidePlayerNameUI();
 
         // HOST
         if (this.scene.game.networkInstance.isHost) this._playerCollisionObserver.remove();
     }
 
-    private _showPlayerNameUI(): void {
+    public showPlayerNameUI(fontSize: number, outlineWidth: number, offsetY: number): void {
         this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene.babylonScene);
 
         // player name text
         const playerNameText = new GUI.TextBlock();
         playerNameText.text = this._playerData.name;
         playerNameText.color = "#ff0000";
-        playerNameText.fontSize = 15;
+        playerNameText.fontSize = fontSize;
         playerNameText.outlineColor = "black";
-        playerNameText.outlineWidth = 5;
+        playerNameText.outlineWidth = outlineWidth;
         this._gui.addControl(playerNameText);
         playerNameText.linkWithMesh(this._mesh);
-        playerNameText.linkOffsetY = -60;
+        playerNameText.linkOffsetY = offsetY;
     }
 
-    private _hidePlayerNameUI(): void {
+    public hidePlayerNameUI(): void {
         this._gui.dispose();
     }
 

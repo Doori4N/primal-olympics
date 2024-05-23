@@ -82,16 +82,8 @@ export class GameScores implements IComponent {
             const playerData: PlayerData = this._networkInstance.players.find((p: PlayerData): boolean => p.id === playerBehaviour.playerId)!;
             playerMeshComponent.mesh.rotationQuaternion = new B.Quaternion(0, 1, 0, 0);
 
-            // player name text
-            const playerNameText = new GUI.TextBlock();
-            playerNameText.text = playerData.name;
-            playerNameText.color = "#ff0000"
-            playerNameText.fontSize = 22;
-            playerNameText.outlineColor = "black";
-            playerNameText.outlineWidth = 6;
-            this._gui.addControl(playerNameText);
-            playerNameText.linkWithMesh(playerMeshComponent.mesh);
-            playerNameText.linkOffsetY = -180;
+            playerBehaviour.hidePlayerNameUI();
+            playerBehaviour.showPlayerNameUI(22, 6, -180);
 
             // player score text
             const playerScoreText = new GUI.TextBlock();

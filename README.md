@@ -13,7 +13,7 @@ TODO: description of the game + videos
 ## Developpers/Modelers
 The team is made up of 3 students from the Master 1 Computer Science program at the Université Côte d'Azur in Nice.
 - **[Quentin Escobar](https://github.com/Moustik06):** Scenery and character modeling
-- **[Dorian Girard](https://github.com/Doori4N/):** Development of the game engine and mini-games 
+- **[Dorian Girard](https://github.com/Doori4N/):** Development of the game engine, the user interface and mini-games 
 - **[Hugo Savasta](https://github.com/HugoSavasta):** Development of mini-games
 
 ## Softwares used
