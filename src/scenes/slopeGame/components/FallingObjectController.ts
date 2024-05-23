@@ -28,15 +28,15 @@ export class FallingObjectController implements IComponent {
     }
 
     public onStart(): void {
-        // // HOST
-        // if (this.scene.game.networkInstance.isHost) {
-        //     this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
-        //     this.scene.eventManager.subscribe("onGameFinished", this._stopSpawning.bind(this));
-        // }
-        // // CLIENT
-        // else {
-        //     this.scene.game.networkInstance.addEventListener("onCreateFallingObject", this._spawnFallingObjectClientRpc.bind(this));
-        // }
+        // HOST
+        if (this.scene.game.networkInstance.isHost) {
+            this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
+            this.scene.eventManager.subscribe("onGameFinished", this._stopSpawning.bind(this));
+        }
+        // CLIENT
+        else {
+            this.scene.game.networkInstance.addEventListener("onCreateFallingObject", this._spawnFallingObjectClientRpc.bind(this));
+        }
     }
 
     public onUpdate(): void {}
@@ -53,7 +53,7 @@ export class FallingObjectController implements IComponent {
 
     private startSpawning(): void {
         this._intervalId = setInterval((): void => {
-            const randomPosition: B.Vector3 = new B.Vector3(Utils.randomInt(-9, 9), 19, Utils.randomInt(30,40)); // 18
+            const randomPosition: B.Vector3 = new B.Vector3(Utils.randomInt(-14, 13), 35, Utils.randomInt(40,50)); // 18
             const randomType: FallingObjectType = Utils.randomInt(0, 1);
             const fallingObjectEntity: Entity = this._spawnFallingObject(randomPosition, randomType);
             this.scene.entityManager.addEntity(fallingObjectEntity);
@@ -65,7 +65,7 @@ export class FallingObjectController implements IComponent {
                 type: randomType,
                 entityId: fallingObjectEntity.id
             });
-        }, 800);
+        }, 600);
     }
 
     private _spawnFallingObject(position: B.Vector3, type: FallingObjectType): Entity {
@@ -75,24 +75,6 @@ export class FallingObjectController implements IComponent {
         else {
             return this._createLog(position);
         }
-    }
-
-    private _createRock(position: B.Vector3): Entity {
-        const fallingObjectEntity: Entity = new Entity("rock");
-
-        const fallingObjectMesh: B.Mesh = B.MeshBuilder.CreateSphere("FallingObject", { diameter: 1 }, this.scene.babylonScene);
-        fallingObjectMesh.position = position;
-        fallingObjectMesh.metadata = { tag: fallingObjectEntity.tag, id: fallingObjectEntity.id };
-
-        fallingObjectEntity.addComponent(new MeshComponent(fallingObjectEntity, this.scene, { mesh: fallingObjectMesh }));
-        fallingObjectEntity.addComponent(new FallingObjectBehaviour(fallingObjectEntity, this.scene));
-        fallingObjectEntity.addComponent(new RigidBodyComponent(fallingObjectEntity, this.scene, {
-            physicsShape: B.PhysicsImpostor.SphereImpostor,
-            physicsProps: { mass: 1, restitution: 0.58 }
-        }));
-        fallingObjectEntity.addComponent(new NetworkTransformComponent(fallingObjectEntity, this.scene, { usePhysics: true}));
-
-        return fallingObjectEntity;
     }
 
     private _createLog(position: B.Vector3): Entity {
@@ -126,6 +108,36 @@ export class FallingObjectController implements IComponent {
         logEntity.addComponent(new NetworkTransformComponent(logEntity, this.scene, { usePhysics: true}));
     
         return logEntity;
+    }
+    
+    
+    private _createRock(position: B.Vector3): Entity {
+        const rockEntity: Entity = new Entity("rock");
+    
+        const entries: B.InstantiatedEntries = this.scene.loadedAssets["rock"].instantiateModelsToScene(
+            (sourceName: string): string => sourceName + rockEntity.id,
+            false,
+            { doNotInstantiate: true }
+        );
+        const rockMesh: B.Mesh = entries.rootNodes[0] as B.Mesh;
+    
+        
+        rockMesh.scaling = new B.Vector3(0.7, 0.7, 0.7); 
+        rockMesh.position = position;
+        rockMesh.metadata = { tag: rockEntity.tag, id: rockEntity.id };
+    
+        rockMesh.rotate(B.Axis.Z, Math.random() * Math.PI * 2, B.Space.WORLD);
+    
+        rockEntity.addComponent(new MeshComponent(rockEntity, this.scene, { mesh: rockMesh }));
+        rockEntity.addComponent(new FallingObjectBehaviour(rockEntity, this.scene));
+        const rockPhysicsShape = new B.PhysicsShapeSphere(new B.Vector3(0, 0, 0), 0.5, this.scene.babylonScene);
+        rockEntity.addComponent(new RigidBodyComponent(rockEntity, this.scene, {
+            physicsShape: rockPhysicsShape,
+            physicsProps: { mass: 1, restitution: 0.58 }
+        }));
+        rockEntity.addComponent(new NetworkTransformComponent(rockEntity, this.scene, { usePhysics: true }));
+    
+        return rockEntity;
     }
     
 
