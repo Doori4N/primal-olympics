@@ -12,6 +12,7 @@ import {NetworkPredictionComponent} from "../../../network/components/NetworkPre
 import {GameScores} from "./GameScores";
 import {PlayerData} from "../../../network/types";
 import {Utils} from "../../../utils/Utils";
+import {CameraMovement} from "./CameraMovement";
 
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";
@@ -32,7 +33,7 @@ export class PlayerBehaviour implements IComponent {
     private _playerCollisionEndedObserver!: B.Observer<B.IBasePhysicsCollisionEvent>;
     private _playerCollisionObserver!: B.Observer<B.IPhysicsCollisionEvent>;
     private _gui!: GUI.AdvancedDynamicTexture;
-    private _isDead: boolean = false;
+    public isDead: boolean = false;
 
     // movement
     private _speed: number = 5;
@@ -162,7 +163,7 @@ export class PlayerBehaviour implements IComponent {
         this._physicsAggregate.body.setLinearVelocity(this.velocity);
         this._networkAnimationComponent.startAnimation("Idle", {loop: true});
         this._isGameFinished = true;
-        if (!this._isDead) {
+        if (!this.isDead) {
             this._hidePlayerNameUI();
         }
     }
@@ -200,7 +201,7 @@ export class PlayerBehaviour implements IComponent {
     }
 
     private _processInputStates(inputStates: InputStates): void {
-        if (this._isDead) return;
+        if (this.isDead) return;
 
         if (this._isFalling) {
             this.velocity.y = -5;
@@ -224,7 +225,7 @@ export class PlayerBehaviour implements IComponent {
      * Re-apply the predicted input and simulate physics
      */
     private _applyPredictedInput(inputs: InputStates): void {
-        if (this._isFrozen || this._isFalling || this._isDead) return;
+        if (this._isFrozen || this._isFalling || this.isDead) return;
         this._movePlayer(inputs);
         this.scene.simulate([this._physicsAggregate.body]);
     }
@@ -381,6 +382,7 @@ export class PlayerBehaviour implements IComponent {
             this._mesh.position.y = -10;
             this._hidePlayer();
             this._removeCollisionObservers();
+            this._changePlayerView();
 
             // update player score
             const gameController: Entity | null = this.scene.entityManager.getFirstEntityByTag("gameManager");
@@ -418,6 +420,7 @@ export class PlayerBehaviour implements IComponent {
 
         this._hidePlayer();
         this._networkAnimationComponent.startAnimation("Death", {from: 60});
+        this._changePlayerView();
 
         const networkHost = this.scene.game.networkInstance as NetworkHost;
         networkHost.sendToAllClients(`onKillPlayer${this.entity.id}`);
@@ -426,7 +429,7 @@ export class PlayerBehaviour implements IComponent {
     }
 
     private _hidePlayer(): void {
-        this._isDead = true;
+        this.isDead = true;
         this._hidePlayerNameUI();
         this.velocity = B.Vector3.Zero();
         this._physicsAggregate.body.setLinearVelocity(this.velocity);
@@ -444,11 +447,13 @@ export class PlayerBehaviour implements IComponent {
 
     private _onKillPlayerClientRpc(): void {
         this._hidePlayer();
+        this._changePlayerView();
     }
 
     private _onBurnPlayerClientRpc(): void {
         this._burnPlayer();
         this._hidePlayer();
+        this._changePlayerView();
     }
 
     public playRandomReactionAnimation(isWin: boolean): void {
@@ -463,5 +468,13 @@ export class PlayerBehaviour implements IComponent {
                 this._networkAnimationComponent.startAnimation("Defeat", {loop: true, smoothTransition: true});
             }
         }, randomDelay);
+    }
+
+    private _changePlayerView(): void {
+        const playerCamera: Entity = this.scene.entityManager.getFirstEntityByTag("playerCamera")!;
+        const cameraMovementComponent = playerCamera.getComponent("CameraMovement") as CameraMovement;
+        setTimeout((): void => {
+            cameraMovementComponent.changePlayerView();
+        }, 3000);
     }
 }

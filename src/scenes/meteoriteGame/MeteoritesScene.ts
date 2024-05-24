@@ -245,7 +245,7 @@ export class MeteoritesScene extends Scene {
 
         if (this.game.networkInstance.playerId === playerData.id) {
             // follow camera
-            const mainCameraEntity = new Entity("camera");
+            const mainCameraEntity = new Entity("playerCamera");
             mainCameraEntity.addComponent(new CameraComponent(mainCameraEntity, this, {camera: this.mainCamera}));
             mainCameraEntity.addComponent(new CameraMovement(mainCameraEntity, this, {player: playerEntity}));
             this.entityManager.addEntity(mainCameraEntity);
