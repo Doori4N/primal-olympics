@@ -12,10 +12,12 @@ export class MeteoriteBehaviour implements IComponent {
     // component properties
     private _shadow!: B.Mesh;
     private _meteoriteMesh!: B.Mesh;
+    private readonly _shadowMaterial!: B.StandardMaterial;
 
-    constructor(entity: Entity, scene: Scene) {
+    constructor(entity: Entity, scene: Scene, props: {shadowMaterial: B.StandardMaterial}) {
         this.entity = entity;
         this.scene = scene;
+        this._shadowMaterial = props.shadowMaterial;
     }
 
     public onStart(): void {
@@ -28,11 +30,7 @@ export class MeteoriteBehaviour implements IComponent {
         this._shadow.rotation.x = Math.PI / 2;
 
         // color
-        const shadowMaterial = new B.StandardMaterial("shadowMat", this.scene.babylonScene);
-        shadowMaterial.diffuseColor = new B.Color3(0, 0, 0);
-        shadowMaterial.alpha = 0.5;
-        this._shadow.material = shadowMaterial;
-        this._shadow.material.zOffset = -1;
+        this._shadow.material = this._shadowMaterial;
     }
 
     public onUpdate(): void {}

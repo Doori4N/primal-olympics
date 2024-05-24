@@ -135,7 +135,7 @@ export class GameScores implements IComponent {
             // player score text
             const playerScoreText = new GUI.TextBlock();
             playerScoreText.text = `${120 - this._scores[position].score}s`;
-            playerScoreText.color = "#22ff22";
+            playerScoreText.color = "#ff2222";
             playerScoreText.fontSize = 25;
             playerScoreText.outlineColor = "black";
             playerScoreText.outlineWidth = 6;

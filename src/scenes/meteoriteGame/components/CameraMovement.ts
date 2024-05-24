@@ -15,7 +15,7 @@ export class CameraMovement implements IComponent {
     private _camera!: B.FreeCamera;
     private _cameraSpeed: number = 0.03;
     private _player: Entity;
-    private _offsetZ: number = 22;
+    private _offsetZ: number = 20;
 
     constructor(entity: Entity, scene: Scene, props: {player: Entity}) {
         this.entity = entity;

@@ -6,9 +6,11 @@ export class SoundManager {
 
     constructor() {
         this._initSounds();
+        const globalVolume: number = this.getGlobalVolume();
+        this.setGlobalVolume(globalVolume);
     }
 
-    private async _initSounds(): Promise<void> {
+    private _initSounds(): void {
         this._sounds["click"] = {
             sound: new Howl({src: ["sounds/click.wav"]}),
             baseVolume: 1
@@ -40,20 +42,16 @@ export class SoundManager {
         }
         this._sounds["lava"] = {
             sound: new Howl({src: ["sounds/lava.wav"], loop: true}),
-            baseVolume: .3
+            baseVolume: .4
         }
         this._sounds["crowd-cheer"] = {
             sound: new Howl({src: ["sounds/crowd-cheer.flac"]}),
             baseVolume: 1
         }
-
-        const globalVolume: number = this.getGlobalVolume();
-        this.setGlobalVolume(globalVolume);
     }
 
     public setGlobalVolume(volume: number): void {
         Howler.volume(volume);
-        console.log("volume", volume)
         localStorage.setItem("globalVolume", volume.toString());
     }
 

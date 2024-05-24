@@ -1,4 +1,5 @@
 import * as B from '@babylonjs/core';
+import {LavaMaterial} from '@babylonjs/materials';
 import {Scene} from "../../core/Scene";
 import {Entity} from "../../core/Entity";
 import {GamePresentation} from "../../core/components/GamePresentation";
@@ -67,9 +68,8 @@ export class MeteoritesScene extends Scene {
         this.enablePhysics(new B.Vector3(0, -9.81, 0));
 
         // camera
-        this.mainCamera.position = new B.Vector3(0, 20, -25);
+        this.mainCamera.position = new B.Vector3(0, 15, -25);
         this.mainCamera.setTarget(B.Vector3.Zero());
-        this.mainCamera.attachControl(this.game.canvas, true);
         this.mainCamera.speed = 0.3;
 
         // start animation
@@ -85,8 +85,16 @@ export class MeteoritesScene extends Scene {
         light.intensity = 0.7;
 
         // ground
+        const groundContainer: B.AssetContainer = this.loadedAssets["meteoriteMap"];
+        groundContainer.addAllToScene();
+        const groundMesh: B.Mesh = groundContainer.meshes[0] as B.Mesh;
+        groundMesh.scaling.scaleInPlace(.35);
+        groundMesh.position.y = -6.8;
+        groundMesh.rotate(B.Axis.Y, 2.35, B.Space.WORLD);
+
         const groundEntity = new Entity("ground");
         const ground: B.Mesh = B.MeshBuilder.CreateDisc("ground", {radius: 16, tessellation: 8}, this.babylonScene);
+        ground.isVisible = false;
         ground.rotation.x = Math.PI / 2;
         ground.metadata = {tag: groundEntity.tag};
         groundEntity.addComponent(new MeshComponent(groundEntity, this, {mesh: ground}));
@@ -98,11 +106,17 @@ export class MeteoritesScene extends Scene {
 
         // lava ground
         const lavaGroundEntity = new Entity("lavaGround");
-        const lavaGround: B.Mesh = B.MeshBuilder.CreateGround("lavaGround", {width: 50, height: 50}, this.babylonScene);
-        lavaGround.position.y = -2;
+        const lavaGround: B.Mesh = B.MeshBuilder.CreateGround("lavaGround", {width: 800, height: 800, subdivisions: 50}, this.babylonScene);
+        lavaGround.position.y = -6;
+        lavaGround.scaling.scaleInPlace(.2);
         lavaGround.metadata = {tag: lavaGroundEntity.tag};
-        const lavaMaterial = new B.StandardMaterial("lavaMaterial", this.babylonScene);
-        lavaMaterial.diffuseColor = new B.Color3(1, 0.2, 0);
+
+        const lavaMaterial = new LavaMaterial("lavaMaterial", this.babylonScene);
+        lavaMaterial.noiseTexture = new B.Texture("/img/cloud.png", this.babylonScene);
+        lavaMaterial.diffuseTexture = new B.Texture("/img/lavatile.jpg", this.babylonScene);
+        lavaMaterial.speed = .2;
+        lavaMaterial.fogColor = new B.Color3(.6, 0, 0);
+
         lavaGround.material = lavaMaterial;
 
         lavaGroundEntity.addComponent(new MeshComponent(lavaGroundEntity, this, {mesh: lavaGround}));

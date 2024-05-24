@@ -21,6 +21,7 @@ export class MeteoriteController implements IComponent {
     private _isGameStarted: boolean = false;
     private _isGameFinished: boolean = false;
     private _timeToWait: number = 0;
+    private _shadowMaterial!: B.StandardMaterial;
 
     constructor(entity: Entity, scene: Scene) {
         this.entity = entity;
@@ -28,6 +29,12 @@ export class MeteoriteController implements IComponent {
     }
 
     public onStart(): void {
+        this._shadowMaterial = new B.StandardMaterial("shadowMat", this.scene.babylonScene);
+        this._shadowMaterial.diffuseColor = new B.Color3(0, 0, 0);
+        this._shadowMaterial.alpha = 0.5;
+        this._shadowMaterial.zOffset = -1;
+
+        // HOST
         if (this.scene.game.networkInstance.isHost) {
             const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.physicsPlugin!.onTriggerCollisionObservable;
             this._observer = observable.add(this._onTriggerCollision.bind(this));
@@ -35,6 +42,7 @@ export class MeteoriteController implements IComponent {
             this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
             this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
         }
+        // CLIENT
         else {
             this.scene.game.networkInstance.addEventListener("onCreateMeteorite", this._spawnMeteoriteClientRpc.bind(this));
             this.scene.game.networkInstance.addEventListener("onDestroyMeteorite", this._destroyMeteoriteClientRpc.bind(this));
@@ -104,7 +112,7 @@ export class MeteoriteController implements IComponent {
 
         meteoriteEntity.addComponent(new MeshComponent(meteoriteEntity, this.scene, {mesh: meteorite}));
         meteoriteEntity.addComponent(new NetworkTransformComponent(meteoriteEntity, this.scene, {useInterpolation: true}));
-        meteoriteEntity.addComponent(new MeteoriteBehaviour(meteoriteEntity, this.scene));
+        meteoriteEntity.addComponent(new MeteoriteBehaviour(meteoriteEntity, this.scene, {shadowMaterial: this._shadowMaterial}));
 
         // HOST
         if (this.scene.game.networkInstance.isHost) {

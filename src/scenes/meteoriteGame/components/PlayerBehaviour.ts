@@ -130,7 +130,7 @@ export class PlayerBehaviour implements IComponent {
         // player name text
         const playerNameText = new GUI.TextBlock();
         playerNameText.text = this._playerData.name;
-        playerNameText.color = "#ff0000";
+        playerNameText.color = "#00dd00";
         playerNameText.fontSize = fontSize;
         playerNameText.outlineColor = "black";
         playerNameText.outlineWidth = outline;
