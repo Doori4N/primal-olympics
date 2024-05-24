@@ -1,5 +1,4 @@
 import * as B from '@babylonjs/core';
-import * as GUI from "@babylonjs/gui";
 import {Scene} from "../../core/Scene";
 import {Entity} from "../../core/Entity";
 import {MeshComponent} from "../../core/components/MeshComponent";
@@ -16,23 +15,51 @@ import {CameraComponent} from "../../core/components/CameraComponent";
 import {CameraAnimation} from "./components/CameraAnimation";
 import {FallingObjectController} from "./components/FallingObjectController";
 import {GameScores} from "./components/GameScores";
+import { CameraMovement } from './components/CameraMovement';
+import {PlayerData} from "../../network/types";
+import {NetworkClient} from "../../network/NetworkClient";
+import {Utils} from "../../utils/Utils";
 
 export class SlopeScene extends Scene {
-    private _gui!: GUI.AdvancedDynamicTexture;
-
     constructor() {
         super("Downhill Madness");
     }
 
     public async preload(): Promise<void> {
+        // HOST
+        // wait for all players to be ready
+        if (this.game.networkInstance.isHost) {
+            const playerReadyPromises: Promise<void>[] = this.game.networkInstance.players.map((playerData: PlayerData): Promise<void> => {
+                // if the player is the host, return immediately
+                if (playerData.id === this.game.networkInstance.playerId) return Promise.resolve();
+
+                return new Promise<void>((resolve): void => {
+                    this.game.networkInstance.addEventListener("onPlayerReady", resolve);
+                });
+            });
+            await Promise.all(playerReadyPromises);
+        }
+        // CLIENT
+        else {
+            // listen to onCreateEntity events
+            this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerData: PlayerData, entityId: string}): void => {
+                this._createPlayer(args.playerData, args.entityId);
+            });
+            this.game.networkInstance.addEventListener("onDestroyPlayer", this._destroyPlayerClientRpc.bind(this));
+
+            // tell the host that the player is ready
+            const networkClient = this.game.networkInstance as NetworkClient;
+            networkClient.sendToHost("onPlayerReady");
+        }
+
         this.game.engine.displayLoadingUI();
 
         // load assets
-        this.loadedAssets["player"] = await B.SceneLoader.LoadAssetContainerAsync(
-            "meshes/models/",
-            "caveman.glb",
-            this.babylonScene
-        );
+        this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
+        this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
+        this.loadedAssets["log"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "log.glb", this.babylonScene);
+        this.loadedAssets["slopeMap"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "slopeMap2.glb", this.babylonScene);
+        this.loadedAssets["rock"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "roche.glb", this.babylonScene);
 
         this.game.engine.hideLoadingUI();
     }
@@ -58,10 +85,7 @@ export class SlopeScene extends Scene {
         light.intensity = 0.7;
 
         this._createSlope();
-
-        // players
-        this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.babylonScene);
-        this._initPlayers();
+        this._createInvisibleWalls(); // pour éviter que les joueurs/objets tombent sur les cotes de la pente
 
         this._createGameManager();
 
@@ -72,15 +96,88 @@ export class SlopeScene extends Scene {
 
         // finish line
         this._createFinishLine();
+
+        if (!this.game.networkInstance.isHost) return;
+
+        // HOST
+        this._initPlayers();
     }
 
+    private _createInvisibleWalls(): void {
+        // Dimensions et la position des murs
+        const wallHeight = 15;
+        const wallDepth = 1;
+        const wallWidth = 130;
+        const wallOffset = 16; // Distance par rapport au centre de la pente
+        const slopeInclination = -Math.PI / 10; // Inclinaison de la pente
+    
+        // Mur gauche
+        const leftWall = new Entity("leftWall");
+        const leftWallMesh = B.MeshBuilder.CreateBox("leftWall", {width: wallDepth, height: wallHeight, depth: wallWidth}, this.babylonScene);
+        leftWallMesh.position = new B.Vector3(-wallOffset - 1, wallHeight / 2, -0.40);
+        leftWallMesh.rotation = new B.Vector3(slopeInclination, 0, 0); // Incliner le mur gauche
+        leftWallMesh.visibility = 0; // Rendre le mur invisible
+        leftWallMesh.metadata = {tag: leftWall.tag};
+        leftWall.addComponent(new MeshComponent(leftWall, this, {mesh: leftWallMesh}));
+        leftWall.addComponent(new RigidBodyComponent(leftWall, this, {
+            physicsShape: B.PhysicsShapeType.BOX,
+            physicsProps: {mass: 0}
+        }));
+        this.entityManager.addEntity(leftWall);
+    
+        // Mur droit
+        const rightWall = new Entity("rightWall");
+        const rightWallMesh = B.MeshBuilder.CreateBox("rightWall", {width: wallDepth, height: wallHeight, depth: wallWidth}, this.babylonScene);
+        rightWallMesh.position = new B.Vector3(wallOffset - 0.3, wallHeight / 2, -0.40);
+        rightWallMesh.rotation = new B.Vector3(slopeInclination, 0, 0); // Incliner le mur droit dans le sens opposé
+        rightWallMesh.visibility = 0; // Rendre le mur invisible
+        rightWallMesh.metadata = {tag: rightWall.tag};
+        rightWall.addComponent(new MeshComponent(rightWall, this, {mesh: rightWallMesh}));
+        rightWall.addComponent(new RigidBodyComponent(rightWall, this, {
+            physicsShape: B.PhysicsShapeType.BOX,
+            physicsProps: {mass: 0}
+        }));
+        this.entityManager.addEntity(rightWall);
+
+        // Mur arrière
+        const backWall = new Entity("backWall");
+        const backWallMesh = B.MeshBuilder.CreateBox("backWall", {width: 40, height: wallHeight, depth: wallDepth}, this.babylonScene);
+        backWallMesh.position = new B.Vector3(0, -6, -55);
+        backWallMesh.metadata = {tag: backWall.tag};
+        backWallMesh.visibility = 0; // Rendre le mur invisible
+        backWall.addComponent(new MeshComponent(backWall, this, {mesh: backWallMesh}));
+        backWall.addComponent(new RigidBodyComponent(backWall, this, {
+            physicsShape: B.PhysicsShapeType.BOX,
+            physicsProps: {mass: 0}
+        }));
+    }
+    
     private _createSlope(): void {
         const slopeEntity = new Entity("slope");
-        const slopeMesh: B.Mesh = B.MeshBuilder.CreateGround("ground", {width: 20, height: 100}, this.babylonScene);
-    
-        // Incliner le sol pour créer une pente
-        slopeMesh.rotation = new B.Vector3(-Math.PI / 10, 0, 0); // -Math.PI / 14 ou -Math.PI / 12 voir les potos 
-    
+
+        const mapContainer: B.AssetContainer = this.loadedAssets["slopeMap"];
+        mapContainer.addAllToScene();
+        const slopeMap: B.Mesh = mapContainer.meshes[0] as B.Mesh;
+        //console.log(mapContainer.meshes);
+        //console.log(mapContainer.meshes[1] as B.Mesh); // terrain
+        mapContainer.meshes.forEach((mesh: B.AbstractMesh): void => {
+            mesh.receiveShadows = true;
+        });
+
+        slopeMap.scaling = new B.Vector3(0.40, 0.75, 1);
+        slopeMap.rotation = new B.Vector3(0, -Math.PI / 2, 0);
+        slopeMap.position = new B.Vector3(0, -7, 0);
+        slopeMap.position.z = -30;
+
+        const slopeMesh: B.Mesh = B.MeshBuilder.CreateGround("ground", {width: 34, height: 135.5}, this.babylonScene);
+        slopeMesh.rotation = new B.Vector3(-Math.PI / 10 - 0.123, 0, 0); // -Math.PI / 14 ou -Math.PI / 12 voir les potos
+        slopeMesh.position.z = -2;
+        slopeMesh.position.y = 4;
+
+        slopeMesh.metadata = {tag: slopeEntity.tag};
+        slopeMesh.isVisible = false;
+        slopeMap.setParent(slopeMesh);
+
         slopeMesh.metadata = {tag: slopeEntity.tag};
         slopeEntity.addComponent(new MeshComponent(slopeEntity, this, {mesh: slopeMesh}));
         slopeEntity.addComponent(new RigidBodyComponent(slopeEntity, this, {
@@ -88,14 +185,34 @@ export class SlopeScene extends Scene {
             physicsProps: {mass: 0}
         }));
         this.entityManager.addEntity(slopeEntity);
+
+        this._createPlatform();
     }
-    
+
+    private _createPlatform(): void {
+        const platformEntity = new Entity("platform");
+
+        const platformMesh: B.Mesh = B.MeshBuilder.CreateGround("platform", {width: 40, height: 27}, this.babylonScene);
+        platformMesh.position = new B.Vector3(0, -14.5, -56); 
+
+        platformMesh.isVisible = false;
+
+        platformMesh.metadata = {tag: platformEntity.tag};
+        platformEntity.addComponent(new MeshComponent(platformEntity, this, {mesh: platformMesh}));
+        platformEntity.addComponent(new RigidBodyComponent(platformEntity, this, {
+            physicsShape: B.PhysicsShapeType.BOX,
+            physicsProps: {mass: 0}
+        }));
+
+        this.entityManager.addEntity(platformEntity);
+    }
 
     private _createFinishLine(): void {
         const finishLine = new Entity("finishLine");
-        const finishLineMesh: B.Mesh = B.MeshBuilder.CreateBox("finishLine", {width: 20, height: 10, depth: 1}, this.babylonScene);
-        finishLineMesh.position = new B.Vector3(0, 5, 20);
+        const finishLineMesh: B.Mesh = B.MeshBuilder.CreateBox("finishLine", {width: 35, height: 10, depth: 1}, this.babylonScene);
+        finishLineMesh.position = new B.Vector3(0, 35, 60);
         finishLineMesh.metadata = {tag: finishLine.tag};
+        finishLineMesh.isVisible = false;
         finishLine.addComponent(new MeshComponent(finishLine, this, {mesh: finishLineMesh}));
         finishLine.addComponent(new RigidBodyComponent(finishLine, this, {
             physicsShape: B.PhysicsShapeType.BOX,
@@ -105,36 +222,34 @@ export class SlopeScene extends Scene {
         this.entityManager.addEntity(finishLine);
     }
 
+
     private _initPlayers(): void {
-        // HOST
-        if (this.game.networkInstance.isHost) {
-            const networkHost = this.game.networkInstance as NetworkHost;
-
-            for (let i: number = 0; i < networkHost.players.length; i++) {
-                const playerId: string = networkHost.players[i].id;
-
-                const playerEntity: Entity = this._createPlayer(playerId, i);
-                this.entityManager.addEntity(playerEntity);
-
-                networkHost.sendToAllClients("onCreatePlayer", {
-                    playerId: playerId,
-                    id: playerEntity.id,
-                    index: i
-                });
-            }
-        }
-        // CLIENT
-        else {
-            this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerId: string, id: string, index: number}): void => {
-                const playerEntity: Entity = this._createPlayer(args.playerId, args.index, args.id);
-                this.entityManager.addEntity(playerEntity);
-            });
-            this.game.networkInstance.addEventListener("onDestroyPlayer", this._destroyPlayerClientRpc.bind(this));
+        const networkHost = this.game.networkInstance as NetworkHost;
+        for (let i: number = 0; i < networkHost.players.length; i++) {
+            const playerData: PlayerData = networkHost.players[i];
+            this._createPlayer(playerData);
         }
     }
 
-    private _createPlayer(playerId: string, index: number, entityId?: string): Entity {
-        const playerContainer: B.AssetContainer = this.loadedAssets["player"];
+    private _createPlayer(playerData: PlayerData, entityId?: string): void {
+        const playerEntity: Entity = this._createPlayerEntity(playerData, entityId);
+        this.entityManager.addEntity(playerEntity);
+
+        // HOST
+        if (this.game.networkInstance.isHost) {
+            const networkHost = this.game.networkInstance as NetworkHost;
+            networkHost.sendToAllClients("onCreatePlayer", {playerData: playerData, entityId: playerEntity.id});
+        }
+    }
+
+    private _createPlayerEntity(playerData: PlayerData, entityId?: string): Entity {
+        let playerContainer: B.AssetContainer;
+        if (playerData.skinOptions.modelIndex === 0) {
+            playerContainer = this.loadedAssets["caveman"];
+        }
+        else {
+            playerContainer = this.loadedAssets["cavewoman"];
+        }
         const playerEntity = new Entity("player", entityId);
 
         const entries: B.InstantiatedEntries = playerContainer.instantiateModelsToScene((sourceName: string): string => sourceName + playerEntity.id, true, {doNotInstantiate: true});
@@ -147,18 +262,10 @@ export class SlopeScene extends Scene {
         player.setParent(hitbox);
         player.position = new B.Vector3(0, -1, 0);
 
-        hitbox.position = new B.Vector3(0, 0, -20);
+        hitbox.position = new B.Vector3(0, 0, -50);
 
-        // player name text
-        const playerNameText = new GUI.TextBlock();
-        playerNameText.text = this.game.networkInstance.players.find((playerData) => playerData.id === playerId)!.name;
-        playerNameText.color = "#ff0000";
-        playerNameText.fontSize = 15;
-        playerNameText.outlineColor = "black";
-        playerNameText.outlineWidth = 5;
-        this._gui.addControl(playerNameText);
-        playerNameText.linkWithMesh(hitbox);
-        playerNameText.linkOffsetY = -60;
+        // player skin colors
+        Utils.applyColorsToMesh(player, playerData.skinOptions);
 
         playerEntity.addComponent(new MeshComponent(playerEntity, this, {mesh: hitbox}));
         const playerPhysicsShape = new B.PhysicsShapeBox(
@@ -169,40 +276,28 @@ export class SlopeScene extends Scene {
         );
         playerEntity.addComponent(new RigidBodyComponent(playerEntity, this, {
             physicsShape: playerPhysicsShape,
-            physicsProps: {mass: 1},
+            physicsProps: {mass: 1}, // si on baisse le perso glisse moins mais on doit garder de la masse pour le saut 
             massProps: {inertia: new B.Vector3(0, 0, 0)},
             isCollisionCallbackEnabled: true
         }));
 
         // animations
         const animations: {[key: string]: B.AnimationGroup} = {};
-        animations["Idle"] = this._getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
-        animations["Running"] = this._getAnimationGroupByName(`Running${playerEntity.id}`, entries.animationGroups);
-        animations["Jumping"] = this._getAnimationGroupByName(`Jumping${playerEntity.id}`, entries.animationGroups);
+        animations["Idle"] = Utils.getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
+        animations["Running"] = Utils.getAnimationGroupByName(`Running${playerEntity.id}`, entries.animationGroups);
+        animations["Jumping"] = Utils.getAnimationGroupByName(`Jumping${playerEntity.id}`, entries.animationGroups);
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
         playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
-        playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerId: playerId}));
+        playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerData: playerData}));
 
         // Constructing a Follow Camera
-        if (this.game.networkInstance.playerId === playerId) {
-            console.log("Creating camera for player", playerId);
-            const camera = new B.FollowCamera(`camera_${playerId}`, new B.Vector3(0, 10, -10), this.babylonScene);
-            camera.radius = 30; //askip distance de la target 
-            camera.heightOffset = 10;
-            camera.rotationOffset = 0;
-            camera.cameraAcceleration = 0.005;
-            camera.maxCameraSpeed = 10;
-            camera.lockedTarget = player; // hitbox or player ca change rien ca rend fou au bout d'un moment
-            
-            camera.attachControl(true);
-            playerEntity.addComponent(new CameraComponent(playerEntity, this, {camera}));
-            // Définir la caméra principale sur la caméra du joueur
-            this.mainCamera = camera;
-
-            // Attacher les contrôles de la caméra au canvas du jeu
-            this.mainCamera.attachControl(this.game.canvas, true);
-
+        if (this.game.networkInstance.playerId === playerData.id) {
+            // follow camera
+            const mainCameraEntity = new Entity("camera");
+            mainCameraEntity.addComponent(new CameraComponent(mainCameraEntity, this, {camera: this.mainCamera}));
+            mainCameraEntity.addComponent(new CameraMovement(mainCameraEntity, this, {player: playerEntity}));
+            this.entityManager.addEntity(mainCameraEntity);
         }
 
         return playerEntity;
@@ -230,9 +325,5 @@ export class SlopeScene extends Scene {
     private _destroyPlayerClientRpc(args: {entityId: string}): void {
         const playerEntity: Entity = this.entityManager.getEntityById(args.entityId);
         this.entityManager.removeEntity(playerEntity);
-    }
-
-    private _getAnimationGroupByName(name: string, animationGroups: B.AnimationGroup[]): B.AnimationGroup {
-        return animationGroups.find((animationGroup: B.AnimationGroup): boolean => animationGroup.name === name)!;
     }
 }
