@@ -276,7 +276,7 @@ export class SlopeScene extends Scene {
         );
         playerEntity.addComponent(new RigidBodyComponent(playerEntity, this, {
             physicsShape: playerPhysicsShape,
-            physicsProps: {mass: 1}, // si on baisse le perso glisse moins mais on doit garder de la masse pour le saut 
+            physicsProps: {mass: 1}, 
             massProps: {inertia: new B.Vector3(0, 0, 0)},
             isCollisionCallbackEnabled: true
         }));
