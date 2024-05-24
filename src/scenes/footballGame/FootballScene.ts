@@ -19,7 +19,6 @@ import {GameTimer} from "../../core/components/GameTimer";
 import {CameraMovement} from "./components/CameraMovement";
 import {NetworkTransformComponent} from "../../network/components/NetworkTransformComponent";
 import {AIPlayerBehaviour} from "./components/players/AIPlayerBehaviour";
-import {NetworkAudioComponent} from "../../network/components/NetworkAudioComponent";
 import {EdgeCollision} from "./components/EdgeCollision";
 import {GameScores} from "./components/GameScores";
 import {Leaderboard} from "../../core/components/Leaderboard";
@@ -289,11 +288,11 @@ export class FootballScene extends Scene {
         gameManager.addComponent(new Leaderboard(gameManager, this));
 
         // audio
-        const sounds: {[key: string]: B.Sound} = {};
-        sounds["Crowd"] = new B.Sound("crowd_reaction", "sounds/crowd_reaction.wav", this.babylonScene, null, {loop: false, autoplay: false});
-        sounds["Whistle"] = new B.Sound("whistle", "sounds/whistle.wav", this.babylonScene, null, {loop: false, autoplay: false});
-        sounds["CrowdAmbience"] = new B.Sound("crowd_ambience", "sounds/crowd_ambience.wav", this.babylonScene, null, {loop: true, autoplay: true, volume: 0});
-        gameManager.addComponent(new NetworkAudioComponent(gameManager, this, {sounds}));
+        // const sounds: {[key: string]: B.Sound} = {};
+        // sounds["Crowd"] = new B.Sound("crowd_reaction", "sounds/crowd_reaction.wav", this.babylonScene, null, {loop: false, autoplay: false});
+        // sounds["Whistle"] = new B.Sound("whistle", "sounds/whistle.wav", this.babylonScene, null, {loop: false, autoplay: false});
+        // sounds["CrowdAmbience"] = new B.Sound("crowd_ambience", "sounds/crowd_ambience.wav", this.babylonScene, null, {loop: true, autoplay: true, volume: 0});
+        // gameManager.addComponent(new NetworkAudioComponent(gameManager, this, {sounds}));
 
         return gameManager;
     }
@@ -398,9 +397,9 @@ export class FootballScene extends Scene {
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
         // audio
-        const sounds: {[key: string]: B.Sound} = {};
-        sounds["Kick"] = new B.Sound("soccer_ball_kick", "sounds/soccer_ball_kick.wav", this.babylonScene, null, {loop: false, autoplay: false});
-        playerEntity.addComponent(new NetworkAudioComponent(playerEntity, this, {sounds}));
+        // const sounds: {[key: string]: B.Sound} = {};
+        // sounds["Kick"] = new B.Sound("soccer_ball_kick", "sounds/soccer_ball_kick.wav", this.babylonScene, null, {loop: false, autoplay: false});
+        // playerEntity.addComponent(new NetworkAudioComponent(playerEntity, this, {sounds}));
 
         playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
         playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerData: playerData, teamIndex: teamIndex}));
@@ -472,9 +471,9 @@ export class FootballScene extends Scene {
         aiPlayerEntity.addComponent(new NetworkAnimationComponent(aiPlayerEntity, this, {animations: animations}));
 
         // audio
-        const sounds: {[key: string]: B.Sound} = {};
-        sounds["Kick"] = new B.Sound("soccer_ball_kick", "sounds/soccer_ball_kick.wav", this.babylonScene, null, {loop: false, autoplay: false});
-        aiPlayerEntity.addComponent(new NetworkAudioComponent(aiPlayerEntity, this, {sounds}));
+        // const sounds: {[key: string]: B.Sound} = {};
+        // sounds["Kick"] = new B.Sound("soccer_ball_kick", "sounds/soccer_ball_kick.wav", this.babylonScene, null, {loop: false, autoplay: false});
+        // aiPlayerEntity.addComponent(new NetworkAudioComponent(aiPlayerEntity, this, {sounds}));
 
         aiPlayerEntity.addComponent(new NetworkTransformComponent(aiPlayerEntity, this, {usePhysics: true}));
         aiPlayerEntity.addComponent(new AIPlayerBehaviour(aiPlayerEntity, this, {
