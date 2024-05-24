@@ -170,7 +170,7 @@ export class SlopeScene extends Scene {
         slopeMap.position.z = -30;
 
         const slopeMesh: B.Mesh = B.MeshBuilder.CreateGround("ground", {width: 34, height: 135.5}, this.babylonScene);
-        slopeMesh.rotation = new B.Vector3(-Math.PI / 10 - 0.12, 0, 0); // -Math.PI / 14 ou -Math.PI / 12 voir les potos
+        slopeMesh.rotation = new B.Vector3(-Math.PI / 10 - 0.123, 0, 0); // -Math.PI / 14 ou -Math.PI / 12 voir les potos
         slopeMesh.position.z = -2;
         slopeMesh.position.y = 4;
 

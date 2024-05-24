@@ -28,15 +28,15 @@ export class FallingObjectController implements IComponent {
     }
 
     public onStart(): void {
-        // HOST
-        if (this.scene.game.networkInstance.isHost) {
-            this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
-            this.scene.eventManager.subscribe("onGameFinished", this._stopSpawning.bind(this));
-        }
-        // CLIENT
-        else {
-            this.scene.game.networkInstance.addEventListener("onCreateFallingObject", this._spawnFallingObjectClientRpc.bind(this));
-        }
+        // // HOST
+        // if (this.scene.game.networkInstance.isHost) {
+        //     this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
+        //     this.scene.eventManager.subscribe("onGameFinished", this._stopSpawning.bind(this));
+        // }
+        // // CLIENT
+        // else {
+        //     this.scene.game.networkInstance.addEventListener("onCreateFallingObject", this._spawnFallingObjectClientRpc.bind(this));
+        // }
     }
 
     public onUpdate(): void {}
@@ -91,7 +91,7 @@ export class FallingObjectController implements IComponent {
         logMesh.position = position;
         logMesh.metadata = { tag: logEntity.tag, id: logEntity.id };
 
-        logMesh.rotate(B.Axis.Z, Math.random() * Math.PI * 2, B.Space.WORLD)
+        logMesh.rotate(B.Axis.Z, Math.random() * Math.PI * 2, B.Space.WORLD);
     
         logEntity.addComponent(new MeshComponent(logEntity, this.scene, { mesh: logMesh }));
         logEntity.addComponent(new FallingObjectBehaviour(logEntity, this.scene));
