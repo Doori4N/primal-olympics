@@ -28,15 +28,15 @@ export class FallingObjectController implements IComponent {
     }
 
     public onStart(): void {
-        // // HOST
-        // if (this.scene.game.networkInstance.isHost) {
-        //     this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
-        //     this.scene.eventManager.subscribe("onGameFinished", this._stopSpawning.bind(this));
-        // }
-        // // CLIENT
-        // else {
-        //     this.scene.game.networkInstance.addEventListener("onCreateFallingObject", this._spawnFallingObjectClientRpc.bind(this));
-        // }
+        // HOST
+        if (this.scene.game.networkInstance.isHost) {
+            this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
+            this.scene.eventManager.subscribe("onGameFinished", this._stopSpawning.bind(this));
+        }
+        // CLIENT
+        else {
+            this.scene.game.networkInstance.addEventListener("onCreateFallingObject", this._spawnFallingObjectClientRpc.bind(this));
+        }
     }
 
     public onUpdate(): void {}
