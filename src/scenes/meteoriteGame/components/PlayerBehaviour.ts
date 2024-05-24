@@ -405,6 +405,8 @@ export class PlayerBehaviour implements IComponent {
                 set.dispose();
             }, 3000);
         });
+
+        this.scene.game.soundManager.playSound("lava-death", {sprite: "lava"});
     }
 
     public kill(): void {

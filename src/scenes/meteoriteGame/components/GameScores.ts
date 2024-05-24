@@ -39,7 +39,14 @@ export class GameScores implements IComponent {
         }
 
         this.scene.eventManager.subscribe("onGameStarted", this._initScores.bind(this));
-        this.scene.eventManager.subscribe("onMessageFinished", this._displayEventScores.bind(this));
+        this.scene.eventManager.subscribe("onMessageFinished", (): void => {
+            setTimeout((): void => {
+                this.scene.game.soundManager.stopSound("lava", {fade: {to: 0, duration: 4000}});
+                this.scene.game.fadeIn((): void => {
+                    this._displayEventScores();
+                });
+            }, 3000);
+        });
 
         const gameController: Entity | null = this.scene.entityManager.getFirstEntityByTag("gameManager");
         if (!gameController) throw new Error("Game controller not found");
@@ -100,12 +107,14 @@ export class GameScores implements IComponent {
             this.setPlayerMedals();
         }
 
+        this.scene.game.soundManager.playSound("crowd-cheer", {fade: {from: 0, duration: 3000}});
+
         setTimeout((): void => {
             this.scene.game.fadeIn((): void => {
                 this.scene.eventManager.notify("onDisplayLeaderboard");
                 this.entity.removeComponent("GameScores");
             });
-        }, 10000);
+        }, 7500);
     }
 
     private _displayPlayerScores(): void {

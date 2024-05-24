@@ -30,3 +30,12 @@ export type SkinOptions = {
     hairColorIndex: number;
     outfitColorIndex: number;
 }
+
+export type AudioOptions = {
+    fade?: {
+        from?: number;
+        to?: number;
+        duration: number;
+    },
+    sprite?: string;
+}

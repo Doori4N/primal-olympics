@@ -112,6 +112,8 @@ export class MeteoritesScene extends Scene {
         }));
         this.entityManager.addEntity(lavaGroundEntity);
 
+        this.game.soundManager.playSound("lava", {fade: {from: 0, duration: 5000}});
+
         // meteorites
         const meteoriteController = new Entity();
         meteoriteController.addComponent(new MeteoriteController(meteoriteController, this));

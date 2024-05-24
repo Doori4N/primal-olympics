@@ -1,4 +1,5 @@
 import {Howl} from "howler";
+import {AudioOptions} from "./types";
 
 export class SoundManager {
     private _sounds: {[key: string]: {sound: Howl, baseVolume: number}} = {};
@@ -28,44 +29,61 @@ export class SoundManager {
             sound: new Howl({src: ["sounds/fireplace.wav"], loop: true}),
             baseVolume: .5
         }
-
-        await this._waitForSoundsToLoad();
+        this._sounds["lava-death"] = {
+            sound: new Howl({
+                src: ["sounds/lava-death.wav"],
+                sprite: {
+                    lava: [1300, 3422]
+                }
+            }),
+            baseVolume: .7
+        }
+        this._sounds["lava"] = {
+            sound: new Howl({src: ["sounds/lava.wav"], loop: true}),
+            baseVolume: .3
+        }
+        this._sounds["crowd-cheer"] = {
+            sound: new Howl({src: ["sounds/crowd-cheer.flac"]}),
+            baseVolume: 1
+        }
 
         const globalVolume: number = this.getGlobalVolume();
         this.setGlobalVolume(globalVolume);
     }
 
     public setGlobalVolume(volume: number): void {
-        for (const soundName in this._sounds) {
-            const soundOptions = this._sounds[soundName];
-            soundOptions.sound.volume(soundOptions.baseVolume * volume);
-            localStorage.setItem("globalVolume", volume.toString());
-        }
+        Howler.volume(volume);
+        console.log("volume", volume)
+        localStorage.setItem("globalVolume", volume.toString());
     }
 
     public getGlobalVolume(): number {
         return parseFloat(localStorage.getItem("globalVolume") || "0.2");
     }
 
-    public playSound(name: string): void {
-        const sound: Howl = this._sounds[name].sound;
-        sound.play();
-    }
+    public playSound(name: string, options?: AudioOptions): void {
+        const sprite: string | undefined = options?.sprite;
 
-    public stopSound(name: string): void {
         const sound: Howl = this._sounds[name].sound;
-        sound.stop();
-    }
 
-    private async _waitForSoundsToLoad(): Promise<void> {
-        const soundsLoadedPromises: Promise<void>[] = [];
-        for (const soundName in this._sounds) {
-            const sound: Howl = this._sounds[soundName].sound;
-            soundsLoadedPromises.push(new Promise((resolve): void => {
-                sound.on("load", resolve);
-            }));
+        if (options?.fade) {
+            const from: number = options.fade.from || this._sounds[name].baseVolume;
+            const to: number = options.fade.to || this._sounds[name].baseVolume;
+            sound.fade(from, to, options.fade.duration);
         }
 
-        await Promise.all(soundsLoadedPromises);
+        sound.play(sprite);
+    }
+
+    public stopSound(name: string, options?: AudioOptions): void {
+        const sound: Howl = this._sounds[name].sound;
+
+        if (options?.fade) {
+            const from: number = options.fade.from || this._sounds[name].baseVolume;
+            const to: number = options.fade.to || this._sounds[name].baseVolume;
+            sound.fade(from, to, options.fade.duration);
+        }
+
+        sound.stop();
     }
 }
