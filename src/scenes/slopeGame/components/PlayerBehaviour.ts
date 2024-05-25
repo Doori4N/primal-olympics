@@ -35,6 +35,9 @@ export class PlayerBehaviour implements IComponent {
     private _speed: number = 5;
     private _velocity: B.Vector3 = B.Vector3.Zero();
     private _isGrounded: boolean = false;
+    private _isWalkingSoundPlaying: boolean = false;
+    private _isBreathingSoundPlaying: boolean = false;
+
 
     constructor(entity: Entity, scene: Scene, props: {playerData: PlayerData}) {
         this.entity = entity;
@@ -162,18 +165,30 @@ export class PlayerBehaviour implements IComponent {
 
     private _animate(inputStates: InputStates): void {
         const isInputPressed: boolean = inputStates.direction.x !== 0 || inputStates.direction.y !== 0;
+    
         if (isInputPressed) {
-            //this.scene.game.soundManager.playSound("walkForest"); 
-            // a revoir bug kalash
-            this.scene.game.soundManager.stopSound("respiration");
+            if (this._isBreathingSoundPlaying) {
+                this.scene.game.soundManager.stopSound("respiration");
+                this._isBreathingSoundPlaying = false;
+            }
+            if (!this._isWalkingSoundPlaying) {
+                this.scene.game.soundManager.playSound("walkForest");
+                this._isWalkingSoundPlaying = true;
+            }
             this._networkAnimationComponent.startAnimation("Running", {loop: true, transitionSpeed: 0.12});
-        }
-        else {
-            // meme soucis que walkinforest car le son est appeler trop de fois et donc ca fait un bruit de fond de kalash 
+        } else {
+            if (this._isWalkingSoundPlaying) {
+                this.scene.game.soundManager.stopSound("walkForest");
+                this._isWalkingSoundPlaying = false;
+            }
+            if (!this._isBreathingSoundPlaying) {
+                this.scene.game.soundManager.playSound("respiration");
+                this._isBreathingSoundPlaying = true;
+            }
             this._networkAnimationComponent.startAnimation("Idle", {loop: true});
-            this.scene.game.soundManager.playSound("respiration"); 
         }
     }
+    
 
     /**
      * Set the linear velocity of the player according to his inputs

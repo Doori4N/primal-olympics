@@ -55,7 +55,10 @@ export class SoundManager {
             baseVolume: 0.3
         }
         this._sounds["walkForest"] = {
-            sound: new Howl({src: ["sounds/walkForest2.mp3"]}),
+            sound: new Howl({
+                src: ["sounds/walkForest.wav"],
+                loop: true
+            }),
             baseVolume: 0.3
         }
         this._sounds["respiration"] = {
