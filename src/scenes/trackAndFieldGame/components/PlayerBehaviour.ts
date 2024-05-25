@@ -8,6 +8,10 @@ import {RigidBodyComponent} from "../../../core/components/RigidBodyComponent";
 import {MeshComponent} from "../../../core/components/MeshComponent";
 import {PlayerData} from "../../../network/types";
 import {GameController} from "./GameController";
+import {InputStates} from "../../../core/types";
+import {NetworkHost} from "../../../network/NetworkHost";
+import {CameraMovement} from "./CameraMovement";
+import {Utils} from "../../../utils/Utils";
 
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";
@@ -22,12 +26,12 @@ export class PlayerBehaviour implements IComponent {
 
     // properties
     private _isGameStarted: boolean = false;
-    private _isGameFinished: boolean = false;
     private readonly _isOwner!: boolean; // is the player the owner of the entity
     private _gui!: GUI.AdvancedDynamicTexture;
     private _canPressLeft: boolean = true;
     private _canPressRight: boolean = true;
     private _isLeftTurn: boolean = false;
+    public hasFinished: boolean = false;
 
     // movement
     private _speed: number = 70 / 1000;
@@ -40,6 +44,9 @@ export class PlayerBehaviour implements IComponent {
     public readonly playerData!: PlayerData;
 
     // event listeners
+    private _updateSpeedEvent = this._updateSpeedUI.bind(this);
+    private _onKillPlayerEvent = this._killClientRpc.bind(this);
+    private _onStopPlayerEvent = this._stopPlayerClientRpc.bind(this);
 
     constructor(entity: Entity, scene: Scene, props: { playerData: PlayerData }) {
         this.entity = entity;
@@ -59,30 +66,62 @@ export class PlayerBehaviour implements IComponent {
         const rigidBodyComponent = this.entity.getComponent("RigidBody") as RigidBodyComponent;
         this._physicsAggregate = rigidBodyComponent.physicsAggregate;
 
-        this._showPlayerNameUI();
+        this.showPlayerNameUI(10, 3, -60);
 
         // subscribe to game events
         this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
-        this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
 
         const gameManagerEntity: Entity = this.scene.entityManager.getFirstEntityByTag("gameManager")!;
         this._gameController = gameManagerEntity.getComponent("GameController") as GameController;
+
+        // CLIENT
+        if (!this.scene.game.networkInstance.isHost) {
+            this.scene.game.networkInstance.addEventListener(`onKillPlayer${this.entity.id}`, this._onKillPlayerEvent);
+            this.scene.game.networkInstance.addEventListener(`onStopPlayer${this.entity.id}`, this._onStopPlayerEvent);
+
+            if (this._isOwner) {
+                this.scene.game.networkInstance.addEventListener(`setSpeed${this.entity.id}`, this._updateSpeedEvent);
+            }
+        }
     }
 
-    public onUpdate(): void {
-    }
+    public onUpdate(): void {}
 
     public onFixedUpdate(): void {
-        if (!this._isGameStarted || this._isGameFinished) return;
+        if (!this._isGameStarted || this.hasFinished) return;
 
-        this._checkInputs();
+        // HOST
+        if (!this.scene.game.networkInstance.isHost) return;
+
+        if (this._isOwner) {
+            const inputStates: InputStates = this.scene.game.inputManager.inputStates;
+            this._checkInputs(inputStates);
+        }
+        else {
+            // handle client inputs
+            const inputs: InputStates[] = this.scene.game.networkInputManager.getPlayerInput(this.playerId);
+            for (let i: number = 0; i < inputs.length; i++) {
+                const inputStates: InputStates = inputs[i];
+                this._checkInputs(inputStates);
+            }
+        }
+
         this._applyVelocity();
         this._animate();
-        this._gameController.setSpeed(this.velocity.x * 100 / this._maxSpeed);
+        this._updateSpeedUI(this.velocity.x);
     }
 
     public onDestroy(): void {
         this._hidePlayerNameUI();
+
+        // CLIENT
+        if (!this.scene.game.networkInstance.isHost) {
+            this.scene.game.networkInstance.removeEventListener(`onKillPlayer${this.entity.id}`, this._onKillPlayerEvent);
+            this.scene.game.networkInstance.removeEventListener(`onStopPlayer${this.entity.id}`, this._onStopPlayerEvent);
+            if (this._isOwner) {
+                this.scene.game.networkInstance.removeEventListener(`setSpeed${this.entity.id}`, this._updateSpeedEvent);
+            }
+        }
     }
 
     private _animate(): void {
@@ -106,9 +145,7 @@ export class PlayerBehaviour implements IComponent {
         this._physicsAggregate.body.setLinearVelocity(this.velocity);
     }
 
-    private _checkInputs(): void {
-        const inputs = this.scene.game.inputManager.inputStates;
-
+    private _checkInputs(inputs: InputStates): void {
         if (inputs.buttons["left"] && this._canPressLeft && this._isLeftTurn) {
             this._isLeftTurn = false;
             this.velocity.x += this._speed;
@@ -118,26 +155,23 @@ export class PlayerBehaviour implements IComponent {
             this.velocity.x += this._speed;
         }
 
-        if (inputs.buttons["left"]) this._canPressLeft = false;
-        else this._canPressLeft = true;
-
-        if (inputs.buttons["right"]) this._canPressRight = false;
-        else this._canPressRight = true;
+        this._canPressLeft = !inputs.buttons["left"];
+        this._canPressRight = !inputs.buttons["right"];
     }
 
-    private _showPlayerNameUI(): void {
+    public showPlayerNameUI(fontSize: number, outline: number, offsetY: number): void {
         this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene.babylonScene);
 
         // player name text
         const playerNameText = new GUI.TextBlock();
         playerNameText.text = this.playerData.name;
         playerNameText.color = "#ff0000";
-        playerNameText.fontSize = 10;
+        playerNameText.fontSize = fontSize;
         playerNameText.outlineColor = "black";
-        playerNameText.outlineWidth = 3;
+        playerNameText.outlineWidth = outline;
         this._gui.addControl(playerNameText);
         playerNameText.linkWithMesh(this._mesh);
-        playerNameText.linkOffsetY = -60;
+        playerNameText.linkOffsetY = offsetY;
     }
 
     private _hidePlayerNameUI(): void {
@@ -148,20 +182,76 @@ export class PlayerBehaviour implements IComponent {
         this._isGameStarted = true;
     }
 
-    private _onGameFinished(): void {
-        this._isGameFinished = true;
-    }
-
     public kill(): void {
-        this._onGameFinished();
-        this.stopPlayer();
+        this.hasFinished = true;
         this._gameController.setSpeed(0);
-        // TODO: show death animation
+        this._hidePlayerNameUI();
+        this._networkAnimationComponent.startAnimation("Death", {from: 60});
+        this._changePlayerView();
+
+        const networkHost = this.scene.game.networkInstance as NetworkHost;
+        networkHost.sendToAllClients(`onKillPlayer${this.entity.id}`);
     }
 
     public stopPlayer(): void {
+        this.hasFinished = true;
+        this._gameController.setSpeed(0);
         this._networkAnimationComponent.startAnimation("Idle", {loop: true});
         this.velocity.x = 0;
         this._physicsAggregate.body.setLinearVelocity(this.velocity);
+        this._hidePlayerNameUI();
+        this._changePlayerView();
+
+        const networkHost = this.scene.game.networkInstance as NetworkHost;
+        networkHost.sendToAllClients(`onStopPlayer${this.entity.id}`);
+    }
+
+    private _killClientRpc(): void {
+        this.hasFinished = true;
+        this._hidePlayerNameUI();
+        if (this._isOwner) this._gameController.setSpeed(0);
+        this._changePlayerView();
+    }
+
+    private _stopPlayerClientRpc(): void {
+        this.hasFinished = true;
+        if (this._isOwner) this._gameController.setSpeed(0);
+        this._hidePlayerNameUI();
+        this._changePlayerView();
+    }
+
+    private _updateSpeedUI(velocityX: number): void {
+        // OWNER
+        if (this._isOwner && !this.hasFinished) {
+            this._gameController.setSpeed(velocityX * 100 / this._maxSpeed);
+        }
+
+        // HOST
+        if (this.scene.game.networkInstance.isHost) {
+            const networkHost = this.scene.game.networkInstance as NetworkHost;
+            networkHost.sendToAllClients(`setSpeed${this.entity.id}`, velocityX);
+        }
+    }
+
+    private _changePlayerView(): void {
+        const playerCamera: Entity = this.scene.entityManager.getFirstEntityByTag("playerCamera")!;
+        const cameraMovementComponent = playerCamera.getComponent("CameraMovement") as CameraMovement;
+        setTimeout((): void => {
+            cameraMovementComponent.changePlayerView();
+        }, 3000);
+    }
+
+    public playRandomReactionAnimation(isWin: boolean): void {
+        const randomDelay: number = Utils.randomInt(0, 1000);
+        setTimeout((): void => {
+            if (isWin) {
+                const random: number = Utils.randomInt(0, 1);
+                if (random === 0) this._networkAnimationComponent.startAnimation("Celebration", {loop: true, smoothTransition: true});
+                else this._networkAnimationComponent.startAnimation("TakeTheL", {loop: true, smoothTransition: true});
+            }
+            else {
+                this._networkAnimationComponent.startAnimation("Defeat", {loop: true, smoothTransition: true});
+            }
+        }, randomDelay);
     }
 }

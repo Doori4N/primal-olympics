@@ -33,6 +33,7 @@ export class GameScores implements IComponent {
     }
 
     public onStart(): void {
+        // CLIENT
         if (!this._networkInstance.isHost) {
             this._networkInstance.addEventListener("onSetPlayerScore", this._setPlayerScoreEvent);
             this._networkInstance.addEventListener("onUpdatePlayers", this._updatePlayersEvent);

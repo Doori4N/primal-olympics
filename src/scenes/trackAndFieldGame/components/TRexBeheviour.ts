@@ -3,7 +3,6 @@ import {IComponent} from "../../../core/IComponent";
 import {Entity} from "../../../core/Entity";
 import {Scene} from "../../../core/Scene";
 import {NetworkAnimationComponent} from "../../../network/components/NetworkAnimationComponent";
-import {RigidBodyComponent} from "../../../core/components/RigidBodyComponent";
 import {MeshComponent} from "../../../core/components/MeshComponent";
 import {PlayerBehaviour} from "./PlayerBehaviour";
 import {GameScores} from "./GameScores";
@@ -30,9 +29,6 @@ export class TRexBeheviour implements IComponent {
         this._networkAnimationComponent = this.entity.getComponent("NetworkAnimation") as NetworkAnimationComponent;
         this._networkAnimationComponent.startAnimation("Idle", {loop: true});
 
-        const rigidBodyComponent = this.entity.getComponent("RigidBody") as RigidBodyComponent;
-        rigidBodyComponent.setBodyPreStep(false);
-
         const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
         this._mesh = meshComponent.mesh;
 
@@ -51,6 +47,9 @@ export class TRexBeheviour implements IComponent {
     public onFixedUpdate(): void {
         if (!this._isGameStarted || this._isGameFinished) return;
 
+        if (!this.scene.game.networkInstance.isHost) return;
+
+        // HOST
         this._mesh.position.x += this._velocityX;
 
         if (!this._networkAnimationComponent.isPlaying("Attack")) {
@@ -59,7 +58,8 @@ export class TRexBeheviour implements IComponent {
     }
 
     public onDestroy(): void {
-        this._observer.remove();
+        // HOST
+        if (this.scene.game.networkInstance.isHost) this._observer.remove();
     }
 
     private _onGameStarted(): void {
@@ -68,7 +68,6 @@ export class TRexBeheviour implements IComponent {
 
     private _onGameFinished(): void {
         this._isGameFinished = true;
-        this._networkAnimationComponent.startAnimation("Idle", {loop: true});
     }
 
     private _onTriggerCollision(event: B.IBasePhysicsCollisionEvent): void {
@@ -84,6 +83,7 @@ export class TRexBeheviour implements IComponent {
                 // kill player
                 const playerEntity: Entity = this.scene.entityManager.getEntityById(collider.metadata.id);
                 const playerBehaviour = playerEntity.getComponent("PlayerBehaviour") as PlayerBehaviour;
+                if (playerBehaviour.hasFinished) return;
                 playerBehaviour.kill();
 
                 // set player score

@@ -27,9 +27,9 @@ export class Game {
 
     public miniGames: MiniGame[] = [
         {name: "Savage Soccer", isSelected: false, scene: "football", toPlay: false},
-        {name: "Stellar Storm", isSelected: true, scene: "meteorites", toPlay: true},
+        {name: "Stellar Storm", isSelected: false, scene: "meteorites", toPlay: false},
         {name: "Downhill Madness", isSelected: false, scene: "slope", toPlay: false},
-        {name: "T-Rex Track", isSelected: false, scene: "track-and-field", toPlay: false},
+        {name: "T-Rex Track", isSelected: true, scene: "track-and-field", toPlay: true},
     ];
     public rounds: number = 2;
 

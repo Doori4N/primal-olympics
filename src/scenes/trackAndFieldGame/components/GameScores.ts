@@ -4,6 +4,11 @@ import {Scene} from "../../../core/Scene";
 import {PlayerData} from "../../../network/types";
 import {NetworkInstance} from "../../../network/NetworkInstance";
 import {NetworkHost} from "../../../network/NetworkHost";
+import * as GUI from "@babylonjs/gui";
+import * as B from "@babylonjs/core";
+import {MeshComponent} from "../../../core/components/MeshComponent";
+import {PlayerBehaviour} from "./PlayerBehaviour";
+import {NetworkAnimationComponent} from "../../../network/components/NetworkAnimationComponent";
 
 export class GameScores implements IComponent {
     public name: string = "GameScores";
@@ -13,9 +18,11 @@ export class GameScores implements IComponent {
     // component properties
     private _scores: {playerData: PlayerData, position: number}[] = [];
     private readonly _networkInstance: NetworkInstance;
+    private _gui!: GUI.AdvancedDynamicTexture;
 
     // event listeners
     private _setPlayerScoreEvent = this.setPlayerScore.bind(this);
+    private _updatePlayersEvent = this._updatePlayersClientRpc.bind(this);
 
     constructor(entity: Entity, scene: Scene) {
         this.entity = entity;
@@ -27,9 +34,17 @@ export class GameScores implements IComponent {
         // CLIENT
         if (!this._networkInstance.isHost) {
             this._networkInstance.addEventListener("onSetPlayerScore", this._setPlayerScoreEvent);
+            this._networkInstance.addEventListener("onUpdatePlayers", this._updatePlayersEvent);
         }
 
-        this.scene.eventManager.subscribe("onMessageFinished", this._displayEventScores.bind(this));
+        this.scene.eventManager.subscribe("onMessageFinished", (): void => {
+            setTimeout((): void => {
+                this.scene.game.fadeIn((): void => {
+                    this.scene.entityManager.removeEntitiesByTag("t-rex");
+                    this._displayEventScores();
+                });
+            }, 3000);
+        });
     }
 
     public onUpdate(): void {}
@@ -37,9 +52,12 @@ export class GameScores implements IComponent {
     public onFixedUpdate(): void {}
 
     public onDestroy(): void {
+        this._gui.dispose();
+
         // CLIENT
         if (!this._networkInstance.isHost) {
             this._networkInstance.removeEventListener("onSetPlayerScore", this._setPlayerScoreEvent);
+            this._networkInstance.removeEventListener("onUpdatePlayers", this._updatePlayersEvent);
         }
     }
 
@@ -62,7 +80,10 @@ export class GameScores implements IComponent {
     }
 
     private _displayEventScores(): void {
-        this._scores.sort((a, b) => b.position - a.position);
+        this._scores.sort((a, b) => a.position - b.position);
+
+        this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene.babylonScene);
+        this._displayPlayerScores();
 
         // HOST
         if (this._networkInstance.isHost) {
@@ -73,9 +94,47 @@ export class GameScores implements IComponent {
             networkHost.sendToAllClients("onUpdatePlayers", {players: this._networkInstance.players});
         }
 
+        this.scene.game.soundManager.playSound("crowd-cheer", {fade: {from: 0, duration: 3000}});
+
         setTimeout((): void => {
-            this.scene.eventManager.notify("onDisplayLeaderboard");
-        }, 5000);
+            this.scene.game.fadeIn((): void => {
+                this.scene.eventManager.notify("onDisplayLeaderboard");
+                this.entity.removeComponent("GameScores");
+            });
+        }, 7500);
+    }
+
+    private _displayPlayerScores(): void {
+        const camera = new B.FreeCamera("scoreCamera", new B.Vector3(0, 3, -10), this.scene.babylonScene);
+        this.scene.babylonScene.switchActiveCamera(camera);
+
+        const player: Entity[] = this.scene.entityManager.getEntitiesByTag("player");
+        player.forEach((player: Entity): void => {
+            const playerMeshComponent = player.getComponent("Mesh") as MeshComponent;
+            const playerBehaviour = player.getComponent("PlayerBehaviour") as PlayerBehaviour;
+            const playerAnimationComponent = player.getComponent("NetworkAnimation") as NetworkAnimationComponent;
+            playerAnimationComponent.startAnimation("Idle", {loop: true});
+
+            const position: number = this._scores.findIndex((score): boolean => score.playerData.id === playerBehaviour.playerId);
+            playerMeshComponent.mesh.rotationQuaternion = new B.Quaternion(0, 1, 0, 0);
+            playerMeshComponent.mesh.position = new B.Vector3(position * 2 - (this._scores.length / 2), 1, 0);
+
+            playerBehaviour.showPlayerNameUI(22, 6, -180);
+
+            // player score text
+            const playerScoreText = new GUI.TextBlock();
+            playerScoreText.text = this._getPlayerPositionText(this._scores[position].position);
+            playerScoreText.color = "#22ff22";
+            playerScoreText.fontSize = 25;
+            playerScoreText.outlineColor = "black";
+            playerScoreText.outlineWidth = 6;
+            this._gui.addControl(playerScoreText);
+            playerScoreText.linkWithMesh(playerMeshComponent.mesh);
+            playerScoreText.linkOffsetY = 140;
+
+            const isWin: boolean = (position <= 3);
+            playerBehaviour.playRandomReactionAnimation(isWin);
+        });
     }
 
     private setPlayerMedals(): void {
@@ -93,6 +152,23 @@ export class GameScores implements IComponent {
                 default:
                     break;
             }
+        }
+    }
+
+    private _updatePlayersClientRpc(args: {players: PlayerData[]}): void {
+        this._networkInstance.players = args.players;
+    }
+
+    private _getPlayerPositionText(position: number): string {
+        switch (position) {
+            case 1:
+                return "1st";
+            case 2:
+                return "2nd";
+            case 3:
+                return "3rd";
+            default:
+                return `${position + 1}th`;
         }
     }
 }

@@ -5,6 +5,7 @@ import * as B from "@babylonjs/core";
 import {MeshComponent} from "../../../core/components/MeshComponent";
 import {Utils} from "../../../utils/Utils";
 import {CameraComponent} from "../../../core/components/CameraComponent";
+import {PlayerBehaviour} from "./PlayerBehaviour";
 
 export class CameraMovement implements IComponent {
     public name: string = "CameraMovement";
@@ -37,4 +38,22 @@ export class CameraMovement implements IComponent {
     }
 
     public onDestroy(): void {}
+
+    public changePlayerView(): void {
+        const currentPlayerBehaviour = this._player.getComponent("PlayerBehaviour") as PlayerBehaviour;
+        if (!currentPlayerBehaviour.hasFinished) return;
+
+        const players: Entity[] = this.scene.entityManager.getEntitiesByTag("player");
+
+        let nextPlayer: B.Nullable<Entity> = null;
+        for (let i: number = 0; i < players.length; i++) {
+            const playerBehaviour = players[i].getComponent("PlayerBehaviour") as PlayerBehaviour;
+            if (playerBehaviour.hasFinished) continue;
+            nextPlayer = players[i];
+        }
+
+        if (nextPlayer) {
+            this._player = nextPlayer;
+        }
+    }
 }

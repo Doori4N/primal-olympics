@@ -132,6 +132,7 @@ export class GameController implements IComponent {
         if (collider.metadata?.tag === "player" && collidedAgainst.metadata?.tag === "finishLine") {
             const playerEntity: Entity = this.scene.entityManager.getEntityById(collider.metadata.id);
             const playerBehaviour = playerEntity.getComponent("PlayerBehaviour") as PlayerBehaviour;
+            if (playerBehaviour.hasFinished) return;
             playerBehaviour.stopPlayer();
 
             // set player score

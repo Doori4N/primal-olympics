@@ -118,12 +118,12 @@ export class TrackAndFieldScene extends Scene {
     }
 
     private _createTRex(entityId?: string): void {
-        const ballEntity: Entity = this._createTRexEntity(entityId);
-        this.entityManager.addEntity(ballEntity);
+        const trexEntity: Entity = this._createTRexEntity(entityId);
+        this.entityManager.addEntity(trexEntity);
 
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;
-            networkHost.sendToAllClients("onCreateTRex", ballEntity.id);
+            networkHost.sendToAllClients("onCreateTRex", trexEntity.id);
         }
     }
 
@@ -201,12 +201,14 @@ export class TrackAndFieldScene extends Scene {
             isTrigger: true
         }));
 
+        // animations
         const animations: {[key: string]: B.AnimationGroup} = {};
         animations["Attack"] = Utils.getAnimationGroupByName(`Armature|TRex_Attack`, tRexContainer.animationGroups);
         animations["Idle"] = Utils.getAnimationGroupByName(`Armature|TRex_Idle`, tRexContainer.animationGroups);
         animations["Running"] = Utils.getAnimationGroupByName(`Armature|TRex_Run`, tRexContainer.animationGroups);
         tRexEntity.addComponent(new NetworkAnimationComponent(tRexEntity, this, {animations: animations}));
 
+        tRexEntity.addComponent(new NetworkTransformComponent(tRexEntity, this, {usePhysics: true}));
         tRexEntity.addComponent(new TRexBeheviour(tRexEntity, this));
 
         return tRexEntity;
@@ -259,6 +261,7 @@ export class TrackAndFieldScene extends Scene {
         animations["Celebration"] = Utils.getAnimationGroupByName(`Victory${playerEntity.id}`, entries.animationGroups);
         animations["Defeat"] = Utils.getAnimationGroupByName(`Defeat${playerEntity.id}`, entries.animationGroups);
         animations["TakeTheL"] = Utils.getAnimationGroupByName(`Loser${playerEntity.id}`, entries.animationGroups);
+        animations["Death"] = Utils.getAnimationGroupByName(`Dying${playerEntity.id}`, entries.animationGroups);
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
         playerEntity.addComponent(new NetworkTransformComponent(playerEntity, this, {usePhysics: true}));
@@ -266,7 +269,7 @@ export class TrackAndFieldScene extends Scene {
 
         if (this.game.networkInstance.playerId === playerData.id) {
             // follow camera
-            const mainCameraEntity = new Entity("camera");
+            const mainCameraEntity = new Entity("playerCamera");
             mainCameraEntity.addComponent(new CameraComponent(mainCameraEntity, this, {camera: this.mainCamera}));
             mainCameraEntity.addComponent(new CameraMovement(mainCameraEntity, this, {player: playerEntity}))
             this.entityManager.addEntity(mainCameraEntity);
