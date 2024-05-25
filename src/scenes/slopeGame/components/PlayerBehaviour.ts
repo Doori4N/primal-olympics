@@ -11,6 +11,7 @@ import {MeshComponent} from "../../../core/components/MeshComponent";
 import {NetworkHost} from "../../../network/NetworkHost";
 import {PlayerData} from "../../../network/types";
 
+
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";
     public entity: Entity;
@@ -154,6 +155,7 @@ export class PlayerBehaviour implements IComponent {
         if (!inputStates.buttons["jump"] || !this._isGrounded) return;
 
         this._networkAnimationComponent.startAnimation("Jumping", {from: 29});
+        this.scene.game.soundManager.playSound("jumpForest");
         this._velocity.y = 15;
         this._physicsAggregate.body.setLinearVelocity(this._velocity);
     }
@@ -161,6 +163,7 @@ export class PlayerBehaviour implements IComponent {
     private _animate(inputStates: InputStates): void {
         const isInputPressed: boolean = inputStates.direction.x !== 0 || inputStates.direction.y !== 0;
         if (isInputPressed) {
+            this.scene.game.soundManager.playSound("walkForest", {fade: {from: 0, duration: 5000}});
             this._networkAnimationComponent.startAnimation("Running", {loop: true, transitionSpeed: 0.12});
         }
         else {

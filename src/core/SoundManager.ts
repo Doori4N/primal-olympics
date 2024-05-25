@@ -46,6 +46,18 @@ export class SoundManager {
             sound: new Howl({src: ["sounds/crowd-cheer.flac"]}),
             baseVolume: 1
         }
+        this._sounds["nightForest"] = {
+            sound: new Howl({src: ["sounds/nightForest.wav"], loop: true}),
+            baseVolume: 1
+        }
+        this._sounds["jumpForest"] = {
+            sound: new Howl({src: ["sounds/jumpForest.wav"]}),
+            baseVolume: 0.3
+        }
+        this._sounds["walkForest"] = {
+            sound: new Howl({src: ["sounds/walkForest2.wav"]}),
+            baseVolume: 0.3
+        }
 
         const globalVolume: number = this.getGlobalVolume();
         this.setGlobalVolume(globalVolume);

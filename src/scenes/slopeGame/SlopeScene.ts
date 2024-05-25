@@ -84,6 +84,9 @@ export class SlopeScene extends Scene {
         const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.babylonScene);
         light.intensity = 0.7;
 
+        
+        this.game.soundManager.playSound("nightForest");
+
         this._createSlope();
         this._createInvisibleWalls(); // pour éviter que les joueurs/objets tombent sur les cotes de la pente
 
