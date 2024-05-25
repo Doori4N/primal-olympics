@@ -10,7 +10,6 @@ import {Commands, InputStates} from "../../core/types";
 import {PlayerBehaviour} from "./components/PlayerBehaviour";
 import {GamePresentation} from "../../core/components/GamePresentation";
 import {GameMessages} from "../../core/components/GameMessages";
-import {GameTimer} from "../../core/components/GameTimer";
 import {CameraComponent} from "../../core/components/CameraComponent";
 import {CameraAnimation} from "./components/CameraAnimation";
 import {FallingObjectController} from "./components/FallingObjectController";
@@ -45,7 +44,6 @@ export class SlopeScene extends Scene {
             this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerData: PlayerData, entityId: string}): void => {
                 this._createPlayer(args.playerData, args.entityId);
             });
-            this.game.networkInstance.addEventListener("onDestroyPlayer", this._destroyPlayerClientRpc.bind(this));
 
             // tell the host that the player is ready
             const networkClient = this.game.networkInstance as NetworkClient;
@@ -67,13 +65,7 @@ export class SlopeScene extends Scene {
     public start(): void {
         this.enablePhysics(new B.Vector3(0, -9.81, 0));
 
-        // camera
-        // this.mainCamera.position = new B.Vector3(0, -15, -60);
-        // this.mainCamera.setTarget(B.Vector3.Zero());
-        // this.mainCamera.attachControl(this.game.canvas, true);
-        // this.mainCamera.speed = 0.3;
-
-        //start animation
+        // start animation
         const cameraEntity = new Entity();
         const camera = new B.FreeCamera("camera", new B.Vector3(-15, 0, -100), this.babylonScene);
         cameraEntity.addComponent(new CameraComponent(cameraEntity, this, {camera: camera}));
@@ -85,7 +77,7 @@ export class SlopeScene extends Scene {
         light.intensity = 0.7;
 
         this._createSlope();
-        this._createInvisibleWalls(); // pour éviter que les joueurs/objets tombent sur les cotes de la pente
+        this._createInvisibleWalls();
 
         this._createGameManager();
 
@@ -93,6 +85,8 @@ export class SlopeScene extends Scene {
         const fallingObjectController = new Entity();
         fallingObjectController.addComponent(new FallingObjectController(fallingObjectController, this));
         this.entityManager.addEntity(fallingObjectController);
+
+        this._createDespawnZone();
 
         // finish line
         this._createFinishLine();
@@ -105,18 +99,18 @@ export class SlopeScene extends Scene {
 
     private _createInvisibleWalls(): void {
         // Dimensions et la position des murs
-        const wallHeight = 15;
-        const wallDepth = 1;
-        const wallWidth = 130;
-        const wallOffset = 16; // Distance par rapport au centre de la pente
-        const slopeInclination = -Math.PI / 10; // Inclinaison de la pente
+        const wallHeight: number = 15;
+        const wallDepth: number = 1;
+        const wallWidth: number = 130;
+        const wallOffset: number = 16;
+        const slopeInclination: number = -Math.PI / 10;
     
-        // Mur gauche
+        // left wall
         const leftWall = new Entity("leftWall");
         const leftWallMesh = B.MeshBuilder.CreateBox("leftWall", {width: wallDepth, height: wallHeight, depth: wallWidth}, this.babylonScene);
         leftWallMesh.position = new B.Vector3(-wallOffset - 1, wallHeight / 2, -0.40);
-        leftWallMesh.rotation = new B.Vector3(slopeInclination, 0, 0); // Incliner le mur gauche
-        leftWallMesh.visibility = 0; // Rendre le mur invisible
+        leftWallMesh.rotation = new B.Vector3(slopeInclination, 0, 0);
+        leftWallMesh.isVisible = false;
         leftWallMesh.metadata = {tag: leftWall.tag};
         leftWall.addComponent(new MeshComponent(leftWall, this, {mesh: leftWallMesh}));
         leftWall.addComponent(new RigidBodyComponent(leftWall, this, {
@@ -125,12 +119,12 @@ export class SlopeScene extends Scene {
         }));
         this.entityManager.addEntity(leftWall);
     
-        // Mur droit
+        // right wall
         const rightWall = new Entity("rightWall");
         const rightWallMesh = B.MeshBuilder.CreateBox("rightWall", {width: wallDepth, height: wallHeight, depth: wallWidth}, this.babylonScene);
         rightWallMesh.position = new B.Vector3(wallOffset - 0.3, wallHeight / 2, -0.40);
-        rightWallMesh.rotation = new B.Vector3(slopeInclination, 0, 0); // Incliner le mur droit dans le sens opposé
-        rightWallMesh.visibility = 0; // Rendre le mur invisible
+        rightWallMesh.rotation = new B.Vector3(slopeInclination, 0, 0);
+        rightWallMesh.isVisible = false;
         rightWallMesh.metadata = {tag: rightWall.tag};
         rightWall.addComponent(new MeshComponent(rightWall, this, {mesh: rightWallMesh}));
         rightWall.addComponent(new RigidBodyComponent(rightWall, this, {
@@ -139,12 +133,12 @@ export class SlopeScene extends Scene {
         }));
         this.entityManager.addEntity(rightWall);
 
-        // Mur arrière
+        // back wall
         const backWall = new Entity("backWall");
         const backWallMesh = B.MeshBuilder.CreateBox("backWall", {width: 40, height: wallHeight, depth: wallDepth}, this.babylonScene);
         backWallMesh.position = new B.Vector3(0, -6, -55);
         backWallMesh.metadata = {tag: backWall.tag};
-        backWallMesh.visibility = 0; // Rendre le mur invisible
+        backWallMesh.isVisible = false;
         backWall.addComponent(new MeshComponent(backWall, this, {mesh: backWallMesh}));
         backWall.addComponent(new RigidBodyComponent(backWall, this, {
             physicsShape: B.PhysicsShapeType.BOX,
@@ -158,8 +152,7 @@ export class SlopeScene extends Scene {
         const mapContainer: B.AssetContainer = this.loadedAssets["slopeMap"];
         mapContainer.addAllToScene();
         const slopeMap: B.Mesh = mapContainer.meshes[0] as B.Mesh;
-        //console.log(mapContainer.meshes);
-        //console.log(mapContainer.meshes[1] as B.Mesh); // terrain
+
         mapContainer.meshes.forEach((mesh: B.AbstractMesh): void => {
             mesh.receiveShadows = true;
         });
@@ -170,7 +163,7 @@ export class SlopeScene extends Scene {
         slopeMap.position.z = -30;
 
         const slopeMesh: B.Mesh = B.MeshBuilder.CreateGround("ground", {width: 34, height: 135.5}, this.babylonScene);
-        slopeMesh.rotation = new B.Vector3(-Math.PI / 10 - 0.123, 0, 0); // -Math.PI / 14 ou -Math.PI / 12 voir les potos
+        slopeMesh.rotation = new B.Vector3(-Math.PI / 10 - 0.123, 0, 0);
         slopeMesh.position.z = -2;
         slopeMesh.position.y = 4;
 
@@ -222,7 +215,6 @@ export class SlopeScene extends Scene {
         this.entityManager.addEntity(finishLine);
     }
 
-
     private _initPlayers(): void {
         const networkHost = this.game.networkInstance as NetworkHost;
         for (let i: number = 0; i < networkHost.players.length; i++) {
@@ -262,7 +254,7 @@ export class SlopeScene extends Scene {
         player.setParent(hitbox);
         player.position = new B.Vector3(0, -1, 0);
 
-        hitbox.position = new B.Vector3(0, 0, -50);
+        hitbox.position = new B.Vector3(0, -10, -50);
 
         // player skin colors
         Utils.applyColorsToMesh(player, playerData.skinOptions);
@@ -276,7 +268,7 @@ export class SlopeScene extends Scene {
         );
         playerEntity.addComponent(new RigidBodyComponent(playerEntity, this, {
             physicsShape: playerPhysicsShape,
-            physicsProps: {mass: 1}, // si on baisse le perso glisse moins mais on doit garder de la masse pour le saut 
+            physicsProps: {mass: 1},
             massProps: {inertia: new B.Vector3(0, 0, 0)},
             isCollisionCallbackEnabled: true
         }));
@@ -286,15 +278,18 @@ export class SlopeScene extends Scene {
         animations["Idle"] = Utils.getAnimationGroupByName(`Idle${playerEntity.id}`, entries.animationGroups);
         animations["Running"] = Utils.getAnimationGroupByName(`Running${playerEntity.id}`, entries.animationGroups);
         animations["Jumping"] = Utils.getAnimationGroupByName(`Jumping${playerEntity.id}`, entries.animationGroups);
+        animations["Celebration"] = Utils.getAnimationGroupByName(`Victory${playerEntity.id}`, entries.animationGroups);
+        animations["Defeat"] = Utils.getAnimationGroupByName(`Defeat${playerEntity.id}`, entries.animationGroups);
+        animations["TakeTheL"] = Utils.getAnimationGroupByName(`Loser${playerEntity.id}`, entries.animationGroups);
+        animations["Death"] = Utils.getAnimationGroupByName(`Dying${playerEntity.id}`, entries.animationGroups);
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
         playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
         playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerData: playerData}));
 
-        // Constructing a Follow Camera
         if (this.game.networkInstance.playerId === playerData.id) {
             // follow camera
-            const mainCameraEntity = new Entity("camera");
+            const mainCameraEntity = new Entity("playerCamera");
             mainCameraEntity.addComponent(new CameraComponent(mainCameraEntity, this, {camera: this.mainCamera}));
             mainCameraEntity.addComponent(new CameraMovement(mainCameraEntity, this, {player: playerEntity}));
             this.entityManager.addEntity(mainCameraEntity);
@@ -317,13 +312,22 @@ export class SlopeScene extends Scene {
         const gameManager = new Entity("gameManager");
         gameManager.addComponent(new GamePresentation(gameManager, this, {description, imgSrc, commands}));
         gameManager.addComponent(new GameMessages(gameManager, this));
-        gameManager.addComponent(new GameTimer(gameManager, this, {duration: 120}));
         gameManager.addComponent(new GameScores(gameManager, this));
         this.entityManager.addEntity(gameManager);
     }
 
-    private _destroyPlayerClientRpc(args: {entityId: string}): void {
-        const playerEntity: Entity = this.entityManager.getEntityById(args.entityId);
-        this.entityManager.removeEntity(playerEntity);
+    private _createDespawnZone(): void {
+        const despawnZone = new Entity("despawnZone");
+        const despawnMesh: B.Mesh = B.MeshBuilder.CreateBox("despawnZone", {width: 60, height: 40, depth: 1}, this.babylonScene);
+        despawnMesh.position = new B.Vector3(0, 0, -43);
+        despawnMesh.isVisible = false;
+        despawnMesh.metadata = {tag: despawnZone.tag};
+        despawnZone.addComponent(new MeshComponent(despawnZone, this, {mesh: despawnMesh}));
+        despawnZone.addComponent(new RigidBodyComponent(despawnZone, this, {
+            physicsShape: B.PhysicsShapeType.BOX,
+            physicsProps: {mass: 0},
+            isTrigger: true
+        }));
+        this.entityManager.addEntity(despawnZone);
     }
 }

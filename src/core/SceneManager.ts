@@ -1,5 +1,4 @@
 import {Scene} from "./Scene";
-import {CatchTheDodoScene} from "../scenes/catchTheDodo/CatchTheDodoScene";
 import {GameSelectionScene} from "../scenes/gameSelection/GameSelectionScene";
 import {GameOverScene} from "../scenes/gameOver/GameOverScene";
 import {MeteoritesScene} from "../scenes/meteoriteGame/MeteoritesScene";
@@ -88,8 +87,6 @@ export class SceneManager {
                 return new CharacterCustomizationScene();
             case "settings":
                 return new SettingsScene();
-            case "catch-the-dodo":
-                return new CatchTheDodoScene();
             case "meteorites":
                 return new MeteoritesScene();
             case "football":

@@ -5,7 +5,6 @@ import * as B from '@babylonjs/core';
 import { MeshComponent } from "../../../core/components/MeshComponent";
 import { RigidBodyComponent } from "../../../core/components/RigidBodyComponent";
 import {Utils} from "../../../utils/Utils";
-import {FallingObjectBehaviour} from "./FallingObjectBehaviour";
 import {NetworkTransformComponent} from "../../../network/components/NetworkTransformComponent";
 import {NetworkHost} from "../../../network/NetworkHost";
 
@@ -21,6 +20,11 @@ export class FallingObjectController implements IComponent {
 
     // component properties
     private _intervalId!: number;
+    private _observer!: B.Observer<B.IBasePhysicsCollisionEvent>;
+
+    // event listeners
+    private _onCreateFallingObjectEvent = this._spawnFallingObjectClientRpc.bind(this);
+    private _onDestroyFallingObjectEvent = this._destroyFallingObjectClientRpc.bind(this);
 
     constructor(entity: Entity, scene: Scene) {
         this.entity = entity;
@@ -30,12 +34,16 @@ export class FallingObjectController implements IComponent {
     public onStart(): void {
         // HOST
         if (this.scene.game.networkInstance.isHost) {
+            const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.physicsPlugin!.onTriggerCollisionObservable;
+            this._observer = observable.add(this._onTriggerCollision.bind(this));
+
             this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
             this.scene.eventManager.subscribe("onGameFinished", this._stopSpawning.bind(this));
         }
         // CLIENT
         else {
-            this.scene.game.networkInstance.addEventListener("onCreateFallingObject", this._spawnFallingObjectClientRpc.bind(this));
+            this.scene.game.networkInstance.addEventListener("onCreateFallingObject", this._onCreateFallingObjectEvent);
+            this.scene.game.networkInstance.addEventListener("onDestroyFallingObject", this._onDestroyFallingObjectEvent);
         }
     }
 
@@ -46,8 +54,13 @@ export class FallingObjectController implements IComponent {
     public onDestroy(): void {
         // HOST
         if (this.scene.game.networkInstance.isHost) {
+            this._observer.remove();
             this.scene.eventManager.unsubscribe("onGameStarted", this.startSpawning.bind(this));
             this.scene.eventManager.unsubscribe("onGameFinished", this._stopSpawning.bind(this));
+        }
+        else {
+           this.scene.game.networkInstance.removeEventListener("onCreateFallingObject", this._onCreateFallingObjectEvent);
+              this.scene.game.networkInstance.removeEventListener("onDestroyFallingObject", this._onDestroyFallingObjectEvent);
         }
     }
 
@@ -78,7 +91,7 @@ export class FallingObjectController implements IComponent {
     }
 
     private _createLog(position: B.Vector3): Entity {
-        const logEntity: Entity = new Entity("log");
+        const logEntity: Entity = new Entity("fallingObject");
     
         const entries: B.InstantiatedEntries = this.scene.loadedAssets["log"].instantiateModelsToScene(
             (sourceName: string): string => sourceName + logEntity.id,
@@ -94,7 +107,6 @@ export class FallingObjectController implements IComponent {
         logMesh.rotate(B.Axis.Z, Math.random() * Math.PI * 2, B.Space.WORLD);
     
         logEntity.addComponent(new MeshComponent(logEntity, this.scene, { mesh: logMesh }));
-        logEntity.addComponent(new FallingObjectBehaviour(logEntity, this.scene));
         const logPhysicsShape = new B.PhysicsShapeCylinder(
             new B.Vector3(-2, 0, 0),
             new B.Vector3(2, 0, 0),
@@ -112,7 +124,7 @@ export class FallingObjectController implements IComponent {
     
     
     private _createRock(position: B.Vector3): Entity {
-        const rockEntity: Entity = new Entity("rock");
+        const rockEntity: Entity = new Entity("fallingObject");
     
         const entries: B.InstantiatedEntries = this.scene.loadedAssets["rock"].instantiateModelsToScene(
             (sourceName: string): string => sourceName + rockEntity.id,
@@ -129,7 +141,6 @@ export class FallingObjectController implements IComponent {
         rockMesh.rotate(B.Axis.Z, Math.random() * Math.PI * 2, B.Space.WORLD);
     
         rockEntity.addComponent(new MeshComponent(rockEntity, this.scene, { mesh: rockMesh }));
-        rockEntity.addComponent(new FallingObjectBehaviour(rockEntity, this.scene));
         const rockPhysicsShape = new B.PhysicsShapeSphere(new B.Vector3(0, 0, 0), 0.5, this.scene.babylonScene);
         rockEntity.addComponent(new RigidBodyComponent(rockEntity, this.scene, {
             physicsShape: rockPhysicsShape,
@@ -151,9 +162,28 @@ export class FallingObjectController implements IComponent {
         });
     }
 
+    private _onTriggerCollision(collisionEvent: B.IBasePhysicsCollisionEvent): void {
+        if (collisionEvent.type !== B.PhysicsEventType.TRIGGER_ENTERED) return
+
+        const collidedAgainst: B.TransformNode = collisionEvent.collidedAgainst.transformNode;
+        const collider: B.TransformNode = collisionEvent.collider.transformNode;
+
+        if (collidedAgainst.metadata?.tag === "despawnZone" && collider.metadata?.tag === "fallingObject") {
+            const fallingObjectEntity: Entity = this.scene.entityManager.getEntityById(collider.metadata?.id);
+            this.scene.entityManager.removeEntity(fallingObjectEntity);
+            const networkHost = this.scene.game.networkInstance as NetworkHost;
+            networkHost.sendToAllClients("onDestroyFallingObject", {entityId: fallingObjectEntity.id});
+        }
+    }
+
     private _spawnFallingObjectClientRpc(info: {position: {x: number, y: number, z: number}, type: FallingObjectType, entityId: string}): void {
         const fallingObjectEntity: Entity = this._spawnFallingObject(new B.Vector3(info.position.x, info.position.y, info.position.z), info.type);
         fallingObjectEntity.id = info.entityId;
         this.scene.entityManager.addEntity(fallingObjectEntity);
+    }
+
+    private _destroyFallingObjectClientRpc(info: {entityId: string}): void {
+        const fallingObjectEntity: Entity = this.scene.entityManager.getEntityById(info.entityId);
+        this.scene.entityManager.removeEntity(fallingObjectEntity);
     }
 }

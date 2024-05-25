@@ -10,6 +10,7 @@ import {RigidBodyComponent} from "../../../core/components/RigidBodyComponent";
 import {MeshComponent} from "../../../core/components/MeshComponent";
 import {NetworkHost} from "../../../network/NetworkHost";
 import {PlayerData} from "../../../network/types";
+import {CameraMovement} from "./CameraMovement";
 
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";
@@ -20,8 +21,7 @@ export class PlayerBehaviour implements IComponent {
     public readonly playerId: string;
     public readonly playerData: PlayerData;
     private readonly _isOwner: boolean; // is the player the owner of the entity
-    protected _isGameStarted: boolean = false;
-    protected _isGameFinished: boolean = false;
+    private _isGameStarted: boolean = false;
     private _networkAnimationComponent!: NetworkAnimationComponent;
     private _networkPredictionComponent!: NetworkPredictionComponent<InputStates>;
     private _physicsAggregate!: B.PhysicsAggregate;
@@ -29,11 +29,17 @@ export class PlayerBehaviour implements IComponent {
     private _playerCollisionObserver!: B.Observer<B.IPhysicsCollisionEvent>;
     private _mesh!: B.Mesh;
     private _gui!: GUI.AdvancedDynamicTexture;
+    public hasFinished: boolean = false;
+    private _isDead: boolean = false;
 
     // movement
     private _speed: number = 5;
     private _velocity: B.Vector3 = B.Vector3.Zero();
     private _isGrounded: boolean = false;
+
+    // event listeners
+    private _onKillPlayerEvent = this._onKillPlayerClientRpc.bind(this);
+    private _onStopPlayerEvent = this._stopPlayerClientRpc.bind(this);
 
     constructor(entity: Entity, scene: Scene, props: {playerData: PlayerData}) {
         this.entity = entity;
@@ -60,17 +66,27 @@ export class PlayerBehaviour implements IComponent {
         const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
         this._mesh = meshComponent.mesh;
 
-        this._showPlayerNameUI();
+        this.showPlayerNameUI(18, 6, -180);
 
         // subscribe to game events
         this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
-        this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
+
+        // CLIENT
+        if (!this.scene.game.networkInstance.isHost) {
+            this.scene.game.networkInstance.addEventListener(`onKillPlayer${this.entity.id}`, this._onKillPlayerEvent);
+            this.scene.game.networkInstance.addEventListener(`onStopPlayer${this.entity.id}`, this._onStopPlayerEvent);
+        }
     }
 
     public onUpdate(): void {}
 
     public onFixedUpdate(): void {
-        if (!this._isGameStarted || this._isGameFinished) return;
+        if (this.hasFinished && !this._isDead) {
+            this._physicsAggregate.body.setLinearVelocity(B.Vector3.Zero());
+            return;
+        }
+
+        if (!this._isGameStarted || this._isDead) return;
         if (this.scene.game.networkInstance.isHost) this._handleServerUpdate();
         else this._handleClientUpdate();
     }
@@ -83,21 +99,26 @@ export class PlayerBehaviour implements IComponent {
             this._playerCollisionObserver.remove();
             this._playerCollisionEndedObserver.remove();
         }
+        // CLIENT
+        else {
+            this.scene.game.networkInstance.removeEventListener(`onKillPlayer${this.entity.id}`, this._onKillPlayerEvent);
+            this.scene.game.networkInstance.removeEventListener(`onStopPlayer${this.entity.id}`, this._onStopPlayerEvent);
+        }
     }
 
-    private _showPlayerNameUI(): void {
+    public showPlayerNameUI(fontSize: number, outline: number, offsetY: number): void {
         this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene.babylonScene);
 
         // player name text
         const playerNameText = new GUI.TextBlock();
         playerNameText.text = this.playerData.name;
         playerNameText.color = "#ff0000";
-        playerNameText.fontSize = 15;
+        playerNameText.fontSize = fontSize;
         playerNameText.outlineColor = "black";
-        playerNameText.outlineWidth = 5;
+        playerNameText.outlineWidth = outline;
         this._gui.addControl(playerNameText);
         playerNameText.linkWithMesh(this._mesh);
-        playerNameText.linkOffsetY = -60;
+        playerNameText.linkOffsetY = offsetY;
     }
 
     private _hidePlayerNameUI(): void {
@@ -194,12 +215,14 @@ export class PlayerBehaviour implements IComponent {
     private _onCollision(event: B.IBasePhysicsCollisionEvent): void {
         const collidedAgainst: B.TransformNode = event.collidedAgainst.transformNode;
 
+        if (this.hasFinished) return;
+
         if (event.type === B.PhysicsEventType.COLLISION_CONTINUED) {
             // player is on the ground
             if (collidedAgainst.metadata.tag === "slope" || collidedAgainst.metadata.tag === "platform") {
                 this._isGrounded = true;
             }
-            else if (collidedAgainst.metadata.tag === "rock" || collidedAgainst.metadata.tag === "log") {
+            else if (collidedAgainst.metadata.tag === "fallingObject") {
                 this.scene.entityManager.removeEntity(this.scene.entityManager.getEntityById(collidedAgainst.metadata.id));
                 this.kill();
             }
@@ -213,17 +236,61 @@ export class PlayerBehaviour implements IComponent {
     }
 
     public kill(): void {
-        // remove player entity
-        this.scene.entityManager.removeEntity(this.entity);
+        this.hasFinished = true;
+        this._isDead = true;
+        this._hidePlayerNameUI();
+        this._mesh.rotationQuaternion = new B.Quaternion(0, 0, 0, 0);
+        this._networkAnimationComponent.startAnimation("Death", {from: 60});
+        this._changePlayerView();
+
         const networkHost = this.scene.game.networkInstance as NetworkHost;
-        networkHost.sendToAllClients("onDestroyPlayer", {entityId: this.entity.id});
+        networkHost.sendToAllClients(`onKillPlayer${this.entity.id}`);
+
+        this._removeCollisionObservers();
+    }
+
+    private _onKillPlayerClientRpc(): void {
+        this.hasFinished = true;
+        this._isDead = true;
+        this._mesh.rotationQuaternion = new B.Quaternion(0, 0, 0, 0);
+        this._hidePlayerNameUI();
+        this._changePlayerView();
+    }
+
+    public stopPlayer(): void {
+        this.hasFinished = true;
+        this._mesh.rotationQuaternion = new B.Quaternion(0, 1, 0, 0);
+        this._velocity = B.Vector3.Zero();
+        this._networkAnimationComponent.startAnimation("Celebration", {loop: true});
+        this._hidePlayerNameUI();
+        this._changePlayerView();
+
+        const networkHost = this.scene.game.networkInstance as NetworkHost;
+        networkHost.sendToAllClients(`onStopPlayer${this.entity.id}`);
+    }
+
+    private _stopPlayerClientRpc(): void {
+        this.hasFinished = true;
+        this._mesh.rotationQuaternion = new B.Quaternion(0, 1, 0, 0);
+        this._velocity = B.Vector3.Zero();
+        this._hidePlayerNameUI();
+        this._changePlayerView();
+    }
+
+    private _removeCollisionObservers(): void {
+        this._playerCollisionEndedObserver.remove();
+        this._playerCollisionObserver.remove();
+    }
+
+    private _changePlayerView(): void {
+        const playerCamera: Entity = this.scene.entityManager.getFirstEntityByTag("playerCamera")!;
+        const cameraMovementComponent = playerCamera.getComponent("CameraMovement") as CameraMovement;
+        setTimeout((): void => {
+            cameraMovementComponent.changePlayerView();
+        }, 3000);
     }
 
     private _onGameStarted(): void {
         this._isGameStarted = true;
-    }
-
-    private _onGameFinished(): void {
-        this._isGameFinished = true;
     }
 }

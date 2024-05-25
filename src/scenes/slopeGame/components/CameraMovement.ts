@@ -5,6 +5,7 @@ import * as B from "@babylonjs/core";
 import {MeshComponent} from "../../../core/components/MeshComponent";
 import {Utils} from "../../../utils/Utils";
 import {CameraComponent} from "../../../core/components/CameraComponent";
+import {PlayerBehaviour} from "./PlayerBehaviour";
 
 export class CameraMovement implements IComponent {
     public name: string = "CameraMovement";
@@ -15,7 +16,8 @@ export class CameraMovement implements IComponent {
     private _camera!: B.FreeCamera;
     private _cameraSpeed: number = 0.1;
     private _player: Entity;
-    private _offsetZ: number = 7;
+    private _offsetZ: number = 9;
+    private _offsetY: number = 2;
 
     constructor(entity: Entity, scene: Scene, props: {player: Entity}) {
         this.entity = entity;
@@ -25,7 +27,7 @@ export class CameraMovement implements IComponent {
 
     public onStart(): void {
         const cameraComponent = this.entity.getComponent("Camera") as CameraComponent;
-        this._camera = cameraComponent.camera as B.FreeCamera; // Change the type to FreeCamera
+        this._camera = cameraComponent.camera;
     }
 
     public onUpdate(): void {}
@@ -35,9 +37,27 @@ export class CameraMovement implements IComponent {
         const playerMesh: B.Mesh = meshComponent.mesh;
 
         this._camera.position.x = Utils.lerp(this._camera.position.x, playerMesh.position.x, this._cameraSpeed);
-        this._camera.position.y = Utils.lerp(this._camera.position.y, playerMesh.position.y + 1, this._cameraSpeed);
-        this._camera.position.z = Utils.lerp(this._camera.position.z, playerMesh.position.z - this._offsetZ, this._cameraSpeed); // reculer cam 
+        this._camera.position.y = Utils.lerp(this._camera.position.y, playerMesh.position.y + this._offsetY, this._cameraSpeed);
+        this._camera.position.z = Utils.lerp(this._camera.position.z, playerMesh.position.z - this._offsetZ, this._cameraSpeed);
     }
 
     public onDestroy(): void {}
+
+    public changePlayerView(): void {
+        const currentPlayerBehaviour = this._player.getComponent("PlayerBehaviour") as PlayerBehaviour;
+        if (!currentPlayerBehaviour.hasFinished) return;
+
+        const players: Entity[] = this.scene.entityManager.getEntitiesByTag("player");
+
+        let nextPlayer: B.Nullable<Entity> = null;
+        for (let i: number = 0; i < players.length; i++) {
+            const playerBehaviour = players[i].getComponent("PlayerBehaviour") as PlayerBehaviour;
+            if (playerBehaviour.hasFinished) continue;
+            nextPlayer = players[i];
+        }
+
+        if (nextPlayer) {
+            this._player = nextPlayer;
+        }
+    }
 }

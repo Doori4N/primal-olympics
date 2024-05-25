@@ -2,7 +2,7 @@ import {IComponent} from "../../../core/IComponent";
 import {Entity} from "../../../core/Entity";
 import {Scene} from "../../../core/Scene";
 import * as B from "@babylonjs/core";
-import {NetworkHost} from "../../../network/NetworkHost";
+import {PlayerBehaviour} from "./PlayerBehaviour";
 
 export class GameScores implements IComponent {
     public name: string = "GameScores";
@@ -40,30 +40,12 @@ export class GameScores implements IComponent {
 
         const collidedAgainst: B.TransformNode = collisionEvent.collidedAgainst.transformNode;
         const collider: B.TransformNode = collisionEvent.collider.transformNode;
-        const networkHost = this.scene.game.networkInstance as NetworkHost;
 
         // handle collision with finishline
-        if (collidedAgainst.metadata.tag === "finishLine" && collider.metadata.tag === "player") {
-            console.log("player finished the game!");
+        if (collidedAgainst.metadata?.tag === "finishLine" && collider.metadata?.tag === "player") {
             const playerEntity: Entity = this.scene.entityManager.getEntityById(collider.metadata.id);
-            this.scene.entityManager.removeEntity(playerEntity);
-            networkHost.sendToAllClients("onDestroyPlayer", {entityId: playerEntity.id});
+            const playerBehaviour = playerEntity.getComponent("PlayerBehaviour") as PlayerBehaviour;
+            playerBehaviour.stopPlayer();
         }
-
-         // ground collision
-        if (collidedAgainst.metadata.tag === "log" && collider.metadata.tag === "slope") {
-            console.log("buche dans tes morts a pas touche le sol ptn de t mort");
-        }
-
-        // handle collision with log or rock
-        if (collidedAgainst.metadata.tag === "player" && (collider.metadata.tag === "log" || collider.metadata.tag === "rock")) {
-            console.log("player hit an obstacle!");
-            const playerEntity: Entity = this.scene.entityManager.getEntityById(collidedAgainst.metadata.id);
-            this.scene.entityManager.removeEntity(playerEntity);
-            networkHost.sendToAllClients("onDestroyPlayer", {entityId: playerEntity.id});
-
-            // update player score
-        } 
-        
     }
 }
