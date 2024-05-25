@@ -302,7 +302,7 @@ export class PlayerBehaviour implements IComponent {
             this._physicsAggregate.body.setLinearVelocity(B.Vector3.Zero());
             this._mesh.position.z = -45;
             this._mesh.position.y = -13;
-        }, 3600);
+        }, 4000);
     }
 
     public playRandomReactionAnimation(isWin: boolean): void {

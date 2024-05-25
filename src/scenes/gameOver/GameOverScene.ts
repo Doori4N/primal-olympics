@@ -12,5 +12,9 @@ export class GameOverScene extends Scene {
             <h1>Game Over</h1>
         `;
         this.game.uiContainer.appendChild(gameOverDiv);
+
+        setTimeout((): void => {
+            this.sceneManager.changeScene("menu");
+        }, 3000);
     }
 }
