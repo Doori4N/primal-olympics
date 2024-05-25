@@ -163,11 +163,15 @@ export class PlayerBehaviour implements IComponent {
     private _animate(inputStates: InputStates): void {
         const isInputPressed: boolean = inputStates.direction.x !== 0 || inputStates.direction.y !== 0;
         if (isInputPressed) {
-            this.scene.game.soundManager.playSound("walkForest", {fade: {from: 0, duration: 5000}});
+            //this.scene.game.soundManager.playSound("walkForest"); 
+            // a revoir bug kalash
+            this.scene.game.soundManager.stopSound("respiration");
             this._networkAnimationComponent.startAnimation("Running", {loop: true, transitionSpeed: 0.12});
         }
         else {
+            // meme soucis que walkinforest car le son est appeler trop de fois et donc ca fait un bruit de fond de kalash 
             this._networkAnimationComponent.startAnimation("Idle", {loop: true});
+            this.scene.game.soundManager.playSound("respiration"); 
         }
     }
 
