@@ -31,7 +31,7 @@ export class MeteoriteController implements IComponent {
     public onStart(): void {
         this._shadowMaterial = new B.StandardMaterial("shadowMat", this.scene.babylonScene);
         this._shadowMaterial.diffuseColor = new B.Color3(0, 0, 0);
-        this._shadowMaterial.alpha = 0.5;
+        this._shadowMaterial.alpha = 0.35;
         this._shadowMaterial.zOffset = -1;
 
         // HOST
@@ -104,6 +104,10 @@ export class MeteoriteController implements IComponent {
             {doNotInstantiate: true}
         );
         const meteorite: B.Mesh = entries.rootNodes[0] as B.Mesh;
+
+        // color
+        const meteoriteMaterial = meteorite.getChildMeshes()[0].material as B.PBRMaterial;
+        meteoriteMaterial.emissiveColor.r = 7 / 255;
 
         meteorite.scaling = new B.Vector3(0.5, 0.3, 0.5);
         meteorite.metadata = {tag: meteoriteEntity.tag, id: meteoriteEntity.id};

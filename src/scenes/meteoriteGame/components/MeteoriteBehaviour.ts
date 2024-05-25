@@ -3,6 +3,9 @@ import {Entity} from "../../../core/Entity";
 import {Scene} from "../../../core/Scene";
 import {MeshComponent} from "../../../core/components/MeshComponent";
 import * as B from '@babylonjs/core';
+import {Utils} from "../../../utils/Utils";
+
+const MIN_HEIGHT: number = 10;
 
 export class MeteoriteBehaviour implements IComponent {
     public name: string = "MeteoriteBehaviour";
@@ -28,6 +31,8 @@ export class MeteoriteBehaviour implements IComponent {
         this._shadow = B.MeshBuilder.CreateDisc("shadow", {radius: 1.5, tessellation: 0}, this.scene.babylonScene);
         this._shadow.position = shadowPosition;
         this._shadow.rotation.x = Math.PI / 2;
+        this._shadow.scaling.x = MIN_HEIGHT / this._meteoriteMesh.position.y;
+        this._shadow.scaling.y = MIN_HEIGHT / this._meteoriteMesh.position.y;
 
         // color
         this._shadow.material = this._shadowMaterial;
@@ -36,6 +41,8 @@ export class MeteoriteBehaviour implements IComponent {
     public onUpdate(): void {}
 
     public onFixedUpdate(): void {
+        this._scaleShadow();
+
         if (!this.scene.game.networkInstance.isHost) return;
 
         // HOST
@@ -44,5 +51,13 @@ export class MeteoriteBehaviour implements IComponent {
 
     public onDestroy(): void {
         this._shadow.dispose();
+    }
+
+    private _scaleShadow(): void {
+        let scale: number;
+        if (this._meteoriteMesh.position.y <= MIN_HEIGHT) scale = 1;
+        else scale = MIN_HEIGHT / this._meteoriteMesh.position.y;
+        this._shadow.scaling.x = Utils.lerp(this._shadow.scaling.x, scale, .1);
+        this._shadow.scaling.y = Utils.lerp(this._shadow.scaling.y, scale, .1);
     }
 }
