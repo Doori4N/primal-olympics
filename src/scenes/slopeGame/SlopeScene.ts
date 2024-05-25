@@ -18,6 +18,7 @@ import { CameraMovement } from './components/CameraMovement';
 import {PlayerData} from "../../network/types";
 import {NetworkClient} from "../../network/NetworkClient";
 import {Utils} from "../../utils/Utils";
+import {Leaderboard} from "../../core/components/Leaderboard";
 
 export class SlopeScene extends Scene {
     constructor() {
@@ -313,6 +314,7 @@ export class SlopeScene extends Scene {
         gameManager.addComponent(new GamePresentation(gameManager, this, {description, imgSrc, commands}));
         gameManager.addComponent(new GameMessages(gameManager, this));
         gameManager.addComponent(new GameScores(gameManager, this));
+        gameManager.addComponent(new Leaderboard(gameManager, this));
         this.entityManager.addEntity(gameManager);
     }
 

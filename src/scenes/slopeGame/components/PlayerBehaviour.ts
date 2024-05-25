@@ -11,6 +11,7 @@ import {MeshComponent} from "../../../core/components/MeshComponent";
 import {NetworkHost} from "../../../network/NetworkHost";
 import {PlayerData} from "../../../network/types";
 import {CameraMovement} from "./CameraMovement";
+import {Utils} from "../../../utils/Utils";
 
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";
@@ -70,6 +71,7 @@ export class PlayerBehaviour implements IComponent {
 
         // subscribe to game events
         this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
+        this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
 
         // CLIENT
         if (!this.scene.game.networkInstance.isHost) {
@@ -225,6 +227,7 @@ export class PlayerBehaviour implements IComponent {
             else if (collidedAgainst.metadata.tag === "fallingObject") {
                 this.scene.entityManager.removeEntity(this.scene.entityManager.getEntityById(collidedAgainst.metadata.id));
                 this.kill();
+                this.scene.eventManager.notify("onAddPlayerScore", this.playerData, this._mesh.position.z);
             }
         }
         else if (event.type === B.PhysicsEventType.COLLISION_FINISHED) {
@@ -292,5 +295,27 @@ export class PlayerBehaviour implements IComponent {
 
     private _onGameStarted(): void {
         this._isGameStarted = true;
+    }
+
+    private _onGameFinished(): void {
+        setTimeout((): void => {
+            this._physicsAggregate.body.setLinearVelocity(B.Vector3.Zero());
+            this._mesh.position.z = -45;
+            this._mesh.position.y = -13;
+        }, 3600);
+    }
+
+    public playRandomReactionAnimation(isWin: boolean): void {
+        const randomDelay: number = Utils.randomInt(0, 1000);
+        setTimeout((): void => {
+            if (isWin) {
+                const random: number = Utils.randomInt(0, 3);
+                if (random === 0) this._networkAnimationComponent.startAnimation("TakeTheL", {loop: true, smoothTransition: true});
+                else this._networkAnimationComponent.startAnimation("Celebration", {loop: true, smoothTransition: true});
+            }
+            else {
+                this._networkAnimationComponent.startAnimation("Defeat", {loop: true, smoothTransition: true});
+            }
+        }, randomDelay);
     }
 }
