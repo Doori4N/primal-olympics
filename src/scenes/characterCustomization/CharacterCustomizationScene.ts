@@ -13,7 +13,7 @@ export class CharacterCustomizationScene extends Scene {
     private _categoryIndex: number = 0;
     private _skinUIColors: string[] = ["#9d6d59", "#895f4d", "#725042", "#895144", "#593f34", "#593e37", "#5f2a2a","#3f2e27", "#2f2420", "#24242b"];
     private _hairUIColors: string[] = ["#FFFFFF", "#731a1a", "#803413", "#8b7214", "#356218", "#175058", "#162056", "#44175a", "#551633", "#2f2f2f","#302021", "#1c1c1c"];
-    private _outfitUIColors: string[] = ["#583e26","#502f20", "#803413", "#953d27", "#731a1a", "#8b7214", "#356218", "#18291d", "#76252e", "#992c30", "#582331", "#351e2e"];
+    private _outfitUIColors: string[] = ["#583e26","#502f20", "#351e2e", "#582331", "#76252e", "#992c30", "#731a1a", "#803413", "#953d27", "#8b7214", "#356218", "#18291d"];
 
     constructor() {
         super("Character Customization");

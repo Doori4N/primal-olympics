@@ -3,9 +3,9 @@ import {AstarNode} from "./types";
 import * as B from "@babylonjs/core";
 import {SkinOptions} from "../core/types";
 
-const _skinColors: string[] = ["#FFFFFF", "#DEDEDE", "#B9B9B9" ,"#D3A28F", "#8F8E8E", "#847671","#8D2F2F" ,"#626262", "#454545", "#000000"];
+const _skinColors: string[] = ["#FFFFFF", "#DEDEDE", "#B9B9B9" ,"#D3A28F", "#8F8E8E", "#847671","#8D2F2F" ,"#626262", "#454545", "#252525"];
 const _hairColors: string[] = ["#FFFFFF", "#B62323", "#C24E14", "#D5AD14", "#51991D", "#197481", "#192C81", "#611981", "#81194A", "#474747","#482E2E", "#252525"];
-const _outfitColors: string[] = ["#B3E5FC", "#7A7D00", "#FFFFFF", "#FFA400", "#A23F3F", "#C4FF00", "#4EDC3C", "#00B5FF", "#C900FF", "#FA0BEE", "#860BFA", "#4B07FF"];
+const _outfitColors: string[] = ["#B3E5FC", "#7A7D00", "#4B07FF", "#860BFA", "#C900FF", "#FA0BEE", "#A23F3F", "#FFFFFF", "#FFA400", "#C4FF00", "#4EDC3C", "#00B5FF"];
 
 export class Utils {
     /**
