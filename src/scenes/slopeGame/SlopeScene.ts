@@ -26,6 +26,8 @@ export class SlopeScene extends Scene {
     }
 
     public async preload(): Promise<void> {
+        this.game.engine.displayLoadingUI();
+
         // HOST
         // wait for all players to be ready
         if (this.game.networkInstance.isHost) {
@@ -45,13 +47,7 @@ export class SlopeScene extends Scene {
             this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerData: PlayerData, entityId: string}): void => {
                 this._createPlayer(args.playerData, args.entityId);
             });
-
-            // tell the host that the player is ready
-            const networkClient = this.game.networkInstance as NetworkClient;
-            networkClient.sendToHost("onPlayerReady");
         }
-
-        this.game.engine.displayLoadingUI();
 
         // load assets
         this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
@@ -93,10 +89,16 @@ export class SlopeScene extends Scene {
         this._createDespawnZone();
         this._createFinishLine();
 
-        if (!this.game.networkInstance.isHost) return;
-
+        // CLIENT
+        if (!this.game.networkInstance.isHost) {
+            // tell the host that the player is ready
+            const networkClient = this.game.networkInstance as NetworkClient;
+            networkClient.sendToHost("onPlayerReady");
+        }
         // HOST
-        this._initPlayers();
+        else {
+            this._initPlayers();
+        }
     }
 
     private _createInvisibleWalls(): void {

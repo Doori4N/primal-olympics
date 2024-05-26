@@ -77,13 +77,21 @@ export class TRexBeheviour implements IComponent {
         const collidedAgainst: B.TransformNode = event.collidedAgainst.transformNode;
 
         if (collider.metadata?.tag === "player" && collidedAgainst.metadata?.tag === "t-rex") {
+            const playerEntity: Entity = this.scene.entityManager.getEntityById(collider.metadata.id);
+            const playerMeshComponent = playerEntity.getComponent("Mesh") as MeshComponent;
+            const playerMesh: B.Mesh = playerMeshComponent.mesh;
+
+            const playerBehaviour = playerEntity.getComponent("PlayerBehaviour") as PlayerBehaviour;
+            if (playerBehaviour.hasFinished) return;
+
+            // rotate t-rex towards player
+            const rotationY: number = Math.atan2(playerMesh.position.z - this._mesh.position.z, -(playerMesh.position.x - this._mesh.position.x)) - Math.PI / 2;
+            this._mesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, rotationY, 0);
+
             this._networkAnimationComponent.startAnimation("Attack");
 
             setTimeout((): void => {
                 // kill player
-                const playerEntity: Entity = this.scene.entityManager.getEntityById(collider.metadata.id);
-                const playerBehaviour = playerEntity.getComponent("PlayerBehaviour") as PlayerBehaviour;
-                if (playerBehaviour.hasFinished) return;
                 playerBehaviour.kill();
 
                 // set player score
@@ -91,6 +99,10 @@ export class TRexBeheviour implements IComponent {
                 const gameScores = gameManagerEntity.getComponent("GameScores") as GameScores;
                 gameScores.setPlayerScore(playerBehaviour.playerData);
             }, 700);
+
+            setTimeout((): void => {
+                this._mesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, Math.PI / 2, 0);
+            }, 1500);
         }
     }
 }

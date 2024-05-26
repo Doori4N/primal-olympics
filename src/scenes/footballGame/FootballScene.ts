@@ -59,6 +59,8 @@ export class FootballScene extends Scene {
     }
 
     public async preload(): Promise<void> {
+        this.game.engine.displayLoadingUI();
+        
         // HOST
         // wait for all players to be ready
         if (this.game.networkInstance.isHost) {
@@ -83,13 +85,7 @@ export class FootballScene extends Scene {
             this.game.networkInstance.addEventListener("onCreateAIPlayer", (args: {id: string, teamIndex: number}): void => {
                 this._createAIPlayer(args.teamIndex, B.Vector2.Zero(), args.id);
             });
-
-            // tell the host that the player is ready
-            const networkClient = this.game.networkInstance as NetworkClient;
-            networkClient.sendToHost("onPlayerReady");
         }
-
-        this.game.engine.displayLoadingUI();
 
         // load assets
         this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
@@ -141,13 +137,19 @@ export class FootballScene extends Scene {
 
         this.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
 
-        if (!this.game.networkInstance.isHost) return;
-
+        // CLIENT
+        if (!this.game.networkInstance.isHost) {
+            // tell the host that the player is ready
+            const networkClient = this.game.networkInstance as NetworkClient;
+            networkClient.sendToHost("onPlayerReady");
+        }
         // HOST
-        this._createGameManager();
-        this._createBall();
-        this._initPlayers();
-        this._initAIPlayers();
+        else {
+            this._createGameManager();
+            this._createBall();
+            this._initPlayers();
+            this._initAIPlayers();
+        }
     }
 
     private _createFootballPitch(): void {

@@ -27,6 +27,8 @@ export class TrackAndFieldScene extends Scene {
     }
 
     public async preload(): Promise<void> {
+        this.game.engine.displayLoadingUI();
+
         // HOST
         // wait for all players to be ready
         if (this.game.networkInstance.isHost) {
@@ -44,21 +46,16 @@ export class TrackAndFieldScene extends Scene {
         else {
             // listen to onCreateEntity events
             this.game.networkInstance.addEventListener("onCreateTRex", this._createTRex.bind(this));
-            this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerData: PlayerData, entityId: string}): void => {
-                this._createPlayer(args.playerData, args.entityId);
+            this.game.networkInstance.addEventListener("onCreatePlayer", (args: {playerData: PlayerData, index: number, entityId: string}): void => {
+                this._createPlayer(args.playerData, args.index, args.entityId);
             });
-
-            // tell the host that the player is ready
-            const networkClient = this.game.networkInstance as NetworkClient;
-            networkClient.sendToHost("onPlayerReady");
         }
-
-        this.game.engine.displayLoadingUI();
 
         // load assets
         this.loadedAssets["caveman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "caveman.glb", this.babylonScene);
         this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
         this.loadedAssets["t-rex"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "t-rex.glb", this.babylonScene);
+        this.loadedAssets["map"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "trackScene.glb", this.babylonScene);
 
         this.game.engine.hideLoadingUI();
     }
@@ -68,8 +65,7 @@ export class TrackAndFieldScene extends Scene {
 
         // camera
         this.mainCamera.setTarget(B.Vector3.Zero());
-        this.mainCamera.attachControl(this.game.canvas, true);
-        this.mainCamera.position = new B.Vector3(0, 10, -20);
+        this.mainCamera.position = new B.Vector3(0, 11, -15);
 
         // start animation
         const cameraEntity = new Entity();
@@ -82,16 +78,7 @@ export class TrackAndFieldScene extends Scene {
         const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.babylonScene);
         light.intensity = 0.7;
 
-        // ground
-        const groundEntity = new Entity("ground");
-        const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: 60, height: 15}, this.babylonScene);
-        ground.metadata = {tag: groundEntity.tag};
-        groundEntity.addComponent(new MeshComponent(groundEntity, this, {mesh: ground}));
-        groundEntity.addComponent(new RigidBodyComponent(groundEntity, this, {
-            physicsShape: B.PhysicsShapeType.BOX,
-            physicsProps: {mass: 0}
-        }));
-        this.entityManager.addEntity(groundEntity);
+        this._createGround();
 
         // gameManager
         const gameManager = this._createGameManagerEntity();
@@ -99,9 +86,9 @@ export class TrackAndFieldScene extends Scene {
 
         // finish line
         const finishLineEntity = new Entity("finishLine");
-        const finishLine: B.Mesh = B.MeshBuilder.CreateBox("finishLine", {width: 1, height: 5, depth: 15}, this.babylonScene);
+        const finishLine: B.Mesh = B.MeshBuilder.CreateBox("finishLine", {width: 1, height: 5, depth: 20}, this.babylonScene);
         finishLine.metadata = {tag: finishLineEntity.tag};
-        finishLine.position = new B.Vector3(20, 2.5, 0);
+        finishLine.position = new B.Vector3(140, 2.5, 8);
         finishLineEntity.addComponent(new MeshComponent(finishLineEntity, this, {mesh: finishLine}));
         finishLineEntity.addComponent(new RigidBodyComponent(finishLineEntity, this, {
             physicsShape: B.PhysicsShapeType.BOX,
@@ -110,11 +97,45 @@ export class TrackAndFieldScene extends Scene {
         }));
         this.entityManager.addEntity(finishLineEntity);
 
-        if (!this.game.networkInstance.isHost) return;
-
+        // CLIENT
+        if (!this.game.networkInstance.isHost) {
+            // tell the host that the player is ready
+            const networkClient = this.game.networkInstance as NetworkClient;
+            networkClient.sendToHost("onPlayerReady");
+        }
         // HOST
-        this._createTRex();
-        this._initPlayers();
+        else {
+            this._createTRex();
+            this._initPlayers();
+        }
+    }
+
+    private _createGround(): void {
+        for (let i: number = 0; i < 3; i++) {
+            this._createTrack(new B.Vector3(i * 100.795 - 50, 0, 0));
+        }
+
+        const groundEntity = new Entity("ground");
+        const ground: B.GroundMesh = B.MeshBuilder.CreateGround("ground", {width: 400, height: 40}, this.babylonScene);
+        ground.position.x = 150;
+        ground.position.z = 10;
+        ground.metadata = {tag: groundEntity.tag};
+        ground.isVisible = false;
+        groundEntity.addComponent(new MeshComponent(groundEntity, this, {mesh: ground}));
+        groundEntity.addComponent(new RigidBodyComponent(groundEntity, this, {
+            physicsShape: B.PhysicsShapeType.BOX,
+            physicsProps: {mass: 0}
+        }));
+        this.entityManager.addEntity(groundEntity);
+    }
+
+    private _createTrack(position: B.Vector3): void {
+        const mapContainer: B.AssetContainer = this.loadedAssets["map"];
+        const entries: B.InstantiatedEntries = mapContainer.instantiateModelsToScene(undefined, true, {doNotInstantiate: true});
+        const mapMesh = entries.rootNodes[0] as B.Mesh;
+        mapMesh.scaling.scaleInPlace(0.2);
+        mapMesh.rotate(B.Axis.Y, -Math.PI / 2, B.Space.WORLD);
+        mapMesh.position = position;
     }
 
     private _createTRex(entityId?: string): void {
@@ -155,18 +176,18 @@ export class TrackAndFieldScene extends Scene {
         const networkHost = this.game.networkInstance as NetworkHost;
         for (let i: number = 0; i < networkHost.players.length; i++) {
             const playerData: PlayerData = networkHost.players[i];
-            this._createPlayer(playerData);
+            this._createPlayer(playerData, i);
         }
     }
 
-    private _createPlayer(playerData: PlayerData, entityId?: string): void {
-        const playerEntity: Entity = this._createPlayerEntity(playerData, entityId);
+    private _createPlayer(playerData: PlayerData, index: number, entityId?: string): void {
+        const playerEntity: Entity = this._createPlayerEntity(playerData, index, entityId);
         this.entityManager.addEntity(playerEntity);
 
         // HOST
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;
-            networkHost.sendToAllClients("onCreatePlayer", {playerData: playerData, entityId: playerEntity.id});
+            networkHost.sendToAllClients("onCreatePlayer", {playerData: playerData, index: index, entityId: playerEntity.id});
         }
     }
 
@@ -184,14 +205,14 @@ export class TrackAndFieldScene extends Scene {
         tRex.position = new B.Vector3(0, -4, 0);
 
         hitbox.rotate(B.Axis.Y, Math.PI / 2, B.Space.WORLD);
-        hitbox.position = new B.Vector3(-20, 4, 0);
+        hitbox.position = new B.Vector3(-20, 4, 6.5);
 
         tRexEntity.addComponent(new MeshComponent(tRexEntity, this, {mesh: hitbox}));
 
         const playerPhysicsShape = new B.PhysicsShapeBox(
             new B.Vector3(0, 0, 0),
             new B.Quaternion(0, 0, 0, 1),
-            new B.Vector3(10, 8, 10),
+            new B.Vector3(15, 8, 10),
             this.babylonScene
         );
         tRexEntity.addComponent(new RigidBodyComponent(tRexEntity, this, {
@@ -214,7 +235,7 @@ export class TrackAndFieldScene extends Scene {
         return tRexEntity;
     }
 
-    private _createPlayerEntity(playerData: PlayerData, entityId?: string): Entity {
+    private _createPlayerEntity(playerData: PlayerData, index: number, entityId?: string): Entity {
         let playerContainer: B.AssetContainer;
         if (playerData.skinOptions.modelIndex === 0) {
             playerContainer = this.loadedAssets["caveman"];
@@ -235,6 +256,7 @@ export class TrackAndFieldScene extends Scene {
         player.position = new B.Vector3(0, -1, 0);
 
         hitbox.position.y = 1;
+        hitbox.position.z = 1.75 * index * 7;
         hitbox.rotate(B.Axis.Y, Math.PI / 2, B.Space.WORLD);
 
         // player skin colors
