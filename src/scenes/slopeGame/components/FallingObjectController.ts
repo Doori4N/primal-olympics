@@ -37,7 +37,7 @@ export class FallingObjectController implements IComponent {
             const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.physicsPlugin!.onTriggerCollisionObservable;
             this._observer = observable.add(this._onTriggerCollision.bind(this));
 
-            this.scene.eventManager.subscribe("onGameStarted", this.startSpawning.bind(this));
+            this.scene.eventManager.subscribe("onCameraAnimationFinished", this._startSpawning.bind(this));
             this.scene.eventManager.subscribe("onGameFinished", this._stopSpawning.bind(this));
         }
         // CLIENT
@@ -55,7 +55,7 @@ export class FallingObjectController implements IComponent {
         // HOST
         if (this.scene.game.networkInstance.isHost) {
             this._observer.remove();
-            this.scene.eventManager.unsubscribe("onGameStarted", this.startSpawning.bind(this));
+            this.scene.eventManager.unsubscribe("onCameraAnimationFinished", this._startSpawning.bind(this));
             this.scene.eventManager.unsubscribe("onGameFinished", this._stopSpawning.bind(this));
         }
         else {
@@ -64,9 +64,9 @@ export class FallingObjectController implements IComponent {
         }
     }
 
-    private startSpawning(): void {
+    private _startSpawning(): void {
         this._intervalId = setInterval((): void => {
-            const randomPosition: B.Vector3 = new B.Vector3(Utils.randomInt(-14, 13), 35, Utils.randomInt(40,50)); // 18
+            const randomPosition: B.Vector3 = new B.Vector3(Utils.randomInt(-14, 13), 35, Utils.randomInt(40,50));
             const randomType: FallingObjectType = Utils.randomInt(0, 1);
             const fallingObjectEntity: Entity = this._spawnFallingObject(randomPosition, randomType);
             this.scene.entityManager.addEntity(fallingObjectEntity);

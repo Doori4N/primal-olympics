@@ -91,12 +91,7 @@ export class SlopeScene extends Scene {
         this.entityManager.addEntity(fallingObjectController);
 
         this._createDespawnZone();
-
-        // finish line
         this._createFinishLine();
-
-        // Create podium
-        this._createPodium();
 
         if (!this.game.networkInstance.isHost) return;
 
@@ -155,66 +150,66 @@ export class SlopeScene extends Scene {
 
     }
 
-    private _createPodium(): void {
-        // Create podium base dimensions
-        const podiumBaseWidth = 6;
-        const podiumBaseDepth = 2;
-
-        // Stage heights
-        const stage1Height = 1;
-        const stage2Height = 0.75;
-        const stage3Height = 0.5;
-
-        // Stage positions
-        const stage1Position = new B.Vector3(0, stage1Height / 2-14.5, -48);
-        const stage2Position = new B.Vector3(-podiumBaseWidth, stage2Height / 2-14.5, -48);
-        const stage3Position = new B.Vector3(podiumBaseWidth, stage3Height / 2-14.5, -48);
-
-        // Create stage 1
-        const podium1 = new Entity("podium");
-        const stage1 = B.MeshBuilder.CreateBox("stage1", {width: podiumBaseWidth, height: stage1Height, depth: podiumBaseDepth}, this.babylonScene);
-        stage1.position = stage1Position;
-        stage1.metadata = {tag: podium1.tag};
-        stage1.material = new B.StandardMaterial("stage1Mat", this.babylonScene);
-        (stage1.material as B.StandardMaterial).diffuseColor = new B.Color3(1, 0.8, 0); // Gold color
-        podium1.addComponent(new MeshComponent(podium1, this, {mesh: stage1}));
-        podium1.addComponent(new RigidBodyComponent(podium1, this, {
-            physicsShape: B.PhysicsShapeType.BOX,
-            physicsProps: {mass: 0}
-        }));
-
-        this.entityManager.addEntity(podium1);
-
-        // Create stage 2
-        const podium2 = new Entity("podium");
-        const stage2 = B.MeshBuilder.CreateBox("stage2", {width: podiumBaseWidth, height: stage2Height, depth: podiumBaseDepth}, this.babylonScene);
-        stage2.position = stage2Position;
-        stage2.metadata = {tag: podium2.tag};
-        stage2.material = new B.StandardMaterial("stage2Mat", this.babylonScene);
-        (stage2.material as B.StandardMaterial).diffuseColor = new B.Color3(0.75, 0.75, 0.75); // Silver color
-        podium2.addComponent(new MeshComponent(podium2, this, {mesh: stage2}));
-        podium2.addComponent(new RigidBodyComponent(podium2, this, {
-            physicsShape: B.PhysicsShapeType.BOX,
-            physicsProps: {mass: 0}
-        }));
-
-        this.entityManager.addEntity(podium2);
-
-        // Create stage 3
-        const podium3 = new Entity("podium");
-        const stage3 = B.MeshBuilder.CreateBox("stage3", {width: podiumBaseWidth, height: stage3Height, depth: podiumBaseDepth}, this.babylonScene);
-        stage3.position = stage3Position;
-        stage3.metadata = {tag: podium3.tag};
-        stage3.material = new B.StandardMaterial("stage3Mat", this.babylonScene);
-        (stage3.material as B.StandardMaterial).diffuseColor = new B.Color3(0.8, 0.5, 0.2); // Bronze color
-        podium3.addComponent(new MeshComponent(podium3, this, {mesh: stage3}));
-        podium3.addComponent(new RigidBodyComponent(podium3, this, {
-            physicsShape: B.PhysicsShapeType.BOX,
-            physicsProps: {mass: 0}
-        }));
-
-        this.entityManager.addEntity(podium3);
-    }
+    // private _createPodium(): void {
+    //     const podiumBaseWidth: number = 6;
+    //     const podiumBaseDepth: number = 2;
+    //
+    //     const stage1Height: number = 1;
+    //     const stage2Height: number = 0.75;
+    //     const stage3Height: number = 0.5;
+    //
+    //     const stage1Position = new B.Vector3(0, stage1Height / 2-14.5, -48);
+    //     const stage2Position = new B.Vector3(-podiumBaseWidth, stage2Height / 2-14.5, -48);
+    //     const stage3Position = new B.Vector3(podiumBaseWidth, stage3Height / 2-14.5, -48);
+    //
+    //     // stage 1
+    //     const podium1 = new Entity("podium");
+    //     const stage1: B.Mesh = B.MeshBuilder.CreateBox("stage1", {width: podiumBaseWidth, height: stage1Height, depth: podiumBaseDepth}, this.babylonScene);
+    //     stage1.position = stage1Position;
+    //     stage1.metadata = {tag: podium1.tag};
+    //     const goldMaterial = new B.StandardMaterial("stage1Mat", this.babylonScene);
+    //     goldMaterial.diffuseColor = new B.Color3(1, 0.8, 0);
+    //     stage1.material = goldMaterial;
+    //     podium1.addComponent(new MeshComponent(podium1, this, {mesh: stage1}));
+    //     podium1.addComponent(new RigidBodyComponent(podium1, this, {
+    //         physicsShape: B.PhysicsShapeType.BOX,
+    //         physicsProps: {mass: 0}
+    //     }));
+    //
+    //     this.entityManager.addEntity(podium1);
+    //
+    //     // stage 2
+    //     const podium2 = new Entity("podium");
+    //     const stage2: B.Mesh = B.MeshBuilder.CreateBox("stage2", {width: podiumBaseWidth, height: stage2Height, depth: podiumBaseDepth}, this.babylonScene);
+    //     stage2.position = stage2Position;
+    //     stage2.metadata = {tag: podium2.tag};
+    //     const silverMaterial = new B.StandardMaterial("stage2Mat", this.babylonScene);
+    //     silverMaterial.diffuseColor = new B.Color3(0.75, 0.75, 0.75);
+    //     stage2.material = silverMaterial;
+    //     podium2.addComponent(new MeshComponent(podium2, this, {mesh: stage2}));
+    //     podium2.addComponent(new RigidBodyComponent(podium2, this, {
+    //         physicsShape: B.PhysicsShapeType.BOX,
+    //         physicsProps: {mass: 0}
+    //     }));
+    //
+    //     this.entityManager.addEntity(podium2);
+    //
+    //     // stage 3
+    //     const podium3 = new Entity("podium");
+    //     const stage3 = B.MeshBuilder.CreateBox("stage3", {width: podiumBaseWidth, height: stage3Height, depth: podiumBaseDepth}, this.babylonScene);
+    //     stage3.position = stage3Position;
+    //     stage3.metadata = {tag: podium3.tag};
+    //     const bronzeMaterial = new B.StandardMaterial("stage3Mat", this.babylonScene);
+    //     bronzeMaterial.diffuseColor = new B.Color3(0.8, 0.5, 0.2);
+    //     stage3.material = bronzeMaterial;
+    //     podium3.addComponent(new MeshComponent(podium3, this, {mesh: stage3}));
+    //     podium3.addComponent(new RigidBodyComponent(podium3, this, {
+    //         physicsShape: B.PhysicsShapeType.BOX,
+    //         physicsProps: {mass: 0}
+    //     }));
+    //
+    //     this.entityManager.addEntity(podium3);
+    // }
     
     private _createSlope(): void {
         const slopeEntity = new Entity("slope");

@@ -12,6 +12,7 @@ import {NetworkHost} from "../../../network/NetworkHost";
 import {PlayerData} from "../../../network/types";
 import {CameraMovement} from "./CameraMovement";
 import {Utils} from "../../../utils/Utils";
+import {SoundManager} from "../../../core/SoundManager";
 
 
 export class PlayerBehaviour implements IComponent {
@@ -33,18 +34,17 @@ export class PlayerBehaviour implements IComponent {
     private _gui!: GUI.AdvancedDynamicTexture;
     public hasFinished: boolean = false;
     private _isDead: boolean = false;
+    private _soundManager!: SoundManager;
 
     // movement
     private _speed: number = 5;
     private _velocity: B.Vector3 = B.Vector3.Zero();
     private _isGrounded: boolean = false;
-    private _isWalkingSoundPlaying: boolean = false;
-    private _isBreathingSoundPlaying: boolean = false;
-
 
     // event listeners
     private _onKillPlayerEvent = this._onKillPlayerClientRpc.bind(this);
     private _onStopPlayerEvent = this._stopPlayerClientRpc.bind(this);
+    private _onPlaySoundEvent = this._onPlaySoundClientRpc.bind(this);
 
     constructor(entity: Entity, scene: Scene, props: {playerData: PlayerData}) {
         this.entity = entity;
@@ -68,6 +68,8 @@ export class PlayerBehaviour implements IComponent {
             this._playerCollisionEndedObserver = this._physicsAggregate.body.getCollisionEndedObservable().add(this._onCollision.bind(this));
         }
 
+        this._soundManager = this.scene.game.soundManager;
+
         const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
         this._mesh = meshComponent.mesh;
 
@@ -81,6 +83,10 @@ export class PlayerBehaviour implements IComponent {
         if (!this.scene.game.networkInstance.isHost) {
             this.scene.game.networkInstance.addEventListener(`onKillPlayer${this.entity.id}`, this._onKillPlayerEvent);
             this.scene.game.networkInstance.addEventListener(`onStopPlayer${this.entity.id}`, this._onStopPlayerEvent);
+
+            if (this._isOwner) {
+                this.scene.game.networkInstance.addEventListener(`onPlaySound${this.entity.id}`, this._onPlaySoundEvent);
+            }
         }
     }
 
@@ -109,6 +115,10 @@ export class PlayerBehaviour implements IComponent {
         else {
             this.scene.game.networkInstance.removeEventListener(`onKillPlayer${this.entity.id}`, this._onKillPlayerEvent);
             this.scene.game.networkInstance.removeEventListener(`onStopPlayer${this.entity.id}`, this._onStopPlayerEvent);
+
+            if (this._isOwner) {
+                this.scene.game.networkInstance.removeEventListener(`onPlaySound${this.entity.id}`, this._onPlaySoundEvent);
+            }
         }
     }
 
@@ -181,7 +191,14 @@ export class PlayerBehaviour implements IComponent {
         if (!inputStates.buttons["jump"] || !this._isGrounded) return;
 
         this._networkAnimationComponent.startAnimation("Jumping", {from: 29});
-        this.scene.game.soundManager.playSound("jumpForest");
+        if (this._isOwner) {
+            this._soundManager.playSound("jump");
+        }
+        else {
+            const networkHost = this.scene.game.networkInstance as NetworkHost;
+            networkHost.sendToAllClients(`onPlaySound${this.entity.id}`, "jump");
+        }
+
         this._velocity.y = 15;
         this._physicsAggregate.body.setLinearVelocity(this._velocity);
     }
@@ -190,28 +207,17 @@ export class PlayerBehaviour implements IComponent {
         const isInputPressed: boolean = inputStates.direction.x !== 0 || inputStates.direction.y !== 0;
     
         if (isInputPressed) {
-            if (this._isBreathingSoundPlaying) {
-                this.scene.game.soundManager.stopSound("respiration");
-                this._isBreathingSoundPlaying = false;
-            }
-            if (!this._isWalkingSoundPlaying) {
-                this.scene.game.soundManager.playSound("walkForest");
-                this._isWalkingSoundPlaying = true;
+            if (this._soundManager.isPlaying("breath") && this._isOwner) {
+                this._soundManager.stopSound("breath");
             }
             this._networkAnimationComponent.startAnimation("Running", {loop: true, transitionSpeed: 0.12});
         } else {
-            if (this._isWalkingSoundPlaying) {
-                this.scene.game.soundManager.stopSound("walkForest");
-                this._isWalkingSoundPlaying = false;
-            }
-            if (!this._isBreathingSoundPlaying) {
-                this.scene.game.soundManager.playSound("respiration");
-                this._isBreathingSoundPlaying = true;
+            if (!this._soundManager.isPlaying("breath") && this._isOwner) {
+                this._soundManager.playSound("breath");
             }
             this._networkAnimationComponent.startAnimation("Idle", {loop: true});
         }
     }
-    
 
     /**
      * Set the linear velocity of the player according to his inputs
@@ -234,6 +240,10 @@ export class PlayerBehaviour implements IComponent {
     private _applyPredictedInput(inputs: InputStates): void {
         this._movePlayer(inputs);
         this.scene.simulate([this._physicsAggregate.body]);
+    }
+
+    private _onPlaySoundClientRpc(sound: string): void {
+        this._soundManager.playSound(sound);
     }
 
     private _onCollision(event: B.IBasePhysicsCollisionEvent): void {
@@ -266,6 +276,7 @@ export class PlayerBehaviour implements IComponent {
         this._hidePlayerNameUI();
         this._mesh.rotationQuaternion = new B.Quaternion(0, 0, 0, 0);
         this._networkAnimationComponent.startAnimation("Death", {from: 60});
+        if (this._isOwner) this._soundManager.playSound("death");
         this._changePlayerView();
 
         const networkHost = this.scene.game.networkInstance as NetworkHost;
@@ -278,6 +289,7 @@ export class PlayerBehaviour implements IComponent {
         this.hasFinished = true;
         this._isDead = true;
         this._mesh.rotationQuaternion = new B.Quaternion(0, 0, 0, 0);
+        if (this._isOwner) this._soundManager.playSound("death");
         this._hidePlayerNameUI();
         this._changePlayerView();
     }
@@ -324,7 +336,7 @@ export class PlayerBehaviour implements IComponent {
             this._physicsAggregate.body.setLinearVelocity(B.Vector3.Zero());
             this._mesh.position.z = -45;
             this._mesh.position.y = -13;
-        }, 4000);
+        }, 6000);
     }
 
     public playRandomReactionAnimation(isWin: boolean): void {

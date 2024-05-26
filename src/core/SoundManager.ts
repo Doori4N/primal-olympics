@@ -46,35 +46,35 @@ export class SoundManager {
         }
         this._sounds["crowd-cheer"] = {
             sound: new Howl({src: ["sounds/crowd-cheer.flac"]}),
-            baseVolume: 1
+            baseVolume: 0.8
         }
         this._sounds["nightForest"] = {
             sound: new Howl({src: ["sounds/nightForest.wav"], loop: true}),
             baseVolume: 1
         }
-        this._sounds["jumpForest"] = {
+        this._sounds["jump"] = {
             sound: new Howl({src: ["sounds/jumpForest.wav"]}),
             baseVolume: 0.3
         }
-        this._sounds["walkForest"] = {
-            sound: new Howl({
-                src: ["sounds/walkForest.wav"],
-                loop: true
-            }),
-            baseVolume: 0.3
-        }
-        this._sounds["respiration"] = {
+        this._sounds["breath"] = {
             sound: new Howl({
                 src: ["sounds/respirationForest.wav"],
                 loop: true
             }),
             baseVolume: 0.3
         }
+        this._sounds["death"] = {
+            sound: new Howl({src: ["sounds/death.mp3"]}),
+            baseVolume: 0.2
+        }
     }
 
     public setGlobalVolume(volume: number): void {
         Howler.volume(volume);
         localStorage.setItem("globalVolume", volume.toString());
+        for (const sound in this._sounds) {
+            this._sounds[sound].sound.volume(this._sounds[sound].baseVolume);
+        }
     }
 
     public getGlobalVolume(): number {
@@ -105,5 +105,9 @@ export class SoundManager {
         }
 
         sound.stop();
+    }
+
+    public isPlaying(name: string): boolean {
+        return this._sounds[name].sound.playing();
     }
 }
