@@ -13,6 +13,7 @@ import {PlayerData} from "../../../network/types";
 import {CameraMovement} from "./CameraMovement";
 import {Utils} from "../../../utils/Utils";
 
+
 export class PlayerBehaviour implements IComponent {
     public name: string = "PlayerBehaviour";
     public entity: Entity;
@@ -37,6 +38,9 @@ export class PlayerBehaviour implements IComponent {
     private _speed: number = 5;
     private _velocity: B.Vector3 = B.Vector3.Zero();
     private _isGrounded: boolean = false;
+    private _isWalkingSoundPlaying: boolean = false;
+    private _isBreathingSoundPlaying: boolean = false;
+
 
     // event listeners
     private _onKillPlayerEvent = this._onKillPlayerClientRpc.bind(this);
@@ -177,19 +181,37 @@ export class PlayerBehaviour implements IComponent {
         if (!inputStates.buttons["jump"] || !this._isGrounded) return;
 
         this._networkAnimationComponent.startAnimation("Jumping", {from: 29});
+        this.scene.game.soundManager.playSound("jumpForest");
         this._velocity.y = 15;
         this._physicsAggregate.body.setLinearVelocity(this._velocity);
     }
 
     private _animate(inputStates: InputStates): void {
         const isInputPressed: boolean = inputStates.direction.x !== 0 || inputStates.direction.y !== 0;
+    
         if (isInputPressed) {
+            if (this._isBreathingSoundPlaying) {
+                this.scene.game.soundManager.stopSound("respiration");
+                this._isBreathingSoundPlaying = false;
+            }
+            if (!this._isWalkingSoundPlaying) {
+                this.scene.game.soundManager.playSound("walkForest");
+                this._isWalkingSoundPlaying = true;
+            }
             this._networkAnimationComponent.startAnimation("Running", {loop: true, transitionSpeed: 0.12});
-        }
-        else {
+        } else {
+            if (this._isWalkingSoundPlaying) {
+                this.scene.game.soundManager.stopSound("walkForest");
+                this._isWalkingSoundPlaying = false;
+            }
+            if (!this._isBreathingSoundPlaying) {
+                this.scene.game.soundManager.playSound("respiration");
+                this._isBreathingSoundPlaying = true;
+            }
             this._networkAnimationComponent.startAnimation("Idle", {loop: true});
         }
     }
+    
 
     /**
      * Set the linear velocity of the player according to his inputs

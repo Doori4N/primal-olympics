@@ -48,6 +48,28 @@ export class SoundManager {
             sound: new Howl({src: ["sounds/crowd-cheer.flac"]}),
             baseVolume: 1
         }
+        this._sounds["nightForest"] = {
+            sound: new Howl({src: ["sounds/nightForest.wav"], loop: true}),
+            baseVolume: 1
+        }
+        this._sounds["jumpForest"] = {
+            sound: new Howl({src: ["sounds/jumpForest.wav"]}),
+            baseVolume: 0.3
+        }
+        this._sounds["walkForest"] = {
+            sound: new Howl({
+                src: ["sounds/walkForest.wav"],
+                loop: true
+            }),
+            baseVolume: 0.3
+        }
+        this._sounds["respiration"] = {
+            sound: new Howl({
+                src: ["sounds/respirationForest.wav"],
+                loop: true
+            }),
+            baseVolume: 0.3
+        }
     }
 
     public setGlobalVolume(volume: number): void {
