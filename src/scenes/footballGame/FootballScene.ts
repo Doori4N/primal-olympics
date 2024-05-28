@@ -135,6 +135,9 @@ export class FootballScene extends Scene {
         this._createEdge(new B.Vector3((-PITCH_WIDTH / 2) - 0.5, 1.5, -8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
         this._createEdge(new B.Vector3((-PITCH_WIDTH / 2) - 0.5, 1.5, 8.5), new B.Vector3(0, Math.PI / 2, 0), (PITCH_HEIGHT / 2) - 3);
 
+        // supporters
+        this._createSupporters();
+
         this.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
 
         // CLIENT
@@ -163,6 +166,37 @@ export class FootballScene extends Scene {
         }
 
         super.destroy();
+    }
+
+    private _createSupporters(): void {
+        const supportersContainer: B.AssetContainer = this.loadedAssets["caveman"];
+        const supporterPositions: B.Vector3[] = [
+            new B.Vector3(0.46, 0, 16.50),
+            new B.Vector3(15.81, 0, 14.12),
+            new B.Vector3(13.21, 0, 18.06),
+            new B.Vector3(9.37, 0, 18.73),
+            new B.Vector3(-9.92, 0, 17.41),
+            new B.Vector3(-6.21, 0, 18.05)
+        ];
+
+        supporterPositions.forEach((position: B.Vector3): void => {
+            this._duplicateSupporter(supportersContainer, position);
+        });
+    }
+
+    private _duplicateSupporter(container: B.AssetContainer, position: B.Vector3): void {
+        const randomId: string = Utils.randomInt(10000, 20000).toString();
+        const entries: B.InstantiatedEntries = container.instantiateModelsToScene((sourceName: string): string => sourceName + randomId, true, {doNotInstantiate: true});
+        const supporter = entries.rootNodes[0] as B.Mesh;
+
+        const animation: B.AnimationGroup = entries.animationGroups.find((animationGroup: B.AnimationGroup): boolean => animationGroup.name === `Victory${randomId}`)!;
+        setTimeout((): void => {
+            animation.start(true);
+        }, Utils.randomInt(0, 5000));
+
+        supporter.scaling.scaleInPlace(0.25);
+        supporter.position = position;
+        supporter.rotate(B.Axis.Y, Math.PI, B.Space.WORLD);
     }
 
     private _createFootballPitch(): void {
@@ -302,13 +336,6 @@ export class FootballScene extends Scene {
         gameManager.addComponent(new GameScores(gameManager, this));
         gameManager.addComponent(new Leaderboard(gameManager, this));
 
-        // audio
-        // const sounds: {[key: string]: B.Sound} = {};
-        // sounds["Crowd"] = new B.Sound("crowd_reaction", "sounds/crowd_reaction.wav", this.babylonScene, null, {loop: false, autoplay: false});
-        // sounds["Whistle"] = new B.Sound("whistle", "sounds/whistle.wav", this.babylonScene, null, {loop: false, autoplay: false});
-        // sounds["CrowdAmbience"] = new B.Sound("crowd_ambience", "sounds/crowd_ambience.wav", this.babylonScene, null, {loop: true, autoplay: true, volume: 0});
-        // gameManager.addComponent(new NetworkAudioComponent(gameManager, this, {sounds}));
-
         return gameManager;
     }
 
@@ -411,11 +438,6 @@ export class FootballScene extends Scene {
         animations["TakeTheL"] = Utils.getAnimationGroupByName(`Loser${playerEntity.id}`, entries.animationGroups);
         playerEntity.addComponent(new NetworkAnimationComponent(playerEntity, this, {animations: animations}));
 
-        // audio
-        // const sounds: {[key: string]: B.Sound} = {};
-        // sounds["Kick"] = new B.Sound("soccer_ball_kick", "sounds/soccer_ball_kick.wav", this.babylonScene, null, {loop: false, autoplay: false});
-        // playerEntity.addComponent(new NetworkAudioComponent(playerEntity, this, {sounds}));
-
         playerEntity.addComponent(new NetworkPredictionComponent<InputStates>(playerEntity, this, {usePhysics: true}));
         playerEntity.addComponent(new PlayerBehaviour(playerEntity, this, {playerData: playerData, teamIndex: teamIndex}));
 
@@ -484,11 +506,6 @@ export class FootballScene extends Scene {
         animations["Tackling"] = Utils.getAnimationGroupByName(`Soccer_Tackle${aiPlayerEntity.id}`, entries.animationGroups);
         animations["Tackle_Reaction"] = Utils.getAnimationGroupByName(`Soccer_Tackle_React${aiPlayerEntity.id}`, entries.animationGroups);
         aiPlayerEntity.addComponent(new NetworkAnimationComponent(aiPlayerEntity, this, {animations: animations}));
-
-        // audio
-        // const sounds: {[key: string]: B.Sound} = {};
-        // sounds["Kick"] = new B.Sound("soccer_ball_kick", "sounds/soccer_ball_kick.wav", this.babylonScene, null, {loop: false, autoplay: false});
-        // aiPlayerEntity.addComponent(new NetworkAudioComponent(aiPlayerEntity, this, {sounds}));
 
         aiPlayerEntity.addComponent(new NetworkTransformComponent(aiPlayerEntity, this, {usePhysics: true}));
         aiPlayerEntity.addComponent(new AIPlayerBehaviour(aiPlayerEntity, this, {

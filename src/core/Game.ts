@@ -26,9 +26,9 @@ export class Game {
     private _timer: number = 0; // Timer to keep track of the time passed since the last tick
 
     public miniGames: MiniGame[] = [
-        {name: "Savage Soccer", isSelected: false, scene: "football", toPlay: false},
+        {name: "Savage Soccer", isSelected: true, scene: "football", toPlay: true},
         {name: "Stellar Storm", isSelected: false, scene: "meteorites", toPlay: false},
-        {name: "Downhill Madness", isSelected: true, scene: "slope", toPlay: true},
+        {name: "Downhill Madness", isSelected: false, scene: "slope", toPlay: false},
         {name: "T-Rex Track", isSelected: false, scene: "track-and-field", toPlay: false},
     ];
     public rounds: number = 2;

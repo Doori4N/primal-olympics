@@ -6,7 +6,6 @@ import {BallBehaviour} from "../BallBehaviour";
 import {Scene} from "../../../../core/Scene";
 import {RigidBodyComponent} from "../../../../core/components/RigidBodyComponent";
 import {NetworkAnimationComponent} from "../../../../network/components/NetworkAnimationComponent";
-import {NetworkAudioComponent} from "../../../../network/components/NetworkAudioComponent";
 import {NetworkHost} from "../../../../network/NetworkHost";
 
 export abstract class AbstractPlayerBehaviour implements IComponent {
@@ -17,7 +16,6 @@ export abstract class AbstractPlayerBehaviour implements IComponent {
     protected _isGameFinished: boolean = false;
     protected _isGamePaused: boolean = false;
     protected _networkAnimationComponent!: NetworkAnimationComponent;
-    protected _networkAudioComponent!: NetworkAudioComponent;
     protected _rigidBodyComponent!: RigidBodyComponent;
     protected _physicsAggregate!: B.PhysicsAggregate;
     protected _mesh!: B.Mesh;
@@ -63,8 +61,6 @@ export abstract class AbstractPlayerBehaviour implements IComponent {
 
         this._networkAnimationComponent = this.entity.getComponent("NetworkAnimation") as NetworkAnimationComponent;
         this._networkAnimationComponent.startAnimation("Idle");
-
-        this._networkAudioComponent = this.entity.getComponent("NetworkAudio") as NetworkAudioComponent;
 
         this._rigidBodyComponent = this.entity.getComponent("RigidBody") as RigidBodyComponent;
         this._physicsAggregate = this._rigidBodyComponent.physicsAggregate;

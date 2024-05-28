@@ -67,6 +67,48 @@ export class SoundManager {
             sound: new Howl({src: ["sounds/death.mp3"]}),
             baseVolume: 0.2
         }
+        this._sounds["crowd"] = {
+            sound: new Howl({
+                src: ["sounds/crowd_reaction.wav"],
+                sprite: {reaction: [3500, 5500]}
+            }),
+            baseVolume: 0.5
+        }
+        this._sounds["whistle"] = {
+            sound: new Howl({
+                src: ["sounds/whistle.wav"],
+                sprite: {
+                    simpleWhistle: [9000, 1000],
+                    longWhistle: [3000, 1500]
+                }
+            }),
+            baseVolume: 0.5
+        }
+        this._sounds["crowd-ambience"] = {
+            sound: new Howl({src: ["sounds/crowd_ambience.wav"], loop: true}),
+            baseVolume: 0.3
+        }
+        this._sounds["kick"] = {
+            sound: new Howl({
+                src: ["sounds/soccer_ball_kick.wav"],
+                sprite: {
+                    shoot: [0, 1000],
+                    pass: [300, 1000]
+                }
+            }),
+            baseVolume: 0.5
+        };
+        this._sounds["walking"] = {
+            sound: new Howl({
+                src: ["sounds/walking.wav"],
+                sprite: {
+                    walk: [500, 7700, true],
+                },
+                loop: true,
+                rate: 1.1
+            }),
+            baseVolume: 1
+        };
     }
 
     public setGlobalVolume(volume: number): void {

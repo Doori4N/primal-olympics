@@ -4,7 +4,6 @@ import {Scene} from "../../../core/Scene";
 import * as B from "@babylonjs/core";
 import {GameMessages} from "../../../core/components/GameMessages";
 import {NetworkHost} from "../../../network/NetworkHost";
-import {NetworkAudioComponent} from "../../../network/components/NetworkAudioComponent";
 
 export class GameController implements IComponent {
     public name: string = "GameController";
@@ -17,7 +16,6 @@ export class GameController implements IComponent {
     private _scoreText!: HTMLParagraphElement;
     private _gameMessagesComponent!: GameMessages;
     public score: {left: number, right: number} = {left: 0, right: 0};
-    private _networkAudioComponent!: NetworkAudioComponent;
 
     // event listeners
     private _onGoalScoredEvent = this._onGoalScoredClientRpc.bind(this);
@@ -29,21 +27,19 @@ export class GameController implements IComponent {
 
     public onStart(): void {
         this.scene.eventManager.subscribe("onPresentationFinished", this._onPresentationFinished.bind(this));
+        this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
+        this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
 
         // HOST
         if (this.scene.game.networkInstance.isHost) {
             const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.physicsPlugin!.onTriggerCollisionObservable;
             this._goalTriggerObserver = observable.add(this._onTriggerCollision.bind(this));
-
-            this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
-            this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
         }
         // CLIENT
         else {
             this.scene.game.networkInstance.addEventListener("onGoalScored", this._onGoalScoredEvent);
         }
 
-        this._networkAudioComponent = this.entity.getComponent("NetworkAudio") as NetworkAudioComponent;
         this._gameMessagesComponent = this.entity.getComponent("GameMessages") as GameMessages;
     }
 
@@ -100,16 +96,11 @@ export class GameController implements IComponent {
             this.scene.eventManager.notify("onGoalScored");
 
             // audio
-            this._networkAudioComponent.playSound("Crowd", {
-                volume: 0.4,
-                offset: 3.5,
-                duration: 5.5,
-                fade: {fadeVolume: 0, fadeOutDelay: 3, fadeOutDuration: 2}
-            });
-            this._networkAudioComponent.playSound("Whistle", {volume: 0.5, offset: 9, duration: 1});
+            this.scene.game.soundManager.playSound("crowd", {sprite: "reaction", fade: {from: 0, duration: 4}});
+            this.scene.game.soundManager.playSound("whistle", {sprite: "simpleWhistle"});
 
             setTimeout((): void => {
-                this._networkAudioComponent.playSound("Whistle", {volume: 0.5, offset: 9, duration: 1});
+                this.scene.game.soundManager.playSound("whistle", {sprite: "simpleWhistle"});
             }, 3500);
         }
     }
@@ -121,15 +112,23 @@ export class GameController implements IComponent {
         this._updateScoreUI();
         this._gameMessagesComponent.displayMessage("GOAL!", 1500);
         this.scene.eventManager.notify("onGoalScored");
+
+        // audio
+        this.scene.game.soundManager.playSound("crowd", {sprite: "reaction", fade: {from: 0, duration: 4}});
+        this.scene.game.soundManager.playSound("whistle", {sprite: "simpleWhistle"});
+
+        setTimeout((): void => {
+            this.scene.game.soundManager.playSound("whistle", {sprite: "simpleWhistle"});
+        }, 3500);
     }
 
     private _onGameStarted(): void {
-        this._networkAudioComponent.playSound("Whistle", {volume: 0.5, offset: 9, duration: 1});
+        this.scene.game.soundManager.playSound("whistle", {sprite: "simpleWhistle"});
     }
 
     private _onGameFinished(): void {
-        this._networkAudioComponent.playSound("Whistle", {volume: 0.5, offset: 3, duration: 1.5});
-        this._networkAudioComponent.stopSound("CrowdAmbience");
+        this.scene.game.soundManager.playSound("whistle", {sprite: "longWhistle"});
+        this.scene.game.soundManager.stopSound("crowd-ambience", {fade: {to: 0, duration: 4000}});
     }
 
     private _onPresentationFinished(): void {
@@ -142,10 +141,6 @@ export class GameController implements IComponent {
         this._scoreText.innerHTML = "0 - 0";
         this._scoreDiv.appendChild(this._scoreText);
 
-        if (this.scene.game.networkInstance.isHost) {
-            this._networkAudioComponent.playSound("CrowdAmbience", {
-                fade: {fadeVolume: 0.3, fadeOutDelay: 0, fadeOutDuration: 8}
-            });
-        }
+        this.scene.game.soundManager.playSound("crowd-ambience", {fade: {from: 0, duration: 8000}});
     }
 }
