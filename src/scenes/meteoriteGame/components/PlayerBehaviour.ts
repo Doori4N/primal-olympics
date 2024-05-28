@@ -36,7 +36,7 @@ export class PlayerBehaviour implements IComponent {
     public isDead: boolean = false;
 
     // movement
-    private _speed: number = 5;
+    private _speed: number = 5.1;
     public velocity: B.Vector3 = B.Vector3.Zero();
     private _isFalling: boolean = false;
     private _isFrozen: boolean = false;
@@ -288,7 +288,7 @@ export class PlayerBehaviour implements IComponent {
         const collisionBoxEntity: Entity = new Entity("collisionBox");
 
         // collisionBox mesh
-        const collisionBox: B.Mesh = B.MeshBuilder.CreateBox("collisionBox", {width: 2.5, height: 1, depth: 1}, this.scene.babylonScene);
+        const collisionBox: B.Mesh = B.MeshBuilder.CreateBox("collisionBox", {width: 2.7, height: 1, depth: 2}, this.scene.babylonScene);
         collisionBox.isVisible = false;
 
         const direction: B.Vector3 = new B.Vector3(
@@ -296,7 +296,7 @@ export class PlayerBehaviour implements IComponent {
             0,
             Math.round(this._mesh.forward.z * 100) / 100
         );
-        collisionBox.position = this._mesh.position.add(direction.scale(1.2));
+        collisionBox.position = this._mesh.position.add(direction.scale(1.3));
         collisionBox.rotation.y = Math.atan2(direction.z, -direction.x);
 
         collisionBox.metadata = {
@@ -326,6 +326,7 @@ export class PlayerBehaviour implements IComponent {
         this._isFrozen = true;
 
         this._networkAnimationComponent.startAnimation("Push_Reaction");
+        this.scene.game.soundManager.playSound("punch");
 
         this.velocity = impulseDirection.scale(this._pushForce);
         this._physicsAggregate.body.setLinearVelocity(this.velocity);
@@ -340,6 +341,7 @@ export class PlayerBehaviour implements IComponent {
 
     private _pushPlayerClientRpc(): void {
         this._isFrozen = true;
+        this.scene.game.soundManager.playSound("punch");
 
         setTimeout((): void => {
             this._isFrozen = false;

@@ -31,7 +31,7 @@ export class Game {
         {name: "Downhill Madness", isSelected: false, scene: "slope", toPlay: false},
         {name: "T-Rex Track", isSelected: false, scene: "track-and-field", toPlay: false},
     ];
-    public rounds: number = 2;
+    public rounds: number = 4;
 
     public readonly uiContainer: Element = document.querySelector("#ui")!;
     public viewportWidth!: number;

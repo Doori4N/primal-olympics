@@ -109,6 +109,10 @@ export class SoundManager {
             }),
             baseVolume: 1
         };
+        this._sounds["punch"] = {
+            sound: new Howl({src: ["sounds/punch.mp3"]}),
+            baseVolume: 0.5
+        };
     }
 
     public setGlobalVolume(volume: number): void {
