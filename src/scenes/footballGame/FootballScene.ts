@@ -152,6 +152,19 @@ export class FootballScene extends Scene {
         }
     }
 
+    public destroy(): void {
+        // CLIENT
+        if (!this.game.networkInstance.isHost) {
+            this.game.networkInstance.removeAllEventListeners("onCreatePlayer");
+        }
+        // HOST
+        else {
+            this.game.networkInstance.removeAllEventListeners("onPlayerReady");
+        }
+
+        super.destroy();
+    }
+
     private _createFootballPitch(): void {
         const groundEntity = new Entity("ground");
 

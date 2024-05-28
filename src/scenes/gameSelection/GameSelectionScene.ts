@@ -10,6 +10,7 @@ export class GameSelectionScene extends Scene {
 
     public start(): void {
         if (!this.game.networkInstance.isHost) return;
+
         // HOST
         const networkHost = this.game.networkInstance as NetworkHost;
 

@@ -50,7 +50,9 @@ export abstract class Scene {
      * Destroy the scene and all entities
      */
     public destroy(): void {
-        // TODO: destroy loadedAssets
+        for (const assetContainerName in this.loadedAssets) {
+            this.loadedAssets[assetContainerName].dispose();
+        }
         this.mainCamera.dispose();
         this.babylonScene.dispose();
         this.entityManager.removeAllEntities();

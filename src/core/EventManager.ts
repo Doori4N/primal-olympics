@@ -42,6 +42,18 @@ export class EventManager {
     }
 
     /**
+     * Unsubscribes all listeners from an event
+     * @param eventName
+     */
+    public unsubscribeAll(eventName: string): void {
+        if (!this._listeners.has(eventName)) {
+            return;
+        }
+
+        this._listeners.set(eventName, []);
+    }
+
+    /**
      * Notifies all subscribers of an event
      * @param eventName
      * @param args

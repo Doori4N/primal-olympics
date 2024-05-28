@@ -110,6 +110,19 @@ export class TrackAndFieldScene extends Scene {
         }
     }
 
+    public destroy(): void {
+        // CLIENT
+        if (!this.game.networkInstance.isHost) {
+            this.game.networkInstance.removeAllEventListeners("onCreatePlayer");
+        }
+        // HOST
+        else {
+            this.game.networkInstance.removeAllEventListeners("onPlayerReady");
+        }
+
+        super.destroy();
+    }
+
     private _createGround(): void {
         for (let i: number = 0; i < 3; i++) {
             this._createTrack(new B.Vector3(i * 100.795 - 50, 0, 0));

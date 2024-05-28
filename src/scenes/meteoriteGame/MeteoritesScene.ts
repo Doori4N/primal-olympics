@@ -110,7 +110,7 @@ export class MeteoritesScene extends Scene {
         const lavaMaterial = new LavaMaterial("lavaMaterial", this.babylonScene);
         lavaMaterial.noiseTexture = new B.Texture("/img/cloud.png", this.babylonScene);
         lavaMaterial.diffuseTexture = new B.Texture("/img/lavatile.jpg", this.babylonScene);
-        lavaMaterial.speed = .2;
+        lavaMaterial.speed = .4;
         lavaMaterial.fogColor = new B.Color3(.6, 0, 0);
 
         lavaGround.material = lavaMaterial;
@@ -143,6 +143,19 @@ export class MeteoritesScene extends Scene {
         else {
             this._initPlayers();
         }
+    }
+
+    public destroy(): void {
+        // CLIENT
+        if (!this.game.networkInstance.isHost) {
+            this.game.networkInstance.removeAllEventListeners("onCreatePlayer");
+        }
+        // HOST
+        else {
+            this.game.networkInstance.removeAllEventListeners("onPlayerReady");
+        }
+
+        super.destroy();
     }
 
     private _createGameManagerEntity(): Entity {

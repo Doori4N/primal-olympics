@@ -77,7 +77,10 @@ export class MeteoriteController implements IComponent {
     }
 
     public onDestroy(): void {
-        this._observer.remove();
+        // HOST
+        if (this.scene.game.networkInstance.isHost) {
+            this._observer.remove();
+        }
     }
 
     private _onGameStarted(): void {

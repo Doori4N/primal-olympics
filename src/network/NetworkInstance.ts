@@ -34,6 +34,10 @@ export abstract class NetworkInstance {
         this._eventManager.unsubscribe(event, callback);
     }
 
+    public removeAllEventListeners(event: string): void {
+        this._eventManager.unsubscribeAll(event);
+    }
+
     public notify(event: string, ...args: any[]): void {
         this._eventManager.notify(event, ...args);
     }

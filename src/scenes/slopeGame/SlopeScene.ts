@@ -101,6 +101,19 @@ export class SlopeScene extends Scene {
         }
     }
 
+    public destroy(): void {
+        // CLIENT
+        if (!this.game.networkInstance.isHost) {
+            this.game.networkInstance.removeAllEventListeners("onCreatePlayer");
+        }
+        // HOST
+        else {
+            this.game.networkInstance.removeAllEventListeners("onPlayerReady");
+        }
+
+        super.destroy();
+    }
+
     private _createInvisibleWalls(): void {
         // Dimensions et la position des murs
         const wallHeight: number = 15;
