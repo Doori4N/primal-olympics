@@ -102,7 +102,6 @@ export class FootballScene extends Scene {
         // camera
         this.mainCamera.position = new B.Vector3(0, 17, -15);
         this.mainCamera.setTarget(B.Vector3.Zero());
-        this.mainCamera.attachControl(this.game.canvas, true);
 
         const mainCameraEntity = new Entity("camera");
         mainCameraEntity.addComponent(new CameraComponent(mainCameraEntity, this, {camera: this.mainCamera}));
@@ -319,8 +318,12 @@ export class FootballScene extends Scene {
         const gameManager = new Entity("gameManager", entityId);
 
         const description: string = `
-            <span class='description-title'>Put the ball in the opponent's net!</span></span><br><br>
-            The team with the most goals wins! (todo: a better description)
+            <span class='description-title'>The team with the most goals wins!</span></span><br>
+            <ul>
+                <li>Put the ball in the opponent's net to score</li>
+                <li>Tackles opposing players to recover the ball</li>
+                <li>Pass the ball to your teammates to outwit the opponent's defense</li>
+            </ul>
         `;
         const imgSrc: string = "football-presentation.png";
         const commands: Commands = [
