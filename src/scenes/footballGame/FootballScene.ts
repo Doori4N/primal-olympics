@@ -178,7 +178,7 @@ export class FootballScene extends Scene {
     }
 
     private _createSupporters(): void {
-        const supportersContainer: B.AssetContainer = this.loadedAssets["caveman"];
+        let supportersContainer: B.AssetContainer;
         const supporterPositions: B.Vector3[] = [
             new B.Vector3(0.46, 0, 16.50),
             new B.Vector3(15.81, 0, 14.12),
@@ -189,6 +189,10 @@ export class FootballScene extends Scene {
         ];
 
         supporterPositions.forEach((position: B.Vector3): void => {
+            const randomIndex: number = Utils.randomInt(0, 1);
+            if (randomIndex === 0) supportersContainer = this.loadedAssets["cavewoman"];
+            else supportersContainer = this.loadedAssets["caveman"];
+
             this._duplicateSupporter(supportersContainer, position);
         });
     }
@@ -198,10 +202,11 @@ export class FootballScene extends Scene {
         const entries: B.InstantiatedEntries = container.instantiateModelsToScene((sourceName: string): string => sourceName + randomId, true, {doNotInstantiate: true});
         const supporter = entries.rootNodes[0] as B.Mesh;
 
-        const animation: B.AnimationGroup = entries.animationGroups.find((animationGroup: B.AnimationGroup): boolean => animationGroup.name === `Victory${randomId}`)!;
-        setTimeout((): void => {
-            animation.start(true);
-        }, Utils.randomInt(0, 5000));
+        let animation: B.AnimationGroup;
+        const randomAnimation: number = Utils.randomInt(0, 1);
+        if (randomAnimation === 0) animation = entries.animationGroups.find((animationGroup: B.AnimationGroup): boolean => animationGroup.name === `Idle${randomId}`)!;
+        else animation = entries.animationGroups.find((animationGroup: B.AnimationGroup): boolean => animationGroup.name === `Victory${randomId}`)!;
+        animation.start(true);
 
         supporter.scaling.scaleInPlace(0.25);
         supporter.position = position;

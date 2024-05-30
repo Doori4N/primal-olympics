@@ -16,7 +16,7 @@ export class GameScores implements IComponent {
     public scene: Scene;
 
     // component properties
-    private _scores: {playerData: PlayerData, position: number}[] = [];
+    private _scores: {playerData: PlayerData, position: number, isDead: boolean}[] = [];
     private readonly _networkInstance: NetworkInstance;
     private _gui!: GUI.AdvancedDynamicTexture;
 
@@ -61,11 +61,15 @@ export class GameScores implements IComponent {
         }
     }
 
-    public setPlayerScore(playerData: PlayerData): void {
-        this._scores.push({
-            playerData: playerData,
-            position: this._networkInstance.players.length - this._scores.length
-        });
+    public setPlayerScore(playerData: PlayerData, isDead: boolean): void {
+        if (isDead) {
+            this._scores.push({
+                playerData: playerData,
+                position: 0,
+                isDead: true
+            });
+        }
+        else this._addPlayerScore(playerData);
 
         // HOST
         if (this._networkInstance.isHost) {
@@ -75,13 +79,35 @@ export class GameScores implements IComponent {
 
         // check if all players have finished
         if (this._scores.length === this._networkInstance.players.length) {
+            // set positions
+            this._scores.forEach((score, index): void => {
+                score.position = index + 1;
+            });
             this.scene.eventManager.notify("onGameFinished");
         }
     }
 
-    private _displayEventScores(): void {
-        this._scores.sort((a, b) => a.position - b.position);
+    private _addPlayerScore(playerData: PlayerData): void {
+        for (let i: number = 0; i < this._scores.length; i++) {
+            const score = this._scores[i];
+            if (score.isDead) {
+                this._scores.splice(i, 0, {
+                    playerData: playerData,
+                    position: 0,
+                    isDead: false
+                });
+                return;
+            }
+        }
 
+        this._scores.push({
+            playerData: playerData,
+            position: 0,
+            isDead: false
+        });
+    }
+
+    private _displayEventScores(): void {
         this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene.babylonScene);
         this._displayPlayerScores();
 
@@ -119,18 +145,18 @@ export class GameScores implements IComponent {
             playerMeshComponent.mesh.rotationQuaternion = new B.Quaternion(0, 1, 0, 0);
             playerMeshComponent.mesh.position = new B.Vector3(position * 2 - (this._scores.length / 2), 1, 0);
 
-            playerBehaviour.showPlayerNameUI(22, 6, -180);
+            playerBehaviour.showPlayerNameUI(2.8 * this.scene.game.viewportHeight, 0.7 * this.scene.game.viewportHeight, -23 * this.scene.game.viewportHeight);
 
             // player score text
             const playerScoreText = new GUI.TextBlock();
             playerScoreText.text = this._getPlayerPositionText(this._scores[position].position);
             playerScoreText.color = "#22ff22";
-            playerScoreText.fontSize = 25;
+            playerScoreText.fontSize = 3 * this.scene.game.viewportHeight;
             playerScoreText.outlineColor = "black";
-            playerScoreText.outlineWidth = 6;
+            playerScoreText.outlineWidth = 0.7 * this.scene.game.viewportHeight;
             this._gui.addControl(playerScoreText);
             playerScoreText.linkWithMesh(playerMeshComponent.mesh);
-            playerScoreText.linkOffsetY = 140;
+            playerScoreText.linkOffsetY = 18 * this.scene.game.viewportHeight;
 
             const isWin: boolean = (position <= 3);
             playerBehaviour.playRandomReactionAnimation(isWin);

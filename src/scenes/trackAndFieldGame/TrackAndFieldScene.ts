@@ -90,6 +90,9 @@ export class TrackAndFieldScene extends Scene {
 
         this._createGround();
 
+        // supporters
+        this._createSupporters();
+
         // gameManager
         const gameManager = this._createGameManagerEntity();
         this.entityManager.addEntity(gameManager);
@@ -139,6 +142,57 @@ export class TrackAndFieldScene extends Scene {
         }
 
         super.destroy();
+    }
+
+    private _createSupporters(): void {
+        let supportersContainer: B.AssetContainer;
+        const supporterPositions: B.Vector3[] = [
+            new B.Vector3(2.83, 1.63, 17.95),
+            new B.Vector3(-3.72, 0.98, 15.54),
+            new B.Vector3(11.66, 3.52, 19.95),
+            new B.Vector3(6.2, 1.63, 16.15),
+            new B.Vector3(23.87, 2.46, 19.05),
+            new B.Vector3(30.97, 1.44, 19.51),
+            new B.Vector3(35.56, 2.73, 20.03),
+            new B.Vector3(42, 1.56, 15.35),
+            new B.Vector3(46.62, 1.92, 19.37),
+            new B.Vector3(55.32, 1.45, 15.43),
+            new B.Vector3(62.66, 3.36, 20.07),
+            new B.Vector3(69.54, 0.77, 16.17),
+            new B.Vector3(77.56, 3.32, 20.15),
+            new B.Vector3(86.44, 2.21, 18.85),
+            new B.Vector3(96.92, 2.33, 18.32),
+            new B.Vector3(103.82, 1.94, 16.19),
+            new B.Vector3(14.68, 1.36, 15.77),
+            new B.Vector3(19.16, 1.36, 15.77),
+            new B.Vector3(68.10, 2.5, 18.39),
+            new B.Vector3(83.3, 1.01, 16.07),
+            new B.Vector3(100.53, 1.6, 17.86)
+        ];
+
+        supporterPositions.forEach((position: B.Vector3): void => {
+            const randomIndex: number = Utils.randomInt(0, 1);
+            if (randomIndex === 0) supportersContainer = this.loadedAssets["cavewoman"];
+            else supportersContainer = this.loadedAssets["caveman"];
+
+            this._duplicateSupporter(supportersContainer, position);
+        });
+    }
+
+    private _duplicateSupporter(container: B.AssetContainer, position: B.Vector3): void {
+        const randomId: string = Utils.randomInt(10000, 20000).toString();
+        const entries: B.InstantiatedEntries = container.instantiateModelsToScene((sourceName: string): string => sourceName + randomId, true, {doNotInstantiate: true});
+        const supporter = entries.rootNodes[0] as B.Mesh;
+
+        let animation: B.AnimationGroup;
+        const randomAnimation: number = Utils.randomInt(0, 1);
+        if (randomAnimation === 0) animation = entries.animationGroups.find((animationGroup: B.AnimationGroup): boolean => animationGroup.name === `Idle${randomId}`)!;
+        else animation = entries.animationGroups.find((animationGroup: B.AnimationGroup): boolean => animationGroup.name === `Victory${randomId}`)!;
+        animation.start(true);
+
+        supporter.scaling.scaleInPlace(0.25);
+        supporter.position = position;
+        supporter.rotate(B.Axis.Y, Math.PI, B.Space.WORLD);
     }
 
     private _createGround(): void {

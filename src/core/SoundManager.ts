@@ -113,6 +113,29 @@ export class SoundManager {
             sound: new Howl({src: ["sounds/punch.mp3"]}),
             baseVolume: 0.5
         };
+        this._sounds["fast-drum"] = {
+            sound: new Howl({src: ["sounds/fast-tribal-drums.wav"]}),
+            baseVolume: 0.5
+        };
+        this._sounds["trex-roar"] = {
+            sound: new Howl({src: ["sounds/trex-roar.wav"]}),
+            baseVolume: 0.7
+        };
+        this._sounds["trex-step"] = {
+            sound: new Howl({
+                src: ["sounds/trex-step.wav"],
+                loop: true,
+                rate: 2,
+                sprite: {
+                    step: [0, 19500]
+                }
+            }),
+            baseVolume: 0.5
+        };
+        this._sounds["trex-bite"] = {
+            sound: new Howl({src: ["sounds/trex-bite.wav"]}),
+            baseVolume: 0.7
+        }
     }
 
     public setGlobalVolume(volume: number): void {
@@ -133,8 +156,8 @@ export class SoundManager {
         const sound: Howl = this._sounds[name].sound;
 
         if (options?.fade) {
-            const from: number = options.fade.from || this._sounds[name].baseVolume;
-            const to: number = options.fade.to || this._sounds[name].baseVolume;
+            const from: number = options.fade.from ?? this._sounds[name].baseVolume;
+            const to: number = options.fade.to ?? this._sounds[name].baseVolume;
             sound.fade(from, to, options.fade.duration);
         }
 
@@ -145,12 +168,16 @@ export class SoundManager {
         const sound: Howl = this._sounds[name].sound;
 
         if (options?.fade) {
-            const from: number = options.fade.from || this._sounds[name].baseVolume;
-            const to: number = options.fade.to || this._sounds[name].baseVolume;
+            const from: number = options.fade.from ?? this._sounds[name].baseVolume;
+            const to: number = options.fade.to ?? this._sounds[name].baseVolume;
             sound.fade(from, to, options.fade.duration);
+            sound.once("fade", (): void => {
+                sound.stop();
+            });
         }
-
-        sound.stop();
+        else {
+            sound.stop();
+        }
     }
 
     public isPlaying(name: string): boolean {

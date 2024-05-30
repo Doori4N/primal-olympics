@@ -66,10 +66,16 @@ export class TRexBeheviour implements IComponent {
 
     private _onGameStarted(): void {
         this._isGameStarted = true;
+        this.scene.game.soundManager.playSound("trex-roar");
+        setTimeout((): void => {
+            this.scene.game.soundManager.playSound("trex-step", {sprite: "step"});
+        }, 2000);
     }
 
     private _onGameFinished(): void {
         this._isGameFinished = true;
+        this.scene.game.soundManager.stopSound("trex-step");
+        this.scene.game.soundManager.playSound("trex-roar");
     }
 
     private _onTriggerCollision(event: B.IBasePhysicsCollisionEvent): void {
@@ -91,6 +97,7 @@ export class TRexBeheviour implements IComponent {
             this._mesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, rotationY, 0);
 
             this._networkAnimationComponent.startAnimation("Attack");
+            this.scene.game.soundManager.playSound("trex-bite");
 
             setTimeout((): void => {
                 // kill player
@@ -99,7 +106,7 @@ export class TRexBeheviour implements IComponent {
                 // set player score
                 const gameManagerEntity: Entity = this.scene.entityManager.getFirstEntityByTag("gameManager")!;
                 const gameScores = gameManagerEntity.getComponent("GameScores") as GameScores;
-                gameScores.setPlayerScore(playerBehaviour.playerData);
+                gameScores.setPlayerScore(playerBehaviour.playerData, true);
             }, 700);
 
             setTimeout((): void => {

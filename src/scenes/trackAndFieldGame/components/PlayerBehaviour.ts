@@ -66,7 +66,7 @@ export class PlayerBehaviour implements IComponent {
         const rigidBodyComponent = this.entity.getComponent("RigidBody") as RigidBodyComponent;
         this._physicsAggregate = rigidBodyComponent.physicsAggregate;
 
-        this.showPlayerNameUI(10, 3, -60);
+        this.showPlayerNameUI(2.1 * this.scene.game.viewportHeight, 0.5 * this.scene.game.viewportHeight, -10 * this.scene.game.viewportHeight);
 
         // subscribe to game events
         this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
@@ -246,8 +246,8 @@ export class PlayerBehaviour implements IComponent {
         const randomDelay: number = Utils.randomInt(0, 1000);
         setTimeout((): void => {
             if (isWin) {
-                const random: number = Utils.randomInt(0, 1);
-                if (random === 0) this._networkAnimationComponent.startAnimation("Celebration", {loop: true, smoothTransition: true});
+                const random: number = Utils.randomInt(0, 3);
+                if (random !== 3) this._networkAnimationComponent.startAnimation("Celebration", {loop: true, smoothTransition: true});
                 else this._networkAnimationComponent.startAnimation("TakeTheL", {loop: true, smoothTransition: true});
             }
             else {

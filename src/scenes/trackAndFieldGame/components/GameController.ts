@@ -83,9 +83,11 @@ export class GameController implements IComponent {
     private _onGameFinished(): void {
         this._isGameFinished = true;
         this.scene.game.uiContainer.removeChild(this._infoDiv);
+        this.scene.game.soundManager.stopSound("fast-drum", {fade: {to: 0, duration: 5000}});
     }
 
     private _onGameStarted(): void {
+        this.scene.game.soundManager.playSound("fast-drum");
         this._isGameStated = true;
 
         this._infoDiv = document.createElement("div") as HTMLDivElement;
@@ -137,7 +139,7 @@ export class GameController implements IComponent {
 
             // set player score
             const gameScores = this.entity.getComponent("GameScores") as GameScores;
-            gameScores.setPlayerScore(playerBehaviour.playerData);
+            gameScores.setPlayerScore(playerBehaviour.playerData, false);
         }
     }
 }
