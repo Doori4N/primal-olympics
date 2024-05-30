@@ -16,6 +16,7 @@ export class GameController implements IComponent {
     private _scoreText!: HTMLParagraphElement;
     private _gameMessagesComponent!: GameMessages;
     public score: {left: number, right: number} = {left: 0, right: 0};
+    private _canScoreGoal: boolean = true;
 
     // event listeners
     private _onGoalScoredEvent = this._onGoalScoredClientRpc.bind(this);
@@ -63,6 +64,8 @@ export class GameController implements IComponent {
     private _onTriggerCollision(collisionEvent: B.IBasePhysicsCollisionEvent): void {
         if (collisionEvent.type !== B.PhysicsEventType.TRIGGER_ENTERED) return;
 
+        if (!this._canScoreGoal) return;
+
         const collider: B.TransformNode = collisionEvent.collider.transformNode;
         const collidedAgainst: B.TransformNode = collisionEvent.collidedAgainst.transformNode;
 
@@ -73,6 +76,8 @@ export class GameController implements IComponent {
         const isRightScore: boolean = collidedAgainst?.metadata?.tag === "leftGoal";
 
         if (collider?.metadata?.tag === "ball" && (isRightScore || isLeftScore)) {
+            this._canScoreGoal = false;
+
             let goalPosition: number = 1;
             if (isLeftScore) {
                 networkHost.sendToAllClients("onGoalScored", true);
@@ -93,6 +98,9 @@ export class GameController implements IComponent {
 
             this._updateScoreUI();
             this._gameMessagesComponent.displayMessage("GOAL!", 1500);
+            setTimeout((): void => {
+                this._canScoreGoal = true;
+            }, 3000);
             this.scene.eventManager.notify("onGoalScored");
 
             // audio

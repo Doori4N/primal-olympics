@@ -414,7 +414,7 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
     }
 
     private _handleBallCollision(ballTransformNode: B.TransformNode): void {
-        if (this._isFrozen) return;
+        if (this._isFrozen || this._isGamePaused) return;
 
         const ballEntity: Entity = this.scene.entityManager.getEntityById(ballTransformNode.metadata.id);
         const ballBehaviourComponent = ballEntity.getComponent("BallBehaviour") as BallBehaviour;

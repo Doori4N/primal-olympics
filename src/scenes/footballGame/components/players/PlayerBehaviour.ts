@@ -43,7 +43,7 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
 
         this._isOwner = this.scene.game.networkInstance.playerId === this.playerId;
 
-        this.showPlayerNameUI(15, 5, -60);
+        this.showPlayerNameUI(2 * this.scene.game.viewportHeight, 0.6 * this.scene.game.viewportHeight, -9 * this.scene.game.viewportHeight);
     }
 
     public onUpdate(): void {}
@@ -266,7 +266,7 @@ export class PlayerBehaviour extends AbstractPlayerBehaviour {
     }
 
     private _handleBallCollision(ballTransformNode: B.TransformNode): void {
-        if (this._isFrozen) return;
+        if (this._isFrozen || this._isGamePaused) return;
 
         const ballEntity: Entity = this.scene.entityManager.getEntityById(ballTransformNode.metadata.id);
         const ballBehaviourComponent = ballEntity.getComponent("BallBehaviour") as BallBehaviour;

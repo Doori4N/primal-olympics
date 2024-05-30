@@ -40,6 +40,8 @@ export class BallBehaviour implements IComponent {
         const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
         this._mesh = meshComponent.mesh;
 
+        this.scene.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
+
         // CLIENT
         if (!this.scene.game.networkInstance.isHost) {
             this.scene.game.networkInstance.addEventListener("onBallOwnerUpdate", this._onBallOwnerUpdateEvent);
@@ -48,8 +50,6 @@ export class BallBehaviour implements IComponent {
         else {
             const rigidBodyComponent = this.entity.getComponent("RigidBody") as RigidBodyComponent;
             this._physicsAggregate = rigidBodyComponent.physicsAggregate;
-
-            this.scene.eventManager.subscribe("onGoalScored", this._onGoalScored.bind(this));
         }
     }
 

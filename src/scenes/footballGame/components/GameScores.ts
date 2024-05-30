@@ -83,18 +83,18 @@ export class GameScores implements IComponent {
             playerMeshComponent.mesh.rotationQuaternion = new B.Quaternion(0, 1, 0, 0);
 
             playerBehaviour.hidePlayerNameUI();
-            playerBehaviour.showPlayerNameUI(22, 6, -180);
+            playerBehaviour.showPlayerNameUI(2.8 * this.scene.game.viewportHeight, 0.7 * this.scene.game.viewportHeight, -23 * this.scene.game.viewportHeight);
 
             // player score text
             const playerScoreText = new GUI.TextBlock();
             playerScoreText.text = (playerBehaviour.teamIndex === 0) ? (leftResult === Result.WIN ? "1st" : "2nd") : (leftResult === Result.LOSE ? "1st" : "2nd");
             playerScoreText.color = "#22ff22";
-            playerScoreText.fontSize = 25;
+            playerScoreText.fontSize = 3 * this.scene.game.viewportHeight;
             playerScoreText.outlineColor = "black";
-            playerScoreText.outlineWidth = 6;
+            playerScoreText.outlineWidth = 0.7 * this.scene.game.viewportHeight;
             this._gui.addControl(playerScoreText);
             playerScoreText.linkWithMesh(playerMeshComponent.mesh);
-            playerScoreText.linkOffsetY = 140;
+            playerScoreText.linkOffsetY = 18 * this.scene.game.viewportHeight;
 
             // play reaction animation
             if (this.scene.game.networkInstance.isHost) {
