@@ -78,6 +78,16 @@ export class TrackAndFieldScene extends Scene {
         const light = new B.HemisphericLight("light1", new B.Vector3(0, 1, 0), this.babylonScene);
         light.intensity = 0.7;
 
+        // skybox
+        const skybox: B.Mesh = B.MeshBuilder.CreateBox("skyBox", {size:1000.0}, this.babylonScene);
+        const skyboxMaterial = new B.StandardMaterial("skyBox", this.babylonScene);
+        skyboxMaterial.backFaceCulling = false;
+        skyboxMaterial.reflectionTexture = new B.CubeTexture("/img/skybox", this.babylonScene);
+        skyboxMaterial.reflectionTexture.coordinatesMode = B.Texture.SKYBOX_MODE;
+        skyboxMaterial.diffuseColor = new B.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new B.Color3(0, 0, 0);
+        skybox.material = skyboxMaterial;
+
         this._createGround();
 
         // gameManager
@@ -86,16 +96,24 @@ export class TrackAndFieldScene extends Scene {
 
         // finish line
         const finishLineEntity = new Entity("finishLine");
-        const finishLine: B.Mesh = B.MeshBuilder.CreateBox("finishLine", {width: 1, height: 5, depth: 20}, this.babylonScene);
-        finishLine.metadata = {tag: finishLineEntity.tag};
-        finishLine.position = new B.Vector3(140, 2.5, 8);
-        finishLineEntity.addComponent(new MeshComponent(finishLineEntity, this, {mesh: finishLine}));
+        const finishBox: B.Mesh = B.MeshBuilder.CreateBox("finishLine", {width: 1, height: 5, depth: 20}, this.babylonScene);
+        finishBox.metadata = {tag: finishLineEntity.tag};
+        finishBox.position = new B.Vector3(110, 2.5, 8);
+        finishBox.isVisible = false;
+        finishLineEntity.addComponent(new MeshComponent(finishLineEntity, this, {mesh: finishBox}));
         finishLineEntity.addComponent(new RigidBodyComponent(finishLineEntity, this, {
             physicsShape: B.PhysicsShapeType.BOX,
             physicsProps: {mass: 0},
             isTrigger: true
         }));
         this.entityManager.addEntity(finishLineEntity);
+
+        const finishLine = B.MeshBuilder.CreateCylinder("finishLine", {diameter: 0.3, height: 15}, this.babylonScene);
+        finishLine.rotate(B.Axis.X, Math.PI / 2, B.Space.WORLD);
+        finishLine.position = new B.Vector3(110, 0.3, 7.5);
+        const finishLineMaterial = new B.StandardMaterial("finishLineMaterial", this.babylonScene);
+        finishLineMaterial.diffuseColor = new B.Color3(0, 1, 0);
+        finishLine.material = finishLineMaterial;
 
         // CLIENT
         if (!this.game.networkInstance.isHost) {
@@ -269,7 +287,7 @@ export class TrackAndFieldScene extends Scene {
         player.position = new B.Vector3(0, -1, 0);
 
         hitbox.position.y = 1;
-        hitbox.position.z = 1.75 * index * 7;
+        hitbox.position.z = 1.75 * index;
         hitbox.rotate(B.Axis.Y, Math.PI / 2, B.Space.WORLD);
 
         // player skin colors

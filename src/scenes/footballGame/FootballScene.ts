@@ -103,6 +103,16 @@ export class FootballScene extends Scene {
         this.mainCamera.position = new B.Vector3(0, 17, -15);
         this.mainCamera.setTarget(B.Vector3.Zero());
 
+        // skybox
+        const skybox: B.Mesh = B.MeshBuilder.CreateBox("skyBox", {size:1000.0}, this.babylonScene);
+        const skyboxMaterial = new B.StandardMaterial("skyBox", this.babylonScene);
+        skyboxMaterial.backFaceCulling = false;
+        skyboxMaterial.reflectionTexture = new B.CubeTexture("/img/skybox", this.babylonScene);
+        skyboxMaterial.reflectionTexture.coordinatesMode = B.Texture.SKYBOX_MODE;
+        skyboxMaterial.diffuseColor = new B.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new B.Color3(0, 0, 0);
+        skybox.material = skyboxMaterial;
+
         const mainCameraEntity = new Entity("camera");
         mainCameraEntity.addComponent(new CameraComponent(mainCameraEntity, this, {camera: this.mainCamera}));
         mainCameraEntity.addComponent(new CameraMovement(mainCameraEntity, this));
@@ -321,7 +331,7 @@ export class FootballScene extends Scene {
             <span class='description-title'>The team with the most goals wins!</span></span><br>
             <ul>
                 <li>Put the ball in the opponent's net to score</li>
-                <li>Tackles opposing players to recover the ball</li>
+                <li>Tackle opposing players to recover the ball</li>
                 <li>Pass the ball to your teammates to outwit the opponent's defense</li>
             </ul>
         `;

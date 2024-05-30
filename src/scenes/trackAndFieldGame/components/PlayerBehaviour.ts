@@ -34,10 +34,10 @@ export class PlayerBehaviour implements IComponent {
     public hasFinished: boolean = false;
 
     // movement
-    private _speed: number = 70 / 1000;
-    private _maxSpeed: number = 7000 / 1000;
+    private _speed: number = 140 / 1000;
+    private _maxSpeed: number = 12000 / 1000;
     public velocity: B.Vector3 = B.Vector3.Zero();
-    private _slowDownSpeed: number = 10 / 1000;
+    private _slowDownSpeed: number = 25 / 1000;
 
     // inputs
     public readonly playerId!: string;
@@ -184,6 +184,7 @@ export class PlayerBehaviour implements IComponent {
 
     public kill(): void {
         this.hasFinished = true;
+        this.velocity.x = 0;
         this._gameController.setSpeed(0);
         this._hidePlayerNameUI();
         this._networkAnimationComponent.startAnimation("Death", {from: 60});

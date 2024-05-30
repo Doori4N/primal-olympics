@@ -59,7 +59,7 @@ export class MeteoriteController implements IComponent {
             this._timeToWait -= this.scene.game.engine.getDeltaTime();
         }
         else {
-            const halfMapSize: number = 9;
+            const halfMapSize: number = 10;
             const randomNumber: number = Utils.randomInt(1, 3);
             for (let i: number = 0; i < randomNumber; i++) {
                 const randomPosition: B.Vector3 = new B.Vector3(Utils.randomInt(-halfMapSize, halfMapSize), 20, Utils.randomInt(-halfMapSize, halfMapSize));

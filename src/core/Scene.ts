@@ -24,16 +24,6 @@ export abstract class Scene {
         // initialize the scene with a main camera
         this.babylonScene = new B.Scene(this.game.engine);
         this.mainCamera = new B.FreeCamera("mainCamera", new B.Vector3(0, 5, -10), this.babylonScene);
-
-        // skybox
-        const skybox: B.Mesh = B.MeshBuilder.CreateBox("skyBox", {size:1000.0}, this.babylonScene);
-        const skyboxMaterial = new B.StandardMaterial("skyBox", this.babylonScene);
-        skyboxMaterial.backFaceCulling = false;
-        skyboxMaterial.reflectionTexture = new B.CubeTexture("/img/skybox", this.babylonScene);
-        skyboxMaterial.reflectionTexture.coordinatesMode = B.Texture.SKYBOX_MODE;
-        skyboxMaterial.diffuseColor = new B.Color3(0, 0, 0);
-        skyboxMaterial.specularColor = new B.Color3(0, 0, 0);
-        skybox.material = skyboxMaterial;
     }
 
     public async preload(): Promise<void> {};

@@ -13,7 +13,8 @@ export class TRexBeheviour implements IComponent {
     public scene: Scene;
 
     // component properties
-    private _velocityX: number = .05;
+    private _velocityX: number = 0;
+    private _accelerationX: number = .00014;
     private _isGameStarted: boolean = false;
     private _isGameFinished: boolean = false;
     private _networkAnimationComponent!: NetworkAnimationComponent;
@@ -51,6 +52,7 @@ export class TRexBeheviour implements IComponent {
 
         // HOST
         this._mesh.position.x += this._velocityX;
+        this._velocityX += this._accelerationX;
 
         if (!this._networkAnimationComponent.isPlaying("Attack")) {
             this._networkAnimationComponent.startAnimation("Running", {loop: true});

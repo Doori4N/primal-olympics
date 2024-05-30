@@ -299,6 +299,17 @@
     text-shadow: #000 3px 3px 1px;
 }
 
+#final-results-div {
+    position: absolute;
+    top: 17%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #fff;
+    font-size: 1.8vw;
+    text-shadow: #000 3px 3px 1px;
+}
+
 #player-scores-container {
     position: absolute;
     top: 50%;

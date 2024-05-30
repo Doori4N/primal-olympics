@@ -104,7 +104,7 @@ export class MeteoritesScene extends Scene {
         const lavaGroundEntity = new Entity("lavaGround");
         const lavaGround: B.Mesh = B.MeshBuilder.CreateGround("lavaGround", {width: 800, height: 800, subdivisions: 50}, this.babylonScene);
         lavaGround.position.y = -6;
-        lavaGround.scaling.scaleInPlace(.2);
+        lavaGround.scaling.scaleInPlace(.23);
         lavaGround.metadata = {tag: lavaGroundEntity.tag};
 
         const lavaMaterial = new LavaMaterial("lavaMaterial", this.babylonScene);
@@ -165,7 +165,7 @@ export class MeteoritesScene extends Scene {
             <span class='description-title'>Dodge the meteorites falling from the sky!</span></span><br>
             <ul>
                 <li>Move your character to dodge meteorites falling from the sky</li>
-                <li>Push other players into the meteorites to eliminate them</li>
+                <li>Push other players into lava to eliminate them</li>
             </ul>
         `;
         const imgSrc: string = "meteorites-presentation.png";

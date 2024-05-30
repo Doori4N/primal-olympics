@@ -49,7 +49,7 @@ export class CameraAnimation implements IComponent {
             value: this.camera.position.x
         });
         positionAnimKeys.push({
-            frame: 10 * this.frameRate,
+            frame: 6 * this.frameRate,
             value: this.camera.position.x + 20
         });
         positionXAnim.setKeys(positionAnimKeys);
@@ -60,13 +60,13 @@ export class CameraAnimation implements IComponent {
         this.scene.babylonScene.beginAnimation(
             this.camera,
             0,
-            10 * this.frameRate,
+            6 * this.frameRate,
             false,
             1
         );
         setTimeout((): void => {
             this.scene.game.fadeIn(this.onEndAnimation.bind(this));
-        }, 9000);
+        }, 5000);
     }
 
     private onEndAnimation(): void {
