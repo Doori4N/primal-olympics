@@ -70,6 +70,7 @@ export class PlayerBehaviour implements IComponent {
 
         // subscribe to game events
         this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
+        this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
 
         const gameManagerEntity: Entity = this.scene.entityManager.getFirstEntityByTag("gameManager")!;
         this._gameController = gameManagerEntity.getComponent("GameController") as GameController;
@@ -180,6 +181,10 @@ export class PlayerBehaviour implements IComponent {
 
     private _onGameStarted(): void {
         this._isGameStarted = true;
+    }
+
+    private _onGameFinished(): void {
+        this._hidePlayerNameUI();
     }
 
     public kill(): void {

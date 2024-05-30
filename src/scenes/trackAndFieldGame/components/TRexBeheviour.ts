@@ -6,6 +6,7 @@ import {NetworkAnimationComponent} from "../../../network/components/NetworkAnim
 import {MeshComponent} from "../../../core/components/MeshComponent";
 import {PlayerBehaviour} from "./PlayerBehaviour";
 import {GameScores} from "./GameScores";
+import {NetworkHost} from "../../../network/NetworkHost";
 
 export class TRexBeheviour implements IComponent {
     public name: string = "TRexBeheviour";
@@ -21,6 +22,9 @@ export class TRexBeheviour implements IComponent {
     private _mesh!: B.Mesh;
     private _observer!: B.Observer<B.IBasePhysicsCollisionEvent>;
 
+    // event listeners
+    private _onPlaySoundEvent = this._onPlaySoundClientRpc.bind(this);
+
     constructor(entity: Entity, scene: Scene) {
         this.entity = entity;
         this.scene = scene;
@@ -33,13 +37,17 @@ export class TRexBeheviour implements IComponent {
         const meshComponent = this.entity.getComponent("Mesh") as MeshComponent;
         this._mesh = meshComponent.mesh;
 
+        this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
+        this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
+
         // HOST
         if (this.scene.game.networkInstance.isHost) {
             const observable: B.Observable<B.IBasePhysicsCollisionEvent> = this.scene.physicsPlugin!.onTriggerCollisionObservable;
             this._observer = observable.add(this._onTriggerCollision.bind(this));
-
-            this.scene.eventManager.subscribe("onGameStarted", this._onGameStarted.bind(this));
-            this.scene.eventManager.subscribe("onGameFinished", this._onGameFinished.bind(this));
+        }
+        // CLIENT
+        else {
+            this.scene.game.networkInstance.addEventListener("playSound", this._onPlaySoundEvent);
         }
     }
 
@@ -62,6 +70,8 @@ export class TRexBeheviour implements IComponent {
     public onDestroy(): void {
         // HOST
         if (this.scene.game.networkInstance.isHost) this._observer.remove();
+        // CLIENT
+        else this.scene.game.networkInstance.removeEventListener("playSound", this._onPlaySoundEvent);
     }
 
     private _onGameStarted(): void {
@@ -92,12 +102,16 @@ export class TRexBeheviour implements IComponent {
             const playerBehaviour = playerEntity.getComponent("PlayerBehaviour") as PlayerBehaviour;
             if (playerBehaviour.hasFinished) return;
 
+            playerBehaviour.hasFinished = true;
+
             // rotate t-rex towards player
             const rotationY: number = Math.atan2(playerMesh.position.z - this._mesh.position.z, -(playerMesh.position.x - this._mesh.position.x)) - Math.PI / 2;
             this._mesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, rotationY, 0);
 
             this._networkAnimationComponent.startAnimation("Attack");
             this.scene.game.soundManager.playSound("trex-bite");
+            const networkHost = this.scene.game.networkInstance as NetworkHost;
+            networkHost.sendToAllClients("playSound", "trex-bite");
 
             setTimeout((): void => {
                 // kill player
@@ -113,5 +127,9 @@ export class TRexBeheviour implements IComponent {
                 this._mesh.rotationQuaternion = B.Quaternion.FromEulerAngles(0, Math.PI / 2, 0);
             }, 1500);
         }
+    }
+
+    private _onPlaySoundClientRpc(sound: string): void {
+        this.scene.game.soundManager.playSound(sound);
     }
 }

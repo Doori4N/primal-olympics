@@ -62,6 +62,9 @@ export class GameScores implements IComponent {
     }
 
     public setPlayerScore(playerData: PlayerData, isDead: boolean): void {
+        // check if player already has a score
+        if (this._scores.some((score): boolean => score.playerData.id === playerData.id)) return;
+
         if (isDead) {
             this._scores.push({
                 playerData: playerData,
@@ -74,7 +77,7 @@ export class GameScores implements IComponent {
         // HOST
         if (this._networkInstance.isHost) {
             const networkHost = this._networkInstance as NetworkHost;
-            networkHost.sendToAllClients("onSetPlayerScore", playerData);
+            networkHost.sendToAllClients("onSetPlayerScore", playerData, isDead);
         }
 
         // check if all players have finished

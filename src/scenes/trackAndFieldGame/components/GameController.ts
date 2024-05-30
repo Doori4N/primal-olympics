@@ -109,6 +109,8 @@ export class GameController implements IComponent {
     }
 
     public setSpeed(speed: number): void {
+        if (!this._speedDiv) return;
+
         if (speed < 20) this._speedDiv.className = "low-speed";
         else if (speed < 40) this._speedDiv.className = "medium-speed";
         else this._speedDiv.className = "high-speed";
@@ -119,6 +121,8 @@ export class GameController implements IComponent {
     }
 
     private _setPosition(position: number): void {
+        if (!this._positionDiv) return;
+
         if (position === 1) this._positionDiv.innerHTML = `${position}st`;
         else if (position === 2) this._positionDiv.innerHTML = `${position}nd`;
         else if (position === 3) this._positionDiv.innerHTML = `${position}rd`;
