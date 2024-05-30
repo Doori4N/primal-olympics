@@ -12,7 +12,7 @@ import {CameraComponent} from "../../core/components/CameraComponent";
 import {TRexBeheviour} from "./components/TRexBeheviour";
 import {NetworkTransformComponent} from "../../network/components/NetworkTransformComponent";
 import {PlayerBehaviour} from "./components/PlayerBehaviour";
-import {Commands} from "../../core/types";
+import {Commands, InputType} from "../../core/types";
 import {GamePresentation} from "../../core/components/GamePresentation";
 import {GameMessages} from "../../core/components/GameMessages";
 import {Leaderboard} from "../../core/components/Leaderboard";
@@ -244,9 +244,17 @@ export class TrackAndFieldScene extends Scene {
             </ul>
         `;
         const imgSrc: string = "track-and-field-presentation.png";
-        const commands: Commands = [
-            {keys: ["q", "d"], description: "Run"},
-        ];
+        let commands: Commands[];
+        if (this.game.inputManager.inputStates.type === InputType.GAMEPAD) {
+            commands = [
+                {keys: ["gamepad_lb", "gamepad_rb"], description: "Run", style: "large-button-img"},
+            ];
+        }
+        else {
+            commands = [
+                {keys: ["keyboard_q", "keyboard_d"], description: "Run", style: "key-img"},
+            ];
+        }
 
         gameManager.addComponent(new GamePresentation(gameManager, this, {description, imgSrc, commands}));
         gameManager.addComponent(new GameMessages(gameManager, this));

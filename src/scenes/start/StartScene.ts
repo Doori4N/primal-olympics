@@ -20,7 +20,7 @@ export class StartScene extends Scene {
 
         this._startText = document.createElement("p");
         this._startText.id = "start-text";
-        this._startText.textContent = "Press SPACE to start";
+        this._startText.textContent = "Press SPACE / A to start";
         this._startDiv.appendChild(this._startText);
 
         const versionText: HTMLParagraphElement = document.createElement("p");

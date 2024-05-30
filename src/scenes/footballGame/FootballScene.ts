@@ -10,7 +10,7 @@ import {GameMessages} from "../../core/components/GameMessages";
 import {NetworkHost} from "../../network/NetworkHost";
 import {BallBehaviour} from "./components/BallBehaviour";
 import {NetworkPredictionComponent} from "../../network/components/NetworkPredictionComponent";
-import {Commands, InputStates} from "../../core/types";
+import {Commands, InputStates, InputType} from "../../core/types";
 import {GamePresentation} from "../../core/components/GamePresentation";
 import {Utils} from "../../utils/Utils";
 import {CameraComponent} from "../../core/components/CameraComponent";
@@ -341,11 +341,21 @@ export class FootballScene extends Scene {
             </ul>
         `;
         const imgSrc: string = "football-presentation.png";
-        const commands: Commands = [
-            {keys: ["z", "q", "s", "d"], description: "Move"},
-            {keys: ["space"], description: "Shoot / Tackle"},
-            {keys: ["shift"], description: "Pass"},
-        ];
+        let commands: Commands[];
+        if (this.game.inputManager.inputStates.type === InputType.GAMEPAD) {
+            commands = [
+                {keys: ["gamepad_leftStick"], description: "Move", style: "large-button-img"},
+                {keys: ["gamepad_a"], description: "Shoot / Tackle", style: "large-button-img"},
+                {keys: ["gamepad_b"], description: "Pass", style: "large-button-img"},
+            ];
+        }
+        else {
+            commands = [
+                {keys: ["keyboard_z", "keyboard_q", "keyboard_s", "keyboard_d"], description: "Move", style: "key-img"},
+                {keys: ["keyboard_space"], description: "Shoot / Tackle", style: "large-key-img"},
+                {keys: ["keyboard_shift"], description: "Pass", style: "large-key-img"},
+            ]
+        }
         gameManager.addComponent(new GamePresentation(gameManager, this, {description, imgSrc, commands}));
 
         gameManager.addComponent(new GameMessages(gameManager, this));

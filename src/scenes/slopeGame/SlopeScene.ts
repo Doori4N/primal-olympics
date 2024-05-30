@@ -6,7 +6,7 @@ import {RigidBodyComponent} from "../../core/components/RigidBodyComponent";
 import {NetworkHost} from "../../network/NetworkHost";
 import {NetworkAnimationComponent} from "../../network/components/NetworkAnimationComponent";
 import {NetworkPredictionComponent} from "../../network/components/NetworkPredictionComponent";
-import {Commands, InputStates} from "../../core/types";
+import {Commands, InputStates, InputType} from "../../core/types";
 import {PlayerBehaviour} from "./components/PlayerBehaviour";
 import {GamePresentation} from "../../core/components/GamePresentation";
 import {GameMessages} from "../../core/components/GameMessages";
@@ -332,10 +332,19 @@ export class SlopeScene extends Scene {
             description...
         `;
         const imgSrc: string = "";
-        const commands: Commands = [
-            {keys: ["z", "q", "s", "d"], description: "Move"},
-            {keys: ["space"], description: "Jump"}
-        ];
+        let commands: Commands[];
+        if (this.game.inputManager.inputStates.type === InputType.GAMEPAD) {
+            commands = [
+                {keys: ["gamepad_leftStick"], description: "Move", style: "large-button-img"},
+                {keys: ["gamepad_a"], description: "Jump", style: "large-button-img"}
+            ];
+        }
+        else {
+            commands = [
+                {keys: ["keyboard_z", "keyboard_q", "keyboard_s", "keyboard_d"], description: "Move", style: "key-img"},
+                {keys: ["keyboard_space"], description: "Jump", style: "key-img"}
+            ];
+        }
 
         const gameManager = new Entity("gameManager");
         gameManager.addComponent(new GamePresentation(gameManager, this, {description, imgSrc, commands}));

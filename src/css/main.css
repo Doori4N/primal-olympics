@@ -183,6 +183,7 @@
     display: flex;
     flex-direction: row;
     align-content: center;
+    align-items: center;
     column-gap: 1vw;
 }
 
@@ -194,6 +195,11 @@
 .large-key-img {
     width: 6vw;
     height: 3.5vw;
+}
+
+.large-button-img {
+    width: 5vw;
+    height: 5vw;
 }
 
 #checkbox-container {
@@ -231,7 +237,7 @@
 #checkbox-info-text {
     position: absolute;
     bottom: 24vh;
-    right: 4vw;
+    right: 3vw;
     transform: translateX(-50%);
     font-size: 1.6vw;
     color: #276e69;

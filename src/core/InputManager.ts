@@ -7,8 +7,8 @@ export class InputManager {
     private _gamepadManager: B.GamepadManager;
 
     // events
-    public onGamepadConnected: Function[] = [];
-    public onGamepadDisconnected: Function[] = [];
+    public onGamepadConnected: B.Observable<void> = new B.Observable();
+    public onGamepadDisconnected: B.Observable<void> = new B.Observable();
 
     public inputStates: InputStates = {
         type: InputType.KEYBOARD,
@@ -117,7 +117,7 @@ export class InputManager {
     private _listenToGamepad(): void {
         this._gamepadManager.onGamepadConnectedObservable.add((gamepad: B.Gamepad): void => {
             // signal that a gamepad has been connected
-            this.onGamepadConnected.forEach((callback: Function): void => callback());
+            this.onGamepadConnected.notifyObservers();
 
             // set inputStates type to gamepad
             this.inputStates = {
@@ -140,6 +140,12 @@ export class InputManager {
                         case B.DualShockButton.Circle:
                             this.inputStates.buttons["sprint"] = true;
                             break;
+                        case B.DualShockButton.L1:
+                            this.inputStates.buttons["left"] = true;
+                            break;
+                        case B.DualShockButton.R1:
+                            this.inputStates.buttons["right"] = true;
+                            break;
                     }
                 });
 
@@ -150,6 +156,12 @@ export class InputManager {
                             break;
                         case B.DualShockButton.Circle:
                             this.inputStates.buttons["sprint"] = false;
+                            break;
+                        case B.DualShockButton.L1:
+                            this.inputStates.buttons["left"] = false;
+                            break;
+                        case B.DualShockButton.R1:
+                            this.inputStates.buttons["right"] = false;
                             break;
                     }
                 });
@@ -165,6 +177,12 @@ export class InputManager {
                         case 1:
                             this.inputStates.buttons["sprint"] = true;
                             break;
+                        case 4:
+                            this.inputStates.buttons["left"] = true;
+                            break;
+                        case 5:
+                            this.inputStates.buttons["right"] = true;
+                            break;
                     }
                 });
 
@@ -175,6 +193,12 @@ export class InputManager {
                             break;
                         case 1:
                             this.inputStates.buttons["sprint"] = false;
+                            break;
+                        case 4:
+                            this.inputStates.buttons["left"] = false;
+                            break;
+                        case 5:
+                            this.inputStates.buttons["right"] = false;
                             break;
                     }
                 });
@@ -187,8 +211,14 @@ export class InputManager {
                         case B.Xbox360Button.A:
                             this.inputStates.buttons["jump"] = true;
                             break;
-                        case B.Xbox360Button.X:
+                        case B.Xbox360Button.B:
                             this.inputStates.buttons["sprint"] = true;
+                            break;
+                        case B.Xbox360Button.LB:
+                            this.inputStates.buttons["left"] = true;
+                            break;
+                        case B.Xbox360Button.RB:
+                            this.inputStates.buttons["right"] = true;
                             break;
                     }
                 });
@@ -198,8 +228,14 @@ export class InputManager {
                         case B.Xbox360Button.A:
                             this.inputStates.buttons["jump"] = false;
                             break;
-                        case B.Xbox360Button.X:
+                        case B.Xbox360Button.B:
                             this.inputStates.buttons["sprint"] = false;
+                            break;
+                        case B.Xbox360Button.LB:
+                            this.inputStates.buttons["left"] = false;
+                            break;
+                        case B.Xbox360Button.RB:
+                            this.inputStates.buttons["right"] = false;
                             break;
                     }
                 });
@@ -224,7 +260,7 @@ export class InputManager {
 
         this._gamepadManager.onGamepadDisconnectedObservable.add((): void => {
             // signal that a gamepad has been disconnected
-            this.onGamepadDisconnected.forEach((callback: Function): void => callback());
+            this.onGamepadDisconnected.notifyObservers();
 
             // set inputStates type to keyboard
             this.inputStates = {

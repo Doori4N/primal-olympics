@@ -77,6 +77,14 @@ export class Game {
 
         this.skinOptions = this._loadSkinOptions();
 
+        // gamepad listeners
+        this.inputManager.onGamepadConnected.add((): void => {
+            this.displayMessage("Gamepad connected", "info");
+        });
+        this.inputManager.onGamepadDisconnected.add((): void => {
+            this.displayMessage("Gamepad disconnected", "info");
+        });
+
         // game loop
         this.engine.runRenderLoop((): void => {
             sceneManager.updateCurrentScene();

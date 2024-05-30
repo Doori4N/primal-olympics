@@ -22,7 +22,7 @@ export type MiniGame = {
 
 export type MessageType = "error" | "info" | "success";
 
-export type Commands = {keys: string[], description: string}[];
+export type Commands = {keys: string[], description: string, style: string};
 
 export type SkinOptions = {
     modelIndex: number;

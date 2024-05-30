@@ -70,9 +70,6 @@ export class GameOverScene extends Scene {
         sortedPlayers.forEach((player: PlayerData, index: number): void => {
             this._createPlayer(player, index);
         });
-        for (let i: number = 1; i < 8; i++) {
-            this._createPlayer(sortedPlayers[0], i);
-        }
     }
 
     public destroy(): void {

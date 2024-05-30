@@ -20,14 +20,14 @@ export class GamePresentation implements IComponent {
     private readonly _networkInstance: NetworkInstance;
     private readonly _description: string;
     private readonly _imgSrc: string;
-    private readonly _commands: Commands;
+    private readonly _commands: Commands[];
     private _canSkip: boolean = true;
 
     // event listeners
     private _playerSkipEvent = this._onPlayerSkipClientRpc.bind(this);
     private _clientSkipEvent = this._onClientSkipServerRpc.bind(this);
 
-    constructor(entity: Entity, scene: Scene, props: {description: string, imgSrc: string, commands: Commands}) {
+    constructor(entity: Entity, scene: Scene, props: {description: string, imgSrc: string, commands: Commands[]}) {
         this.entity = entity;
         this.scene = scene;
         this._networkInstance = this.scene.game.networkInstance;
@@ -117,14 +117,14 @@ export class GamePresentation implements IComponent {
         commandsContainer.id = "commands-container";
         this._presentationDiv.appendChild(commandsContainer);
 
-        this._commands.forEach((command: {keys: string[], description: string}): void => {
+        this._commands.forEach((command: Commands): void => {
             const div: HTMLDivElement = this._createCommandUI(command);
             commandsContainer.appendChild(div);
         });
 
         const checkboxText: HTMLParagraphElement = document.createElement("p");
         checkboxText.id = "checkbox-info-text";
-        checkboxText.innerHTML = "Press space to skip...";
+        checkboxText.innerHTML = "Press SPACE / A to skip...";
         this._presentationDiv.appendChild(checkboxText);
 
         // checkbox container
@@ -159,7 +159,7 @@ export class GamePresentation implements IComponent {
         }
     }
 
-    private _createCommandUI(command: {keys: string[], description: string}): HTMLDivElement {
+    private _createCommandUI(command: Commands): HTMLDivElement {
         const commandDiv: HTMLDivElement = document.createElement("div");
         commandDiv.className = "command";
 
@@ -168,17 +168,16 @@ export class GamePresentation implements IComponent {
         commandDiv.appendChild(keysDiv);
 
         command.keys.forEach((key: string): void => {
-            keysDiv.appendChild(this._getKeyImage(key));
+            keysDiv.appendChild(this._getKeyImage(key, command.style));
         });
 
         commandDiv.innerHTML += `<p>${command.description}</p>`;
         return commandDiv;
     }
 
-    private _getKeyImage(key: string): HTMLImageElement {
+    private _getKeyImage(key: string, keyStyle: string): HTMLImageElement {
         const keyImg: HTMLImageElement = document.createElement("img");
-        if (key.length > 1) keyImg.className = "large-key-img";
-        else keyImg.className = "key-img";
+        keyImg.className = keyStyle;
         keyImg.src = `/img/${key}.png`;
         keyImg.alt = key;
         return keyImg;
