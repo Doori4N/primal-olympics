@@ -1,7 +1,7 @@
 # Primal Olympics
 A game created for the Game on Web 2024 competition
 
-Play the game [here](https://doori4n.itch.io/gamesonweb-2024)
+Play the game [here](https://doori4n.itch.io/primal-olympics)
   
 ## Built with
 - [![Typescript](https://img.shields.io/badge/Typescript-blue?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
