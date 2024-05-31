@@ -65,11 +65,11 @@ export class GameScores implements IComponent {
         // check if player already has a score
         if (this._scores.some((score): boolean => score.playerData.id === playerData.id)) return;
 
-        if (isDead) {
+        if (!isDead) {
             this._scores.push({
                 playerData: playerData,
                 position: 0,
-                isDead: true
+                isDead: false
             });
         }
         else this._addPlayerScore(playerData);
@@ -93,11 +93,11 @@ export class GameScores implements IComponent {
     private _addPlayerScore(playerData: PlayerData): void {
         for (let i: number = 0; i < this._scores.length; i++) {
             const score = this._scores[i];
-            if (score.isDead) {
+            if (!score.isDead) {
                 this._scores.splice(i, 0, {
                     playerData: playerData,
                     position: 0,
-                    isDead: false
+                    isDead: true
                 });
                 return;
             }
@@ -106,11 +106,13 @@ export class GameScores implements IComponent {
         this._scores.push({
             playerData: playerData,
             position: 0,
-            isDead: false
+            isDead: true
         });
     }
 
     private _displayEventScores(): void {
+        this._scores.reverse();
+
         this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene.babylonScene);
         this._displayPlayerScores();
 

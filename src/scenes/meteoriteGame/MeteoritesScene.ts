@@ -179,7 +179,7 @@ export class MeteoritesScene extends Scene {
         else {
             commands = [
                 {keys: ["keyboard_z", "keyboard_q", "keyboard_s", "keyboard_d"], description: "Move", style: "key-img"},
-                {keys: ["keyboard_space"], description: "Push", style: "key-img"}
+                {keys: ["keyboard_space"], description: "Push", style: "large-key-img"}
             ];
         }
 
