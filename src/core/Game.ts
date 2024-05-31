@@ -171,13 +171,13 @@ export class Game {
 
         // signal icon
         const badSignalIcon: HTMLImageElement = document.createElement("img");
-        badSignalIcon.src = "/img/bad-signal.png";
+        badSignalIcon.src = "img/bad-signal.png";
         badSignalIcon.alt = "signal icon";
         badSignalIcon.className = "info-icon";
         pingDiv.appendChild(badSignalIcon);
 
         const goodSignalIcon: HTMLImageElement = document.createElement("img");
-        goodSignalIcon.src = "/img/good-signal.png";
+        goodSignalIcon.src = "img/good-signal.png";
         goodSignalIcon.alt = "signal icon";
         goodSignalIcon.className = "info-icon";
 

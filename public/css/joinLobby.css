@@ -7,7 +7,7 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    background-image: url("/img/big-leaf-stone-container.svg");
+    background-image: url("../img/big-leaf-stone-container.svg");
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -29,7 +29,7 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    background-image: url("/img/red-stone-button.svg");
+    background-image: url("../img/red-stone-button.svg");
     margin-top: 4vh;
     cursor: pointer;
     transition: transform .15s ease;

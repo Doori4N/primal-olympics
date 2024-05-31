@@ -82,7 +82,7 @@ export class TrackAndFieldScene extends Scene {
         const skybox: B.Mesh = B.MeshBuilder.CreateBox("skyBox", {size:1000.0}, this.babylonScene);
         const skyboxMaterial = new B.StandardMaterial("skyBox", this.babylonScene);
         skyboxMaterial.backFaceCulling = false;
-        skyboxMaterial.reflectionTexture = new B.CubeTexture("/img/skybox", this.babylonScene);
+        skyboxMaterial.reflectionTexture = new B.CubeTexture("img/skybox", this.babylonScene);
         skyboxMaterial.reflectionTexture.coordinatesMode = B.Texture.SKYBOX_MODE;
         skyboxMaterial.diffuseColor = new B.Color3(0, 0, 0);
         skyboxMaterial.specularColor = new B.Color3(0, 0, 0);

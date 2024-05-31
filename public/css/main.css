@@ -72,7 +72,7 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    background-image: url("/img/message-container.svg");
+    background-image: url("../img/message-container.svg");
     z-index: 1002;
     display: flex;
     flex-direction: column;
@@ -121,7 +121,7 @@
     width: 20vw;
     height: 20vw;
     transform: translate(-50%, 0);
-    background-image: url("/img/spinner.svg");
+    background-image: url("../img/spinner.svg");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -163,7 +163,7 @@
 #commands-container {
     width: 27vw;
     height: 32vw;
-    background-image: url("/img/stone-container.svg");
+    background-image: url("../img/stone-container.svg");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -280,7 +280,7 @@
     position: absolute;
     font-size: 3vw;
     color: #fae69f;
-    background-image: url("/img/stone-circle.svg");
+    background-image: url("../img/stone-circle.svg");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -326,7 +326,7 @@
     justify-content: flex-start;
     align-items: flex-start;
     align-content: flex-start;
-    background-image: url("/img/big-leaf-stone-container.svg");
+    background-image: url("../img/big-leaf-stone-container.svg");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -411,7 +411,7 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    background-image: url("/img/stone-arrow.svg");
+    background-image: url("../img/stone-arrow.svg");
     cursor: pointer;
     transition: scale .15s ease;
     outline: none;
@@ -463,7 +463,7 @@
 }
 
 #color-options-div {
-    background-image: url("/img/stone-container.svg");
+    background-image: url("../img/stone-container.svg");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -513,7 +513,7 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    background-image: url("/img/stone-circle.svg");
+    background-image: url("../img/stone-circle.svg");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -532,7 +532,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    background-image: url("/img/large-stone-button.svg");
+    background-image: url("../img/large-stone-button.svg");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;

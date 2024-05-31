@@ -102,7 +102,7 @@ export class GamePresentation implements IComponent {
 
         // image presentation
         const imgPresentation: HTMLImageElement = document.createElement("img");
-        imgPresentation.src = `/img/${this._imgSrc}`;
+        imgPresentation.src = `img/${this._imgSrc}`;
         imgPresentation.className = "presentation-img";
         this._presentationDiv.appendChild(imgPresentation);
 
@@ -140,12 +140,12 @@ export class GamePresentation implements IComponent {
 
             const playerCheckImg: HTMLImageElement = document.createElement("img");
             playerCheckImg.className = "checkbox-img";
-            playerCheckImg.src = "/img/stone-checkbox.svg";
+            playerCheckImg.src = "img/stone-checkbox.svg";
             playerCheckImg.alt = "stone-checkbox";
 
             const playerEmptyImg: HTMLImageElement = document.createElement("img");
             playerEmptyImg.className = "checkbox-img";
-            playerEmptyImg.src = "/img/empty-stone-checkbox.svg";
+            playerEmptyImg.src = "img/empty-stone-checkbox.svg";
             playerEmptyImg.alt = "empty-stone-checkbox";
             playerCheckboxDiv.appendChild(playerEmptyImg);
 
@@ -178,7 +178,7 @@ export class GamePresentation implements IComponent {
     private _getKeyImage(key: string, keyStyle: string): HTMLImageElement {
         const keyImg: HTMLImageElement = document.createElement("img");
         keyImg.className = keyStyle;
-        keyImg.src = `/img/${key}.png`;
+        keyImg.src = `img/${key}.png`;
         keyImg.alt = key;
         return keyImg;
     }

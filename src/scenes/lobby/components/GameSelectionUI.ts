@@ -84,7 +84,7 @@ export class GameSelectionUI implements IComponent {
         const gameBtn: HTMLButtonElement = this._createEmptyGameButton(game.name);
 
         const img: HTMLImageElement = document.createElement("img");
-        img.src = `/img/${game.scene}-background.png`;
+        img.src = `img/${game.scene}-background.png`;
         img.className = "mini-game-img";
         gameBtn.appendChild(img);
 
@@ -93,11 +93,11 @@ export class GameSelectionUI implements IComponent {
 
         // HOST
         const checkImg: HTMLImageElement = document.createElement("img");
-        checkImg.src = "/img/check.png";
+        checkImg.src = "img/check.png";
         checkImg.className = "top-right-img";
 
         const cancelImg: HTMLImageElement = document.createElement("img");
-        cancelImg.src = "/img/cancel.png";
+        cancelImg.src = "img/cancel.png";
         cancelImg.className = "top-right-img";
 
         if (!game.isSelected) gameBtn.appendChild(cancelImg);

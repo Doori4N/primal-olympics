@@ -110,8 +110,8 @@ export class MeteoritesScene extends Scene {
         lavaGround.metadata = {tag: lavaGroundEntity.tag};
 
         const lavaMaterial = new LavaMaterial("lavaMaterial", this.babylonScene);
-        lavaMaterial.noiseTexture = new B.Texture("/img/cloud.png", this.babylonScene);
-        lavaMaterial.diffuseTexture = new B.Texture("/img/lavatile.jpg", this.babylonScene);
+        lavaMaterial.noiseTexture = new B.Texture("img/cloud.png", this.babylonScene);
+        lavaMaterial.diffuseTexture = new B.Texture("img/lavatile.jpg", this.babylonScene);
         lavaMaterial.speed = .4;
         lavaMaterial.fogColor = new B.Color3(.6, 0, 0);
 

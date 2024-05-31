@@ -89,13 +89,13 @@ export class Leaderboard implements IComponent {
                     </div>
                     <div class="vertical-div"></div>
                     <p>${playerData.goldMedals}</p>
-                    <img src="/img/gold-medal.png" alt="gold-medal" class="medal-img">
+                    <img src="img/gold-medal.png" alt="gold-medal" class="medal-img">
                     <div class="vertical-div"></div>
                     <p>${playerData.silverMedals}</p>
-                    <img src="/img/silver-medal.png" alt="silver-medal" class="medal-img">
+                    <img src="img/silver-medal.png" alt="silver-medal" class="medal-img">
                     <div class="vertical-div"></div>
                     <p>${playerData.bronzeMedals}</p>
-                    <img src="/img/bronze-medal.png" alt="bronze-medal" class="medal-img">
+                    <img src="img/bronze-medal.png" alt="bronze-medal" class="medal-img">
                     <div class="vertical-div"></div>
                     <p class="medal-result">Total: ${this._getScore(playerData)}</p>
                 </div>

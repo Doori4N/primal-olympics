@@ -121,7 +121,7 @@ export class MenuScene extends Scene {
 
         // host image
         const hostImg: HTMLImageElement = document.createElement("img");
-        hostImg.src = "/img/cave.png";
+        hostImg.src = "img/cave.png";
         hostImg.id = "host-img";
         hostBtn.appendChild(hostImg);
 

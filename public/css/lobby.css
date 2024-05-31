@@ -22,7 +22,7 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    background-image: url("/img/large-stone-button.svg");
+    background-image: url("../img/large-stone-button.svg");
     cursor: pointer;
     transition: transform .15s ease;
     outline: none;
@@ -73,7 +73,7 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    background-image: url("/img/stone-arrow.svg");
+    background-image: url("../img/stone-arrow.svg");
     cursor: pointer;
     transition: scale .15s ease;
     outline: none;
@@ -114,7 +114,7 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    background-image: url("/img/stone-circle.svg");
+    background-image: url("../img/stone-circle.svg");
     display: flex;
     justify-content: center;
     align-items: center;
@@ -146,7 +146,7 @@
     background-size: 90% 90%;
     background-repeat: no-repeat;
     background-position: center;
-    background-image: url("/img/big-leaf-stone-container.svg");
+    background-image: url("../img/big-leaf-stone-container.svg");
     transition: transform .25s ease;
     outline: none;
 }
