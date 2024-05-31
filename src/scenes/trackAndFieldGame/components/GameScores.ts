@@ -68,7 +68,6 @@ export class GameScores implements IComponent {
 
         if (isDead) {
             this._deadPlayerScores.push(playerData);
-            return;
         }
         else {
             this._scores.push({
