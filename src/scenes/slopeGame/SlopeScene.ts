@@ -328,8 +328,10 @@ export class SlopeScene extends Scene {
 
     private _createGameManager(): void {
         const description: string = `
-            <span class='description-title'>title</span></span><br><br>
-            description...
+            <span class='description-title'>Reach the top of the hill!</span></span><br>
+            <ul>
+                <li>Dodge stones and logs falling from the hill to survive</li>
+            </ul>
         `;
         const imgSrc: string = "";
         let commands: Commands[];
@@ -342,7 +344,7 @@ export class SlopeScene extends Scene {
         else {
             commands = [
                 {keys: ["keyboard_z", "keyboard_q", "keyboard_s", "keyboard_d"], description: "Move", style: "key-img"},
-                {keys: ["keyboard_space"], description: "Jump", style: "key-img"}
+                {keys: ["keyboard_space"], description: "Jump", style: "large-key-img"}
             ];
         }
 

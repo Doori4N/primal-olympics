@@ -68,7 +68,12 @@ export class FallingObjectController implements IComponent {
         this._intervalId = setInterval((): void => {
             const randomPosition: B.Vector3 = new B.Vector3(Utils.randomInt(-14, 13), 35, Utils.randomInt(40,50));
             const randomType: FallingObjectType = Utils.randomInt(0, 1);
-            const fallingObjectEntity: Entity = this._spawnFallingObject(randomPosition, randomType);
+
+            let randomScalingFactor: number;
+            if (randomType === FallingObjectType.ROCK) randomScalingFactor = Utils.randomFloat(1.5, 2.5);
+            else randomScalingFactor = Utils.randomFloat(1, 1.5);
+
+            const fallingObjectEntity: Entity = this._spawnFallingObject(randomPosition, randomType, randomScalingFactor);
             this.scene.entityManager.addEntity(fallingObjectEntity);
 
             // tells clients to spawn the falling object
@@ -76,21 +81,22 @@ export class FallingObjectController implements IComponent {
             networkHost.sendToAllClients("onCreateFallingObject", {
                 position: {x: randomPosition.x, y: randomPosition.y, z: randomPosition.z},
                 type: randomType,
+                scaling: randomScalingFactor,
                 entityId: fallingObjectEntity.id
             });
         }, 600);
     }
 
-    private _spawnFallingObject(position: B.Vector3, type: FallingObjectType): Entity {
+    private _spawnFallingObject(position: B.Vector3, type: FallingObjectType, scaling: number): Entity {
         if (type === FallingObjectType.ROCK) {
-            return this._createRock(position);
+            return this._createRock(position, scaling);
         }
         else {
-            return this._createLog(position);
+            return this._createLog(position, scaling);
         }
     }
 
-    private _createLog(position: B.Vector3): Entity {
+    private _createLog(position: B.Vector3, scaling: number): Entity {
         const logEntity: Entity = new Entity("fallingObject");
     
         const entries: B.InstantiatedEntries = this.scene.loadedAssets["log"].instantiateModelsToScene(
@@ -100,7 +106,7 @@ export class FallingObjectController implements IComponent {
         );
         const logMesh: B.Mesh = entries.rootNodes[0] as B.Mesh;
 
-        logMesh.scaling = new B.Vector3(0.3, 0.3, 0.3);
+        logMesh.scaling.scaleInPlace(0.3 * scaling);
         logMesh.position = position;
         logMesh.metadata = { tag: logEntity.tag, id: logEntity.id };
 
@@ -108,9 +114,9 @@ export class FallingObjectController implements IComponent {
     
         logEntity.addComponent(new MeshComponent(logEntity, this.scene, { mesh: logMesh }));
         const logPhysicsShape = new B.PhysicsShapeCylinder(
-            new B.Vector3(-2, 0, 0),
-            new B.Vector3(2, 0, 0),
-                .4,
+            new B.Vector3(-2 * scaling, 0, 0),
+            new B.Vector3(2 * scaling, 0, 0),
+                .4 * scaling,
             this.scene.babylonScene
         );
         logEntity.addComponent(new RigidBodyComponent(logEntity, this.scene, {
@@ -121,9 +127,8 @@ export class FallingObjectController implements IComponent {
     
         return logEntity;
     }
-    
-    
-    private _createRock(position: B.Vector3): Entity {
+
+    private _createRock(position: B.Vector3, scaling: number): Entity {
         const rockEntity: Entity = new Entity("fallingObject");
     
         const entries: B.InstantiatedEntries = this.scene.loadedAssets["rock"].instantiateModelsToScene(
@@ -132,16 +137,16 @@ export class FallingObjectController implements IComponent {
             { doNotInstantiate: true }
         );
         const rockMesh: B.Mesh = entries.rootNodes[0] as B.Mesh;
-    
-        
-        rockMesh.scaling = new B.Vector3(0.7, 0.7, 0.7); 
+
+        rockMesh.scaling.scaleInPlace(0.7 * scaling);
         rockMesh.position = position;
         rockMesh.metadata = { tag: rockEntity.tag, id: rockEntity.id };
     
         rockMesh.rotate(B.Axis.Z, Math.random() * Math.PI * 2, B.Space.WORLD);
     
         rockEntity.addComponent(new MeshComponent(rockEntity, this.scene, { mesh: rockMesh }));
-        const rockPhysicsShape = new B.PhysicsShapeSphere(new B.Vector3(0, 0, 0), 0.5, this.scene.babylonScene);
+
+        const rockPhysicsShape = new B.PhysicsShapeSphere(new B.Vector3(0, 0, 0), 0.5 * scaling, this.scene.babylonScene);
         rockEntity.addComponent(new RigidBodyComponent(rockEntity, this.scene, {
             physicsShape: rockPhysicsShape,
             physicsProps: { mass: 1, restitution: 0.58 }
@@ -176,8 +181,8 @@ export class FallingObjectController implements IComponent {
         }
     }
 
-    private _spawnFallingObjectClientRpc(info: {position: {x: number, y: number, z: number}, type: FallingObjectType, entityId: string}): void {
-        const fallingObjectEntity: Entity = this._spawnFallingObject(new B.Vector3(info.position.x, info.position.y, info.position.z), info.type);
+    private _spawnFallingObjectClientRpc(info: {position: {x: number, y: number, z: number}, type: FallingObjectType, scaling: number, entityId: string}): void {
+        const fallingObjectEntity: Entity = this._spawnFallingObject(new B.Vector3(info.position.x, info.position.y, info.position.z), info.type, info.scaling);
         fallingObjectEntity.id = info.entityId;
         this.scene.entityManager.addEntity(fallingObjectEntity);
     }
