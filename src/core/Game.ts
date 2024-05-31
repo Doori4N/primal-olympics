@@ -71,9 +71,7 @@ export class Game {
         this._listenToDebugInputs(sceneManager);
 
         // info ui
-        if (localStorage.getItem("showInfoUI") === "true") {
-            this.showInfoUI();
-        }
+        this._initInfoUIOptions();
 
         this.skinOptions = this._loadSkinOptions();
 
@@ -274,10 +272,20 @@ export class Game {
                 modelIndex: 0,
                 skinColorIndex: 0,
                 hairColorIndex: 11,
-                outfitColorIndex: 1
+                outfitColorIndex: 7
             }
         }
 
         return JSON.parse(skinOptionsString);
+    }
+
+    private _initInfoUIOptions(): void {
+        if (localStorage.getItem("showInfoUI") === null) {
+            localStorage.setItem("showInfoUI", "true");
+        }
+
+        if (localStorage.getItem("showInfoUI") === "true") {
+            this.showInfoUI();
+        }
     }
 }

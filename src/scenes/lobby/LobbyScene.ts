@@ -45,6 +45,19 @@ export class LobbyScene extends Scene {
         this.loadedAssets["cavewoman"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/models/", "cavewoman.glb", this.babylonScene);
         this.loadedAssets["lobbyScene"] = await B.SceneLoader.LoadAssetContainerAsync("meshes/scenes/", "lobbyScene.glb", this.babylonScene);
 
+        // CLIENT
+        if (!this.game.networkInstance.isHost) {
+            const networkClient = this.game.networkInstance as NetworkClient;
+            const playerData: PlayerData = {
+                id: networkClient.playerId,
+                name: networkClient.playerName,
+                skinOptions: this.game.skinOptions,
+                goldMedals: 0,
+                silverMedals: 0,
+                bronzeMedals: 0
+            }
+            networkClient.sendToHost("client-joined", playerData);
+        }
         this.game.engine.hideLoadingUI();
     }
 
@@ -120,7 +133,7 @@ export class LobbyScene extends Scene {
         // add host player
         this._createPlayer(networkHost.players[0], this._playersTransform[0]);
 
-        networkHost.addEventListener("player-joined", this._addPlayerEvent);
+        networkHost.addEventListener("client-joined", this._addPlayerEvent);
         networkHost.addEventListener("player-left", this._removePlayerEvent);
 
         // send the player list to the client
@@ -141,7 +154,7 @@ export class LobbyScene extends Scene {
         networkClient.addEventListener("player-left", this._removePlayerEvent);
 
         // get the player list from the host
-        networkClient.sendToHost("getPlayers", this.game.networkInstance.peer.id);
+        networkClient.sendToHost("getPlayers");
     }
 
     private _onHostDisconnected(): void {
@@ -152,16 +165,15 @@ export class LobbyScene extends Scene {
     private _setPlayersClientRpc(players: PlayerData[]): void {
         const networkClient = this.game.networkInstance as NetworkClient;
         networkClient.players = players;
-        networkClient.players.forEach((player: PlayerData, index: number): void => {
-            this._createPlayer(player, this._playersTransform[index]);
+        networkClient.players.forEach((player: PlayerData): void => {
+            this._addPlayer(player);
         });
-        this.eventManager.notify("update-number", this._players.size);
     }
 
-    private _getPlayersHostRpc(peerId: string): void {
+    private _getPlayersHostRpc(): void {
         const networkHost = this.game.networkInstance as NetworkHost;
-        // tell to the player to update his player list
-        networkHost.sendToClient("setPlayers", peerId, networkHost.players);
+        // tell to players to update their player list
+        networkHost.sendToAllClients("setPlayers", networkHost.players);
         networkHost.synchronizeClientTick();
     }
 
@@ -170,6 +182,7 @@ export class LobbyScene extends Scene {
 
         this.game.displayMessage(`${player.name} joined the lobby`, "info");
 
+        // HOST
         if (this.game.networkInstance.isHost) {
             const networkHost = this.game.networkInstance as NetworkHost;
             networkHost.sendToAllClients("player-joined", player);
