@@ -3,6 +3,16 @@ A game created for the Game on Web 2024 competition
 
 Play the game [here](https://doori4n.itch.io/primal-olympics)
   
+
+## Installation
+```bash
+npm install
+```
+
+```bash
+npm run dev
+```
+
 ## Built with
 - [![Typescript](https://img.shields.io/badge/Typescript-blue?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 - [![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)](https://vitejs.dev/)
