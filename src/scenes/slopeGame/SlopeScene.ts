@@ -62,6 +62,8 @@ export class SlopeScene extends Scene {
     public start(): void {
         this.enablePhysics(new B.Vector3(0, -9.81, 0));
 
+        this.game.soundManager.playSound("flute-music");
+
         // start animation
         const cameraEntity = new Entity();
         const camera = new B.FreeCamera("camera", new B.Vector3(-15, 0, -100), this.babylonScene);
@@ -82,8 +84,6 @@ export class SlopeScene extends Scene {
         skyboxMaterial.diffuseColor = new B.Color3(0, 0, 0);
         skyboxMaterial.specularColor = new B.Color3(0, 0, 0);
         skybox.material = skyboxMaterial;
-
-        this.game.soundManager.playSound("nightForest");
 
         this._createSlope();
         this._createInvisibleWalls();

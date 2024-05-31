@@ -63,6 +63,8 @@ export class MeteoritesScene extends Scene {
     public start(): void {
         this.enablePhysics(new B.Vector3(0, -9.81, 0));
 
+        this.game.soundManager.playSound("epic-music");
+
         // camera
         this.mainCamera.position = new B.Vector3(0, 15, -25);
         this.mainCamera.setTarget(B.Vector3.Zero());

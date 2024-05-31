@@ -207,14 +207,8 @@ export class PlayerBehaviour implements IComponent {
         const isInputPressed: boolean = inputStates.direction.x !== 0 || inputStates.direction.y !== 0;
     
         if (isInputPressed) {
-            if (this._soundManager.isPlaying("breath") && this._isOwner) {
-                this._soundManager.stopSound("breath");
-            }
             this._networkAnimationComponent.startAnimation("Running", {loop: true, transitionSpeed: 0.12});
         } else {
-            if (!this._soundManager.isPlaying("breath") && this._isOwner) {
-                this._soundManager.playSound("breath");
-            }
             this._networkAnimationComponent.startAnimation("Idle", {loop: true});
         }
     }

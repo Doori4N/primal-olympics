@@ -43,6 +43,7 @@ export class GameScores implements IComponent {
 
         this.scene.eventManager.subscribe("onMessageFinished", (): void => {
             setTimeout((): void => {
+                this.scene.game.soundManager.stopSound("flute-music");
                 this.scene.game.fadeIn((): void => {
                     this._displayEventScores();
                 });

@@ -29,7 +29,7 @@ export class SoundManager {
         };
         this._sounds["fireplace"] = {
             sound: new Howl({src: ["sounds/fireplace.wav"], loop: true}),
-            baseVolume: .5
+            baseVolume: 0.5
         }
         this._sounds["lava-death"] = {
             sound: new Howl({
@@ -38,42 +38,31 @@ export class SoundManager {
                     lava: [1300, 3422]
                 }
             }),
-            baseVolume: .7
+            baseVolume: 0.7
         }
         this._sounds["lava"] = {
             sound: new Howl({src: ["sounds/lava.wav"], loop: true}),
-            baseVolume: .4
+            baseVolume: 0.6
         }
         this._sounds["crowd-cheer"] = {
             sound: new Howl({src: ["sounds/crowd-cheer.flac"]}),
             baseVolume: 0.8
         }
-        this._sounds["nightForest"] = {
-            sound: new Howl({src: ["sounds/nightForest.wav"], loop: true}),
-            baseVolume: 1
-        }
         this._sounds["jump"] = {
             sound: new Howl({src: ["sounds/jumpForest.wav"]}),
-            baseVolume: 0.3
-        }
-        this._sounds["breath"] = {
-            sound: new Howl({
-                src: ["sounds/respirationForest.wav"],
-                loop: true
-            }),
-            baseVolume: 0.3
-        }
+            baseVolume: 0.5
+        };
         this._sounds["death"] = {
             sound: new Howl({src: ["sounds/death.mp3"]}),
             baseVolume: 0.2
-        }
+        };
         this._sounds["crowd"] = {
             sound: new Howl({
                 src: ["sounds/crowd_reaction.wav"],
                 sprite: {reaction: [3500, 5500]}
             }),
             baseVolume: 0.5
-        }
+        };
         this._sounds["whistle"] = {
             sound: new Howl({
                 src: ["sounds/whistle.wav"],
@@ -139,7 +128,15 @@ export class SoundManager {
         this._sounds["lobby-music"] = {
             sound: new Howl({src: ["sounds/lobby-music.wav"], loop: true}),
             baseVolume: 0.1
-        }
+        };
+        this._sounds["epic-music"] = {
+            sound: new Howl({src: ["sounds/epic-music.mp3"], loop: true}),
+            baseVolume: 0.2
+        };
+        this._sounds["flute-music"] = {
+            sound: new Howl({src: ["sounds/flute-music.wav"], loop: true}),
+            baseVolume: 0.2
+        };
     }
 
     public setGlobalVolume(volume: number): void {
