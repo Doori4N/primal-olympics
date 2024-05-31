@@ -84,7 +84,7 @@ export class GameScores implements IComponent {
         }
 
         // check if all players have finished
-        if (this._scores.length === this._networkInstance.players.length) {
+        if ((this._scores.length + this._deadPlayerScores.length) === this._networkInstance.players.length) {
             // set positions
             this._deadPlayerScores.reverse();
             this._deadPlayerScores.forEach((playerData: PlayerData): void => {
