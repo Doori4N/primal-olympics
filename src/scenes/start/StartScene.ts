@@ -37,6 +37,7 @@ export class StartScene extends Scene {
     }
 
     public destroy(): void {
+        this.game.soundManager.stopSound("jungle");
         super.destroy();
         this.game.uiContainer.removeChild(this._startDiv);
     }

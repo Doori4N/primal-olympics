@@ -62,8 +62,6 @@ export class LobbyScene extends Scene {
     }
 
     public start(): void {
-        this.game.soundManager.stopSound("jungle");
-
         this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.babylonScene);
 
         // camera
@@ -86,10 +84,13 @@ export class LobbyScene extends Scene {
         this._gameManager.addComponent(new GameLobbyUI(this._gameManager, this, {roomId: this._roomId}));
         this._gameManager.addComponent(new GameSelectionUI(this._gameManager, this));
         this.entityManager.addEntity(this._gameManager);
+
+        this.game.soundManager.playSound("lobby-music");
     }
 
     public destroy(): void {
         this.game.soundManager.stopSound("fireplace");
+        this.game.soundManager.stopSound("lobby-music");
         this._gui.dispose();
 
         if (this.game.networkInstance.isHost) {

@@ -49,9 +49,12 @@ export class MenuScene extends Scene {
         this._createCharacterButton(buttonContainer);
 
         this._createOptionsButton();
+
+        this.game.soundManager.playSound("jungle");
     }
 
     public destroy(): void {
+        this.game.soundManager.stopSound("jungle");
         super.destroy();
         this.game.uiContainer.removeChild(this._menuDiv);
     }

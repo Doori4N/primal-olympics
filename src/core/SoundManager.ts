@@ -135,6 +135,10 @@ export class SoundManager {
         this._sounds["trex-bite"] = {
             sound: new Howl({src: ["sounds/trex-bite.wav"]}),
             baseVolume: 0.7
+        };
+        this._sounds["lobby-music"] = {
+            sound: new Howl({src: ["sounds/lobby-music.wav"], loop: true}),
+            baseVolume: 0.1
         }
     }
 

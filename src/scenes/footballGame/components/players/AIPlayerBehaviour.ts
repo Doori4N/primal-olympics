@@ -485,6 +485,12 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         });
 
         const start: number[] = [Math.round(this._mesh.position.x) + offsetX, Math.round(this._mesh.position.z) + offsetY];
+        if (start[0] >= grid.length ||
+            start[1] >= grid[0].length ||
+            start[0] < 0 ||
+            start[1] < 0
+        ) return [];
+
         grid[start[0]][start[1]] = 0;
         endPoint[0] = Math.round(endPoint[0]) + offsetX;
         endPoint[1] = Math.round(endPoint[1]) + offsetY;

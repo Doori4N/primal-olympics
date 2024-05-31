@@ -52,9 +52,12 @@ export class CharacterCustomizationScene extends Scene {
 
         this._displayUI();
         Utils.applyColorsToMesh(this._models[this.game.skinOptions.modelIndex], this.game.skinOptions);
+
+        this.game.soundManager.playSound("lobby-music");
     }
 
     public destroy(): void {
+        this.game.soundManager.stopSound("lobby-music");
         this.game.uiContainer.removeChild(this._menuDiv);
         super.destroy();
     }
