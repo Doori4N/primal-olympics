@@ -16,7 +16,8 @@ export class GameScores implements IComponent {
     public scene: Scene;
 
     // component properties
-    private _scores: {playerData: PlayerData, position: number, isDead: boolean}[] = [];
+    private _scores: {playerData: PlayerData, position: number}[] = [];
+    private _deadPlayerScores: PlayerData[] = [];
     private readonly _networkInstance: NetworkInstance;
     private _gui!: GUI.AdvancedDynamicTexture;
 
@@ -65,14 +66,16 @@ export class GameScores implements IComponent {
         // check if player already has a score
         if (this._scores.some((score): boolean => score.playerData.id === playerData.id)) return;
 
-        if (!isDead) {
+        if (isDead) {
+            this._deadPlayerScores.push(playerData);
+            return;
+        }
+        else {
             this._scores.push({
                 playerData: playerData,
-                position: 0,
-                isDead: false
+                position: this._scores.length + 1
             });
         }
-        else this._addPlayerScore(playerData);
 
         // HOST
         if (this._networkInstance.isHost) {
@@ -82,34 +85,17 @@ export class GameScores implements IComponent {
 
         // check if all players have finished
         if (this._scores.length === this._networkInstance.players.length) {
-            this._scores.reverse();
-
             // set positions
-            this._scores.forEach((score, index): void => {
-                score.position = index + 1;
+            this._deadPlayerScores.reverse();
+            this._deadPlayerScores.forEach((playerData: PlayerData): void => {
+                this._scores.push({
+                    playerData: playerData,
+                    position: this._scores.length + 1
+                });
             });
+
             this.scene.eventManager.notify("onGameFinished");
         }
-    }
-
-    private _addPlayerScore(playerData: PlayerData): void {
-        for (let i: number = 0; i < this._scores.length; i++) {
-            const score = this._scores[i];
-            if (!score.isDead) {
-                this._scores.splice(i, 0, {
-                    playerData: playerData,
-                    position: 0,
-                    isDead: true
-                });
-                return;
-            }
-        }
-
-        this._scores.push({
-            playerData: playerData,
-            position: 0,
-            isDead: true
-        });
     }
 
     private _displayEventScores(): void {
