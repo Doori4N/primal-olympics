@@ -462,8 +462,8 @@ export class PlayerBehaviour implements IComponent {
         const randomDelay: number = Utils.randomInt(0, 1000);
         setTimeout((): void => {
             if (isWin) {
-                const random: number = Utils.randomInt(0, 1);
-                if (random === 0) this._networkAnimationComponent.startAnimation("Celebration", {loop: true, smoothTransition: true});
+                const random: number = Utils.randomInt(0, 3);
+                if (random !== 3) this._networkAnimationComponent.startAnimation("Celebration", {loop: true, smoothTransition: true});
                 else this._networkAnimationComponent.startAnimation("TakeTheL", {loop: true, smoothTransition: true});
             }
             else {

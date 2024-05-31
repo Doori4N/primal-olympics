@@ -101,7 +101,7 @@ export class TrackAndFieldScene extends Scene {
         const finishLineEntity = new Entity("finishLine");
         const finishBox: B.Mesh = B.MeshBuilder.CreateBox("finishLine", {width: 1, height: 5, depth: 20}, this.babylonScene);
         finishBox.metadata = {tag: finishLineEntity.tag};
-        finishBox.position = new B.Vector3(110, 2.5, 8);
+        finishBox.position = new B.Vector3(125, 2.5, 8);
         finishBox.isVisible = false;
         finishLineEntity.addComponent(new MeshComponent(finishLineEntity, this, {mesh: finishBox}));
         finishLineEntity.addComponent(new RigidBodyComponent(finishLineEntity, this, {
@@ -113,7 +113,7 @@ export class TrackAndFieldScene extends Scene {
 
         const finishLine = B.MeshBuilder.CreateCylinder("finishLine", {diameter: 0.3, height: 15}, this.babylonScene);
         finishLine.rotate(B.Axis.X, Math.PI / 2, B.Space.WORLD);
-        finishLine.position = new B.Vector3(110, 0.3, 7.5);
+        finishLine.position = new B.Vector3(125, 0.3, 7.5);
         const finishLineMaterial = new B.StandardMaterial("finishLineMaterial", this.babylonScene);
         finishLineMaterial.diffuseColor = new B.Color3(0, 1, 0);
         finishLine.material = finishLineMaterial;

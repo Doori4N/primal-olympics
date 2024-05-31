@@ -34,8 +34,8 @@ export class PlayerBehaviour implements IComponent {
     public hasFinished: boolean = false;
 
     // movement
-    private _speed: number = 140 / 1000;
-    private _maxSpeed: number = 12000 / 1000;
+    private _speed: number = 165 / 1000;
+    private _maxSpeed: number = 14000 / 1000;
     public velocity: B.Vector3 = B.Vector3.Zero();
     private _slowDownSpeed: number = 25 / 1000;
 

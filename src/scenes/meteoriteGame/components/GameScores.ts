@@ -135,7 +135,7 @@ export class GameScores implements IComponent {
 
             // player score text
             const playerScoreText = new GUI.TextBlock();
-            playerScoreText.text = `${120 - this._scores[position].score}s`;
+            playerScoreText.text = `${this._getPlayerPositionText(position)}`;
             playerScoreText.color = "#ff2222";
             playerScoreText.fontSize = 25;
             playerScoreText.outlineColor = "black";
@@ -183,5 +183,18 @@ export class GameScores implements IComponent {
 
     private _updatePlayersClientRpc(args: {players: PlayerData[]}): void {
         this._networkInstance.players = args.players;
+    }
+
+    private _getPlayerPositionText(position: number): string {
+        switch (position) {
+            case 0:
+                return "1st";
+            case 1:
+                return "2nd";
+            case 2:
+                return "3rd";
+            default:
+                return `${position + 1}th`;
+        }
     }
 }
