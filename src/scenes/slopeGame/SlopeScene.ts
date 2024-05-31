@@ -333,7 +333,7 @@ export class SlopeScene extends Scene {
                 <li>Dodge stones and logs falling from the hill to survive</li>
             </ul>
         `;
-        const imgSrc: string = "";
+        const imgSrc: string = "slope-presentation.png";
         let commands: Commands[];
         if (this.game.inputManager.inputStates.type === InputType.GAMEPAD) {
             commands = [
