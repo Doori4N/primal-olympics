@@ -160,6 +160,9 @@ export class GameScores implements IComponent {
     }
 
     private _addPlayerScore(playerData: PlayerData, distance: number): void {
+        // check if player already has a score
+        if (this._scores.some((score): boolean => score.playerData.id === playerData.id)) return;
+
         let isSplice: boolean = false;
         for (let i: number = 0; i < this._scores.length; i++) {
             if (this._scores[i].distance < distance) {
