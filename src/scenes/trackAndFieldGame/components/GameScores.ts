@@ -82,6 +82,8 @@ export class GameScores implements IComponent {
 
         // check if all players have finished
         if (this._scores.length === this._networkInstance.players.length) {
+            this._scores.reverse();
+
             // set positions
             this._scores.forEach((score, index): void => {
                 score.position = index + 1;
@@ -111,8 +113,6 @@ export class GameScores implements IComponent {
     }
 
     private _displayEventScores(): void {
-        this._scores.reverse();
-
         this._gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene.babylonScene);
         this._displayPlayerScores();
 
