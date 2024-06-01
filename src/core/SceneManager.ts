@@ -11,6 +11,7 @@ import {SlopeScene} from "../scenes/slopeGame/SlopeScene";
 import {CharacterCustomizationScene} from "../scenes/characterCustomization/CharacterCustomizationScene";
 import {TrackAndFieldScene} from "../scenes/trackAndFieldGame/TrackAndFieldScene";
 import {SettingsScene} from "../scenes/settings/SettingsScene";
+import {HurdleDashScene} from "../scenes/hurdleDashGame/HurdleDashScene";
 
 export class SceneManager {
     private static _instance: SceneManager;
@@ -95,6 +96,8 @@ export class SceneManager {
                 return new SlopeScene();
             case "track-and-field":
                 return new TrackAndFieldScene();
+            case "hurdle-dash":
+                return new HurdleDashScene();
             default:
                 throw new Error("Scene not found");
         }
