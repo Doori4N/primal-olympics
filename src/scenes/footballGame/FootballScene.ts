@@ -69,7 +69,7 @@ export class FootballScene extends Scene {
                 if (playerData.id === this.game.networkInstance.playerId) return Promise.resolve();
 
                 return new Promise<void>((resolve): void => {
-                    this.game.networkInstance.addEventListener("onPlayerReady", resolve);
+                    this.game.networkInstance.addEventListener(`onPlayerReady${playerData.id}`, resolve);
                 });
             });
             await Promise.all(playerReadyPromises);
@@ -153,7 +153,7 @@ export class FootballScene extends Scene {
         if (!this.game.networkInstance.isHost) {
             // tell the host that the player is ready
             const networkClient = this.game.networkInstance as NetworkClient;
-            networkClient.sendToHost("onPlayerReady");
+            networkClient.sendToHost(`onPlayerReady${this.game.networkInstance.playerId}`);
         }
         // HOST
         else {
@@ -171,7 +171,9 @@ export class FootballScene extends Scene {
         }
         // HOST
         else {
-            this.game.networkInstance.removeAllEventListeners("onPlayerReady");
+            this.game.networkInstance.players.forEach((playerData: PlayerData): void => {
+                this.game.networkInstance.removeAllEventListeners(`onPlayerReady${playerData.id}`);
+            });
         }
 
         super.destroy();
