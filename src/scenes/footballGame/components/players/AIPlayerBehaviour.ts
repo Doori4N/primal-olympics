@@ -447,9 +447,9 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         const grid: number[][] = [];
 
         // init grid
-        for (let i: number = 0; i < PITCH_WIDTH; i++) {
+        for (let i: number = 0; i < 100; i++) {
             grid[i] = [];
-            for (let j: number = 0; j < PITCH_HEIGHT; j++) {
+            for (let j: number = 0; j < 100; j++) {
                 grid[i][j] = 0;
             }
         }
@@ -458,8 +458,8 @@ export class AIPlayerBehaviour extends AbstractPlayerBehaviour {
         players.push(...this.scene.entityManager.getEntitiesByTag("aiPlayer"));
 
         // offset to remove negative indexes
-        const offsetX: number = PITCH_WIDTH / 2;
-        const offsetY: number = PITCH_HEIGHT / 2;
+        const offsetX: number = 50;
+        const offsetY: number = 50;
 
         const neighbors: number[][] = [
             [1, 0],

@@ -184,7 +184,7 @@ export class GameScores implements IComponent {
             case 3:
                 return "3rd";
             default:
-                return `${position + 1}th`;
+                return `${position}th`;
         }
     }
 }
